@@ -1,6 +1,15 @@
 # DECISIONS.md
 (Record every technical decision: date · decision · reason · alternative rejected.)
 
+## 2026-10-26 Signed-Cookie Sessions Instead of Auth.js (M1-T3a)
+- **Decision**: Implemented custom signed-cookie sessions using Node built-in `crypto` (HMAC-SHA256) rather than Auth.js (next-auth).
+  - Token format: `base64url(JSON payload)` + `.` + `base64url(HMAC-SHA256 signature)`.
+  - Session duration: **8 hours** (SESSION_DURATION_MS = 28 800 000 ms). ASSUMPTION-3: assumed reasonable session length for university staff; to be confirmed.
+  - No login lockout in the prototype — lockout logic is a server-side rate-limit concern deferred to the production system.
+  - `authenticate()` always runs `verifyPassword` even when the email is not found to prevent timing attacks that would reveal whether an email exists.
+- **Reason**: Auth.js adds ~80 kB of dependency surface, requires adapter config, and hides the session model behind abstractions. A custom 120-line implementation is auditable, requires zero new packages, and satisfies the prototype's "no external dependencies" rule (AGENTS.md §2).
+- **Alternative rejected**: Auth.js credentials provider — rejected to avoid new dependency and opaque session management.
+
 ## 2026-10-26 Planted Conflicts Refined to Single-Violation (M1-T2b)
 - **Decision**: Corrected planted timetable entries in `src/domain/seedData.ts` and enhanced seed integrity tests in `src/domain/__tests__/seed-check.test.ts`:
   - Shifted Lecturer A's unavailability row `la-A-1` from MON 08:00-10:00 to MON 15:00-17:00 so `entry-planted-venue-1` (MON 08:00-09:00) isolates only the venue overlap and carries no lecturer unavailability violation.

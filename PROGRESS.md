@@ -7,6 +7,13 @@
 - Demo-ready: no
 
 ## Log
+## 2026-10-26 M1-T3a Signed Session Tokens and Auth Helpers
+- Done: Implemented pure createSessionToken/verifySessionToken (HMAC-SHA256, base64url, Zod validation), 14 unit tests, shared PrismaClient (globalThis hot-reload pattern), and server auth helpers (getSessionSecret, startSession, endSession, getCurrentUser, authenticate). Updated .env.example with SESSION_SECRET.
+- Files changed: src/server/session.ts, src/server/__tests__/session.test.ts, src/server/db.ts, src/server/auth.ts, .env.example, PROGRESS.md, DECISIONS.md
+- Verify: PASS (typecheck: 0 errors; lint: 0 warnings/errors; vitest: 43 tests passed across 5 files; seed:check: 9 tests passed)
+- Decisions: Signed-cookie sessions (custom HMAC) instead of Auth.js — see DECISIONS.md; no login lockout in prototype; 8-hour sessions (SESSION_DURATION_MS).
+- Known problems: No login page yet (M1-T3b or later). getCurrentUser and authenticate not directly unit-testable without DB mock — covered by integration tests later.
+- Next suggested task: M1-T3b (login/logout page and route handler)
 ## 2026-10-26 M1-T2b Refine Planted Conflicts to Single-Violation
 - Done: Corrected planted seed conflicts to isolate single violation types, added production seed guard, and expanded seed-check assertions with pure time overlap validation.
 - Files changed: src/domain/seedData.ts, prisma/seed.ts, src/domain/__tests__/seed-check.test.ts, DECISIONS.md, PROGRESS.md
