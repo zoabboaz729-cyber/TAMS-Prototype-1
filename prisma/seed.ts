@@ -19,6 +19,13 @@ import {
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.NODE_ENV === "production") {
+    console.error(
+      "Seeding is disabled in production environment. Aborting without modifying database."
+    );
+    process.exit(1);
+  }
+
   // Load .env if DEMO_PASSWORD is not already present in environment
   if (!process.env.DEMO_PASSWORD && typeof process.loadEnvFile === "function") {
     try {

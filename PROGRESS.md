@@ -3,10 +3,17 @@
 
 ## Status
 - Current milestone: M1
-- Last verified commit: M1-T2
+- Last verified commit: M1-T2b
 - Demo-ready: no
 
 ## Log
+## 2026-10-26 M1-T2b Refine Planted Conflicts to Single-Violation
+- Done: Corrected planted seed conflicts to isolate single violation types, added production seed guard, and expanded seed-check assertions with pure time overlap validation.
+- Files changed: src/domain/seedData.ts, prisma/seed.ts, src/domain/__tests__/seed-check.test.ts, DECISIONS.md, PROGRESS.md
+- Verify: PASS (typecheck: 0 errors; lint: 0 warnings/errors; vitest: 29 tests passed; seed:check: 9 tests passed; seed run twice idempotent)
+- Decisions: Shifted Lecturer A's unavailability away from MON 08:00-09:00 to MON 15:00-17:00; moved entry-planted-lecturer-2 to CR1 (capacity 60) to eliminate capacity shortage while keeping lecturer clash; added NODE_ENV=production guard to seed.ts.
+- Known problems: Auth sessions and role guard helpers not yet implemented (scheduled for M1-T3).
+- Next suggested task: M1-T3
 ## 2026-10-26 M1-T2 Deterministic Seed Data and Password Hashing
 - Done: Created deterministic pure seed data conforming to spec §10, implemented scrypt password hashing and verification with timingSafeEqual, added idempotent prisma/seed.ts script, and comprehensive seed-check assertions.
 - Files changed: package.json, .env.example, src/server/password.ts, src/server/__tests__/password.test.ts, src/domain/seedData.ts, prisma/seed.ts, src/domain/__tests__/seed-check.test.ts, DECISIONS.md, PROGRESS.md

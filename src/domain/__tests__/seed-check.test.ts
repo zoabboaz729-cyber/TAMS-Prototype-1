@@ -15,6 +15,11 @@ import {
   seedTimetableEntries,
 } from "../seedData";
 
+// Pure time overlap helper: two ranges overlap when start1 < end2 and start2 < end1
+function timesOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
+  return start1 < end2 && start2 < end1;
+}
+
 describe("Seed Integrity Check (seedData.ts pure assertions)", () => {
   it("satisfies required entity counts", () => {
     // 9 venues, 3 departments, 6 lecturers, 3 groups
@@ -195,5 +200,92 @@ describe("Seed Integrity Check (seedData.ts pure assertions)", () => {
     const unownedVenues = seedVenues.filter((v) => v.ownerDepartmentId === null);
     expect(unownedVenues).toHaveLength(2);
     expect(new Set(unownedVenues.map((v) => v.code))).toEqual(new Set(["GR1", "GR2"]));
+  });
+
+  it("ensures venue capacity and venue type requirements are satisfied for every timetable entry", () => {
+    const venueMap = new Map(seedVenues.map((v) => [v.id, v]));
+    const teachingMap = new Map(seedTeachings.map((t) => [t.id, t]));
+    const unitMap = new Map(seedUnits.map((u) => [u.id, u]));
+
+    for (const entry of seedTimetableEntries) {
+      const venue = venueMap.get(entry.venueId);
+      const teaching = teachingMap.get(entry.teachingId);
+      expect(venue).toBeDefined();
+      expect(teaching).toBeDefined();
+
+      const unit = unitMap.get(teaching!.unitId);
+      expect(unit).toBeDefined();
+
+      // a. For EVERY timetable entry, the venue capacity is at least the teaching's expectedSize
+      expect(venue!.capacity).toBeGreaterThanOrEqual(teaching!.expectedSize);
+      // b. For EVERY entry, the venue's type satisfies the unit's venueTypeRequired
+      expect(venue!.type).toBe(unit!.venueTypeRequired);
+    }
+  });
+
+  it("ensures no timetable entry overlaps lecturer or venue unavailabilities", () => {
+    const teachingMap = new Map(seedTeachings.map((t) => [t.id, t]));
+
+    // c. For EVERY entry, lecturer has no unavailable period overlapping it, and venue has no unavailable period overlapping it
+    for (const entry of seedTimetableEntries) {
+      const teaching = teachingMap.get(entry.teachingId)!;
+
+      const lecturerUnavailabilities = seedLecturerAvailabilities.filter(
+        (la) => la.lecturerId === teaching.lecturerId && !la.available && la.day === entry.day
+      );
+      for (const la of lecturerUnavailabilities) {
+        expect(timesOverlap(entry.start, entry.end, la.start, la.end)).toBe(false);
+      }
+
+      const venueUnavailabilities = seedVenueUnavailabilities.filter(
+        (vu) => vu.venueId === entry.venueId && vu.day === entry.day
+      );
+      for (const vu of venueUnavailabilities) {
+        expect(timesOverlap(entry.start, entry.end, vu.start, vu.end)).toBe(false);
+      }
+    }
+  });
+
+  it("verifies planted overlap pairs and ensures no other time overlaps exist", () => {
+    // d. Across the 10 entries, exactly these overlap pairs exist and no others:
+    // (entry-planted-venue-1, entry-planted-venue-2) in the same venue,
+    // (entry-planted-lecturer-1, entry-planted-lecturer-2) with the same lecturer.
+    // No two entries for the same student group overlap in time.
+    expect(seedTimetableEntries).toHaveLength(10);
+    const teachingMap = new Map(seedTeachings.map((t) => [t.id, t]));
+    const venueOverlapPairs: [string, string][] = [];
+    const lecturerOverlapPairs: [string, string][] = [];
+    const groupOverlapPairs: [string, string][] = [];
+    const allTimeOverlapPairs: [string, string][] = [];
+
+    for (let i = 0; i < seedTimetableEntries.length; i++) {
+      for (let j = i + 1; j < seedTimetableEntries.length; j++) {
+        const e1 = seedTimetableEntries[i];
+        const e2 = seedTimetableEntries[j];
+        if (e1.day === e2.day && timesOverlap(e1.start, e1.end, e2.start, e2.end)) {
+          allTimeOverlapPairs.push([e1.id, e2.id]);
+          const t1 = teachingMap.get(e1.teachingId)!;
+          const t2 = teachingMap.get(e2.teachingId)!;
+
+          if (e1.venueId === e2.venueId) {
+            venueOverlapPairs.push([e1.id, e2.id]);
+          }
+          if (t1.lecturerId === t2.lecturerId) {
+            lecturerOverlapPairs.push([e1.id, e2.id]);
+          }
+          if (t1.groupId === t2.groupId) {
+            groupOverlapPairs.push([e1.id, e2.id]);
+          }
+        }
+      }
+    }
+
+    expect(venueOverlapPairs).toEqual([["entry-planted-venue-1", "entry-planted-venue-2"]]);
+    expect(lecturerOverlapPairs).toEqual([["entry-planted-lecturer-1", "entry-planted-lecturer-2"]]);
+    expect(groupOverlapPairs).toEqual([]);
+    expect(allTimeOverlapPairs).toEqual([
+      ["entry-planted-venue-1", "entry-planted-venue-2"],
+      ["entry-planted-lecturer-1", "entry-planted-lecturer-2"],
+    ]);
   });
 });

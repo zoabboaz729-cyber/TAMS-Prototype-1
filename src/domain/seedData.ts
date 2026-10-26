@@ -176,7 +176,7 @@ export const seedLecturers: SeedLecturer[] = [
 ];
 
 export const seedLecturerAvailabilities: SeedLecturerAvailability[] = [
-  { id: "la-A-1", lecturerId: "lecturer-A", day: "MON", start: "08:00", end: "10:00", available: false },
+  { id: "la-A-1", lecturerId: "lecturer-A", day: "MON", start: "15:00", end: "17:00", available: false },
   { id: "la-B-1", lecturerId: "lecturer-B", day: "FRI", start: "14:00", end: "17:00", available: false },
   { id: "la-C-1", lecturerId: "lecturer-C", day: "TUE", start: "08:00", end: "09:00", available: false },
   { id: "la-E-1", lecturerId: "lecturer-E", day: "WED", start: "14:00", end: "17:00", available: false },
@@ -275,7 +275,7 @@ export const seedTimetableEntries: SeedTimetableEntry[] = [
   { id: "entry-planted-venue-2", versionId: "ver-s1-planted", teachingId: "teach-SE-Y1-SE101", venueId: "venue-CR1", day: "MON", start: "08:00", end: "09:00", locked: false },
   // Planted Lecturer Clash: Lecturer A, TUE 10:00-11:00
   { id: "entry-planted-lecturer-1", versionId: "ver-s1-planted", teachingId: "teach-SE-Y4-SOEN412", venueId: "venue-CR2", day: "TUE", start: "10:00", end: "11:00", locked: false },
-  { id: "entry-planted-lecturer-2", versionId: "ver-s1-planted", teachingId: "teach-CS-Y2-CS201", venueId: "venue-CR3", day: "TUE", start: "10:00", end: "11:00", locked: false },
+  { id: "entry-planted-lecturer-2", versionId: "ver-s1-planted", teachingId: "teach-CS-Y2-CS201", venueId: "venue-CR1", day: "TUE", start: "10:00", end: "11:00", locked: false },
   // 6 Clean entries violating no hard or soft constraints
   { id: "entry-clean-1", versionId: "ver-s1-planted", teachingId: "teach-SE-Y4-SOEN415", venueId: "venue-CR1", day: "WED", start: "09:00", end: "10:00", locked: false },
   { id: "entry-clean-2", versionId: "ver-s1-planted", teachingId: "teach-SE-Y4-SOEN410", venueId: "venue-CR1", day: "THU", start: "10:00", end: "11:00", locked: false },
