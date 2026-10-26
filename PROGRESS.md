@@ -7,6 +7,13 @@
 - Demo-ready: no
 
 ## Log
+## 2026-10-26 M1-T3b Login Page, Logout, and User Bar
+- Done: Created /login page (email+password form, Zod error codes, redirect if already authenticated), POST /api/auth/login route (Zod validation, config-failure vs. auth-failure distinction, calls authenticate() then startSession() only on success, same-origin redirect only), POST /api/auth/logout route (calls endSession(), redirects to /login), and server-rendered user bar in root layout using getCurrentUser() — user name and role from DB, sign-out POST form.
+- Files changed: src/app/login/page.tsx, src/app/api/auth/login/route.ts, src/app/api/auth/logout/route.ts, src/app/layout.tsx, PROGRESS.md
+- Verify: PASS (typecheck: 0 errors; lint: 0 warnings/errors; vitest: 43 tests passed across 5 files; seed:check: 9 tests passed)
+- Decisions: Error codes in query param are allowlisted (`invalid_credentials`, `config`, `bad_request`); arbitrary query text is never rendered. Config failures (SESSION_SECRET missing/short) redirect to `/login?e=config` rather than `/login?e=invalid_credentials` so operators can distinguish a broken deployment from a user typo. Logout is POST-only to prevent CSRF-style sign-out via a link. Used `<Link>` from next/link for internal navigation to pass ESLint `@next/next/no-html-link-for-pages` rule.
+- Known problems: Route handlers POST /api/auth/login and POST /api/auth/logout use Next.js cookies() which requires the DB and SESSION_SECRET to be present; unit tests for route handlers cannot be added within the 5-file limit (route handlers depend on next/server mocks not available in vitest without extra setup). Manual verification steps are documented in the task report artifact.
+- Next suggested task: M1-T3c (role-based home pages and route guard helper)
 ## 2026-10-26 M1-T3a Signed Session Tokens and Auth Helpers
 - Done: Implemented pure createSessionToken/verifySessionToken (HMAC-SHA256, base64url, Zod validation), 14 unit tests, shared PrismaClient (globalThis hot-reload pattern), and server auth helpers (getSessionSecret, startSession, endSession, getCurrentUser, authenticate). Updated .env.example with SESSION_SECRET.
 - Files changed: src/server/session.ts, src/server/__tests__/session.test.ts, src/server/db.ts, src/server/auth.ts, .env.example, PROGRESS.md, DECISIONS.md
