@@ -10,7 +10,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "seed:check": "vitest run src/domain/__tests__/seed-check.test.ts",
+    "seed": "tsx prisma/seed.ts",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run seed:check"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
@@ -29,6 +33,7 @@
     "postcss": "^8.5.3",
     "prisma": "^6.4.1",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.3",
     "vitest": "^3.0.7"
   }
