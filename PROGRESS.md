@@ -3,7 +3,7 @@
 
 ## Status
 - Current milestone: M1
-- Last verified commit: M1-T2b
+- Last verified commit: M1-T3a
 - Demo-ready: no
 
 ## Log
