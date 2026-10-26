@@ -10,12 +10,338 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Initial placeholder model for M0 foundation verification
-// Full domain model is added in M1-T1 per spec §6
-model SystemMeta {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  value     String
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  passwordHash String
+  role         String      // ADMIN | OFFICER | DEPT_REP | APPROVER | LECTURER | STUDENT
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  // Relations
+  lecturer            Lecturer?
+  reviewedSubmissions Submission[]        @relation("SubmissionReviewer")
+  createdVersions     TimetableVersion[]  @relation("VersionCreator")
+  openedSessions      AttendanceSession[] @relation("SessionOpener")
+  attendanceRecords   AttendanceRecord[]  @relation("StudentAttendance")
+  auditLogs           AuditLog[]          @relation("UserAuditLogs")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([departmentId])
+  @@index([role])
+}
+
+model Department {
+  id       String @id @default(cuid())
+  name     String @unique
+  schoolId String
+
+  // Relations
+  users         User[]
+  venues        Venue[]
+  lecturers     Lecturer[]
+  studentGroups StudentGroup[]
+  units         Unit[]
+  submissions   Submission[]
+  issues        Issue[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+}
+
+model Venue {
+  id                String      @id @default(cuid())
+  code              String      @unique
+  type              String      // HALL | ROOM | LAB
+  capacity          Int
+  ownerDepartmentId String?
+  ownerDepartment   Department? @relation(fields: [ownerDepartmentId], references: [id])
+  facilities        String      @default("[]") // JSON string: string[]
+  status            String      @default("ACTIVE") // ACTIVE | INACTIVE | MAINTENANCE
+
+  // Relations
+  unavailabilities VenueUnavailable[]
+  timetableEntries TimetableEntry[]
+  issues           Issue[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerDepartmentId])
+  @@index([type])
+  @@index([status])
+}
+
+model VenueUnavailable {
+  id        String   @id @default(cuid())
+  venueId   String
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  day       String   // MON | TUE | WED | THU | FRI
+  start     String   // e.g. "08:00"
+  end       String   // e.g. "10:00"
+  reason    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([venueId])
+  @@index([day])
+}
+
+model Lecturer {
+  id           String     @id @default(cuid())
+  userId       String     @unique
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  // Relations
+  availabilities LecturerAvailability[]
+  teachings      Teaching[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([departmentId])
+}
+
+model LecturerAvailability {
+  id         String   @id @default(cuid())
+  lecturerId String
+  lecturer   Lecturer @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+  day        String   // MON | TUE | WED | THU | FRI
+  start      String   // e.g. "08:00"
+  end        String   // e.g. "12:00"
+  available  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lecturerId])
+  @@index([day])
+}
+
+model StudentGroup {
+  id           String     @id @default(cuid())
+  name         String     @unique
+  size         Int
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  // Relations
+  teachings Teaching[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([departmentId])
+}
+
+model Unit {
+  id                String     @id @default(cuid())
+  code              String     @unique
+  title             String
+  departmentId      String
+  department        Department @relation(fields: [departmentId], references: [id])
+  semester          Int
+  hoursPerWeek      Int
+  venueTypeRequired String     // HALL | ROOM | LAB
+  scheduled         Boolean    @default(true)
+
+  // Relations
+  teachings Teaching[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([departmentId])
+  @@index([semester])
+  @@index([venueTypeRequired])
+}
+
+model Teaching {
+  id              String       @id @default(cuid())
+  unitId          String
+  unit            Unit         @relation(fields: [unitId], references: [id])
+  lecturerId      String
+  lecturer        Lecturer     @relation(fields: [lecturerId], references: [id])
+  groupId         String
+  group           StudentGroup @relation(fields: [groupId], references: [id])
+  expectedSize    Int
+  sessionsPerWeek Int
+  sessionLength   Int
+
+  // Relations
+  timetableEntries TimetableEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([unitId])
+  @@index([lecturerId])
+  @@index([groupId])
+}
+
+model Submission {
+  id           String     @id @default(cuid())
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  status       String     @default("DRAFT") // DRAFT | SUBMITTED | RETURNED | APPROVED
+  reviewerId   String?
+  reviewer     User?      @relation("SubmissionReviewer", fields: [reviewerId], references: [id])
+  note         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([departmentId])
+  @@index([reviewerId])
+  @@index([status])
+}
+
+model TimetableVersion {
+  id          String    @id @default(cuid())
+  semester    Int
+  status      String    @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  createdBy   String
+  creator     User      @relation("VersionCreator", fields: [createdBy], references: [id])
+  publishedAt DateTime?
+
+  // Relations
+  entries TimetableEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([semester])
+  @@index([status])
+  @@index([createdBy])
+}
+
+model TimetableEntry {
+  id         String           @id @default(cuid())
+  versionId  String
+  version    TimetableVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  teachingId String
+  teaching   Teaching         @relation(fields: [teachingId], references: [id])
+  venueId    String
+  venue      Venue            @relation(fields: [venueId], references: [id])
+  day        String           // MON | TUE | WED | THU | FRI
+  start      String           // e.g. "08:00"
+  end        String           // e.g. "10:00"
+  locked     Boolean          @default(false)
+
+  // Relations
+  rescheduleRequests RescheduleRequest[]
+  attendanceSessions AttendanceSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([versionId])
+  @@index([teachingId])
+  @@index([venueId])
+  @@index([day])
+}
+
+model RescheduleRequest {
+  id            String         @id @default(cuid())
+  entryId       String
+  entry         TimetableEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  proposedDay   String
+  proposedStart String
+  proposedEnd   String
+  status        String         @default("PENDING") // PENDING | APPROVED | REJECTED | CANCELLED
+  reason        String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entryId])
+  @@index([status])
+}
+
+model Issue {
+  id           String     @id @default(cuid())
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  venueId      String?
+  venue        Venue?     @relation(fields: [venueId], references: [id])
+  text         String
+  status       String     @default("OPEN") // OPEN | IN_PROGRESS | RESOLVED | CLOSED
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([departmentId])
+  @@index([venueId])
+  @@index([status])
+}
+
+model AttendanceSession {
+  id        String         @id @default(cuid())
+  entryId   String
+  entry     TimetableEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  openedBy  String
+  opener    User           @relation("SessionOpener", fields: [openedBy], references: [id])
+  opensAt   DateTime
+  closesAt  DateTime
+  scanFrom  DateTime
+  mode      String         @default("STATIC") // STATIC | ROTATING
+  status    String         @default("OPEN")   // OPEN | CLOSED | CANCELLED
+
+  // Relations
+  records AttendanceRecord[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entryId])
+  @@index([openedBy])
+  @@index([status])
+}
+
+model AttendanceRecord {
+  id         String            @id @default(cuid())
+  sessionId  String
+  session    AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  studentId  String
+  student    User              @relation("StudentAttendance", fields: [studentId], references: [id])
+  recordedAt DateTime          @default(now())
+  deviceId   String?
+
+  @@unique([sessionId, studentId])
+  @@index([sessionId])
+  @@index([studentId])
+}
+
+model AuditLog {
+  id       String   @id @default(cuid())
+  actorId  String?
+  actor    User?    @relation("UserAuditLogs", fields: [actorId], references: [id])
+  action   String
+  entity   String
+  entityId String
+  at       DateTime @default(now())
+  reason   String?
+
+  @@index([actorId])
+  @@index([entity, entityId])
+  @@index([at])
+}
+
+model AssumptionFeedback {
+  id            String   @id @default(cuid())
+  assumptionKey String
+  verdict       String   // CONFIRM | REJECT | MODIFY
+  note          String?
+  at            DateTime @default(now())
+
+  @@index([assumptionKey])
+  @@index([verdict])
 }
