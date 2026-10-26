@@ -3,10 +3,18 @@
 
 ## Status
 - Current milestone: M1
-- Last verified commit: M1-T1
+- Last verified commit: M1-T1b
 - Demo-ready: no
 
 ## Log
+## 2026-10-26 M1-T1b Domain Model Field & Relation Patches
+- Done: Added studentGroupId to User with StudentGroup relation, reportedBy to Issue, requestedBy and decisionNote to RescheduleRequest, semester to Submission; added Day and TimeHHMM schemas with isStartBeforeEnd helper and comprehensive boundary tests.
+- Files changed: prisma/schema.prisma, src/domain/types.ts, src/domain/__tests__/types.test.ts, PROTOTYPE_SPEC.md, DECISIONS.md, PROGRESS.md
+- Verify: PASS (typecheck: 0 errors; lint: 0 warnings/errors; vitest: 17 tests passed; seed:check: 1 test passed)
+- Decisions: Added relations with explicit indexes to support student attendance eligibility, role-based issue tracking, and reschedule workflows; added TimeHHMMSchema with strict 24-hour HH:MM validation and pure start-before-end comparator.
+- Known problems: Seed script not yet written (scheduled for M1-T2).
+- Next suggested task: M1-T2
+
 ## 2026-10-26 M1-T1 Domain Model Schema & Types
 - Done: Replaced SystemMeta with full domain model Prisma schema, created domain_model migration, created src/domain/types.ts with Zod schemas and facilities JSON helpers, and added unit tests.
 - Files changed: prisma/schema.prisma, src/domain/types.ts, src/domain/__tests__/types.test.ts, PROGRESS.md, DECISIONS.md

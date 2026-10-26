@@ -86,9 +86,33 @@ export const AssumptionVerdictSchema = z.enum(ASSUMPTION_VERDICTS);
 export type AssumptionVerdict = z.infer<typeof AssumptionVerdictSchema>;
 
 // Days of week per PROTOTYPE_SPEC §7 (Mon-Fri)
-export const DAYS_OF_WEEK = ["MON", "TUE", "WED", "THU", "FRI"] as const;
-export const DayOfWeekSchema = z.enum(DAYS_OF_WEEK);
-export type DayOfWeek = z.infer<typeof DayOfWeekSchema>;
+export const DAYS = ["MON", "TUE", "WED", "THU", "FRI"] as const;
+export const DaySchema = z.enum(DAYS);
+export type Day = z.infer<typeof DaySchema>;
+
+// Aliases for backwards compatibility
+export const DAYS_OF_WEEK = DAYS;
+export const DayOfWeekSchema = DaySchema;
+export type DayOfWeek = Day;
+
+// Time in HH:MM 24-hour format
+export const TIME_HHMM_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
+export const TimeHHMMSchema = z
+  .string()
+  .regex(TIME_HHMM_REGEX, "Invalid time format, expected HH:MM (00:00 - 23:59)");
+export type TimeHHMM = z.infer<typeof TimeHHMMSchema>;
+
+/**
+ * Checks if start time is strictly before end time in HH:MM format.
+ * Returns false if either time string does not match HH:MM format or if start >= end.
+ */
+export function isStartBeforeEnd(start: string, end: string): boolean {
+  if (!TIME_HHMM_REGEX.test(start) || !TIME_HHMM_REGEX.test(end)) {
+    return false;
+  }
+  return start < end;
+}
+export const isTimeBefore = isStartBeforeEnd;
 
 /**
  * SQLite helper to serialize and parse list fields such as Venue.facilities per PROTOTYPE_SPEC §4.
