@@ -40,6 +40,11 @@
 - **Reason**: Complies with prototype SQLite constraints (spec §4: no Prisma enums and no scalar lists in SQLite) and ensures seamless migration to PostgreSQL in M9-T1 without database-specific syntax lock-in.
 - **Alternative rejected**: Prisma unsupported scalar lists or enum types; storing unvalidated string values directly without domain Zod schemas.
 
+## 2026-10-29 Stateless signed-cookie revocation (M1-T3b2)
+- **Decision**: Signed stateless session cookies cannot be revoked before they expire; logout (`endSession()`) only deletes the cookie from the client. Accepted for the prototype; to be revisited with a server-side session table at M9.
+- **Reason**: The prototype has no session store, so deleting the cookie is the only revocation mechanism available without a database lookup on every request. Acknowledged limitation: a stolen cookie stays valid until expiry (8 hours, `SESSION_DURATION_MS`).
+- **Alternative rejected**: Server-side session table with revocation checks — deferred to M9-T1 (PostgreSQL switch).
+
 ## 2026-10-26 Linter Tooling (M0-T2)
 - **Decision**: next lint is deprecated in Next.js 16; staying on ESLint via next lint for the prototype.
 - **Reason**: Standard Next.js lint runner works cleanly with current config and avoids introducing unnecessary codemod overhead or additional scripts during prototype phase.

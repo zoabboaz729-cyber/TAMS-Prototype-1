@@ -75,3 +75,11 @@
 - Decisions: no test added — the 3-file limit (login page, layout, PROGRESS.md) leaves no slot for a test file, and no source changed since both fixes were already committed.
 - Known problems: none from this task.
 - Next suggested task: M1-T3c (role-based home pages and route guard helper)
+
+## 2026-10-29 M1-T3b2 Harden auth role validation and email normalisation
+- Done: Added src/server/email.ts exporting normaliseEmail() (trim + lowercase) with 4 unit tests; authenticate() now normalises the email before the DB lookup while keeping the dummy verifyPassword() call for unknown users and dropping the wrong (ASSUMPTION-3) tag; getCurrentUser() and authenticate() now validate the role with UserRoleSchema.safeParse instead of `as SafeUser` casts (returning null on invalid role); catch blocks log "[auth] getCurrentUser failed:" / "[auth] authenticate failed:" plus the error message only via console.error, never the token, password, cookie value, or full error object; DECISIONS.md records that signed stateless cookies cannot be revoked before expiry (logout deletes the cookie only; revisit with a session table at M9).
+- Files changed: src/server/email.ts (new), src/server/__tests__/email.test.ts (new), src/server/auth.ts, DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify`: typecheck 0 errors; lint ✔ no ESLint warnings or errors; vitest 47 tests passed across 6 files; seed:check 9 tests passed.
+- Decisions: an invalid role stored for a user is treated as an unknown user (return null); non-Error catch values are stringified safely so no secrets are logged.
+- Known problems: none from this task.
+- Next suggested task: M1-T3c (role-based home pages and route guard helper)

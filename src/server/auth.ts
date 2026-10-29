@@ -4,13 +4,14 @@
  * Must only be imported in Server Components, Route Handlers, and Server Actions.
  */
 import { cookies } from "next/headers";
-import { UserRole } from "@/domain/types";
+import { UserRole, UserRoleSchema } from "@/domain/types";
 import {
   createSessionToken,
   verifySessionToken,
   SESSION_DURATION_MS,
 } from "@/server/session";
 import { verifyPassword } from "@/server/password";
+import { normaliseEmail } from "./email";
 import { prisma } from "@/server/db";
 
 // ---------------------------------------------------------------------------
@@ -117,9 +118,14 @@ export async function getCurrentUser(): Promise<SafeUser | null> {
     });
     if (!user) return null;
 
-    // Cast role — it is stored as string in SQLite and validated by Zod in verifySessionToken
-    return user as SafeUser;
-  } catch {
+    const roleResult = UserRoleSchema.safeParse(user.role);
+    if (!roleResult.success) return null;
+    return { ...user, role: roleResult.data };
+  } catch (error) {
+    console.error(
+      "[auth] getCurrentUser failed:",
+      error instanceof Error ? error.message : String(error)
+    );
     return null;
   }
 }
@@ -138,14 +144,15 @@ export async function authenticate(
   password: string
 ): Promise<SafeUser | null> {
   try {
+    const normalisedEmail = normaliseEmail(email);
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalisedEmail },
       select: { ...USER_SELECT, passwordHash: true },
     });
 
     if (!user) {
       // Always run verifyPassword to prevent timing attacks that reveal
-      // whether an email exists in the database (ASSUMPTION-3).
+      // whether an email exists in the database.
       await verifyPassword(password, "scrypt$dummy$dummy");
       return null;
     }
@@ -155,8 +162,14 @@ export async function authenticate(
 
     // Return user without the hash
     const { passwordHash: _omit, ...safeUser } = user;
-    return safeUser as SafeUser;
-  } catch {
+    const roleResult = UserRoleSchema.safeParse(safeUser.role);
+    if (!roleResult.success) return null;
+    return { ...safeUser, role: roleResult.data };
+  } catch (error) {
+    console.error(
+      "[auth] authenticate failed:",
+      error instanceof Error ? error.message : String(error)
+    );
     return null;
   }
 }
