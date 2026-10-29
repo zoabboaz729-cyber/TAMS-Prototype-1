@@ -54,3 +54,9 @@
 - **Decision**: Configured Next.js App Router with TypeScript strict mode, Vitest unit test runner with `@/*` alias, Tailwind CSS, ESLint, and Prisma with SQLite (`dev.db`).
 - **Reason**: Matches the prototype stack specification §4 and repository layout §5. Fast to run locally without Docker for prototype demos.
 - **Alternative rejected**: PostgreSQL with Docker Compose at this stage (rejected per spec §4 and §11 until M9-T1).
+
+## 2026-10-29 Permission matrix (M1-T3c-1)
+- **Decision**: Implemented `src/domain/permissions.ts` with a deny-by-default, scope-based permission matrix per PROTOTYPE_SPEC §8: 17 actions × 6 scopes × 6 roles in one explicit `Record<UserRole, Record<Action, Scope>>` table (`PERMISSION_SCOPE`) with no defaults or fall-through; `permissionScope()` returns NONE for unknown roles/actions cast in at runtime; `canAct()` enforces actor-null → false, NONE → false, ALL → true, and per-scope checks for OWN_DEPARTMENT / OWN_CLASSES / OWN_GROUP / SELF, denying on missing or null required resource fields — never throws; `allowedActions()` lists non-NONE actions for menus.
+- **Reason**: Pure, testable domain logic (AGENTS.md §3) that the server can enforce on every route/action; the Record type makes every cell compile-time accounted for.
+- **Alternative rejected**: Deriving scopes at runtime from role/resource shape; implicit default scopes.
+- **Note**: In the prototype ADMIN is granted only MANAGE_USERS (plus timetable/venue-status viewing); ADMIN does not manage venues, submissions, or timetables.

@@ -83,3 +83,11 @@
 - Decisions: an invalid role stored for a user is treated as an unknown user (return null); non-Error catch values are stringified safely so no secrets are logged.
 - Known problems: none from this task.
 - Next suggested task: M1-T3c (role-based home pages and route guard helper)
+
+## 2026-10-29 M1-T3c-1 Pure permission matrix
+- Done: Added src/domain/permissions.ts (ACTIONS, SCOPES, Action/Scope types, explicit PERMISSION_SCOPE lookup table, permissionScope, Actor, Resource, deny-by-default canAct, allowedActions — pure domain logic per PROTOTYPE_SPEC §8) and src/domain/__tests__/permissions.test.ts (literal 102-cell role × action table, completeness check, canAct allow/deny cases, unknown role/action runtime guards).
+- Files changed: src/domain/permissions.ts (new), src/domain/__tests__/permissions.test.ts (new), PROGRESS.md, DECISIONS.md
+- Verify: PASS — `npm run verify`: typecheck 0 errors; lint no ESLint warnings or errors; vitest 72 tests passed across 7 files (25 new permission tests); seed:check 9 tests passed.
+- Decisions: matrix is deny-by-default and scope-based; Record<UserRole, Record<Action, Scope>> makes the table compile-time complete with no defaults or fall-through; ADMIN only has MANAGE_USERS (plus view rights) in the prototype; unknown roles/actions passed at runtime return NONE/false, never throw.
+- Known problems: none from this task.
+- Next suggested task: M1-T3c route guard helper and role-based menus built with allowedActions()
