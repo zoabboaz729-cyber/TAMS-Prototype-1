@@ -84,6 +84,14 @@
 - Known problems: none from this task.
 - Next suggested task: M1-T3c (role-based home pages and route guard helper)
 
+## 2026-10-29 M1-T3c-2 Access decision and server guards
+- Done: Added src/domain/access.ts (decideAccess: actor null → UNAUTHENTICATED, canAct → ALLOW, else FORBIDDEN; pure, never throws), src/domain/__tests__/access.test.ts (11 tests covering null actor, officer ALLOW, student FORBIDDEN, dept rep own/other/no resource, lecturer own/other class, unknown runtime-cast role), src/server/guards.ts (requireUser, requireAction, authorizeApi; redirect never inside try/catch; JSON bodies contain only the error key), and src/app/forbidden/page.tsx (server page, no requireAction). Updated AGENTS.md (layout not a security boundary; table-driven test file line exemption) and DECISIONS.md (OWN_CLASSES compares User id — pass teaching.lecturer.userId; no middleware due to Edge runtime).
+- Files changed: src/domain/access.ts (new), src/domain/__tests__/access.test.ts (new), src/server/guards.ts (new), src/app/forbidden/page.tsx (new), AGENTS.md, DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify`: typecheck 0 errors; lint ✔ no ESLint warnings or errors; vitest 83 tests passed across 8 files; seed:check 9 tests passed.
+- Decisions: (a) OWN_CLASSES compares `resource.ownerUserId` with `actor.id` (the User id), so callers pass `teaching.lecturer.userId`, not the Lecturer row id; (b) no Next.js middleware — Edge runtime lacks Prisma and Node crypto, so guards run per page/route handler/server action in the Node runtime.
+- Known problems: none from this task; home pages, menus, and demo switcher intentionally not built (M1-T3c-4).
+- Next suggested task: M1-T3c-4 role-based home pages using the new guards.
+
 ## 2026-10-29 M1-T3c-1 Pure permission matrix
 - Done: Added src/domain/permissions.ts (ACTIONS, SCOPES, Action/Scope types, explicit PERMISSION_SCOPE lookup table, permissionScope, Actor, Resource, deny-by-default canAct, allowedActions — pure domain logic per PROTOTYPE_SPEC §8) and src/domain/__tests__/permissions.test.ts (literal 102-cell role × action table, completeness check, canAct allow/deny cases, unknown role/action runtime guards).
 - Files changed: src/domain/permissions.ts (new), src/domain/__tests__/permissions.test.ts (new), PROGRESS.md, DECISIONS.md

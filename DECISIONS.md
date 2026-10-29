@@ -45,6 +45,12 @@
 - **Reason**: The prototype has no session store, so deleting the cookie is the only revocation mechanism available without a database lookup on every request. Acknowledged limitation: a stolen cookie stays valid until expiry (8 hours, `SESSION_DURATION_MS`).
 - **Alternative rejected**: Server-side session table with revocation checks — deferred to M9-T1 (PostgreSQL switch).
 
+## 2026-10-29 Access decision and server guards (M1-T3c-2)
+- **Decision (a)**: The OWN_CLASSES scope compares `resource.ownerUserId` with `actor.id`, where `actor.id` is the `User.id`. Callers must pass `teaching.lecturer.userId` (the `User.id` linked to the Lecturer row via `Lecturer.userId`), not the Lecturer row id, as the resource owner id for OWN_CLASSES actions (OPEN_ATTENDANCE, REQUEST_RESCHEDULE, VIEW_ATTENDANCE_REPORT).
+  - Reason: `canAct()` compares user ids (src/domain/permissions.ts); a Lecturer surrogate id would never match the actor's `User.id`.
+- **Decision (b)**: No Next.js middleware is used for authorization. Middleware runs on the Edge runtime where Prisma and Node crypto are unavailable, so `requireUser`, `requireAction`, and `authorizeApi` (src/server/guards.ts) are called per page / route handler / server action in the Node runtime instead.
+  - Reason: Keeps session verification (database + signed cookies) in the same Node runtime and avoids Edge-runtime failures at request time.
+
 ## 2026-10-26 Linter Tooling (M0-T2)
 - **Decision**: next lint is deprecated in Next.js 16; staying on ESLint via next lint for the prototype.
 - **Reason**: Standard Next.js lint runner works cleanly with current config and avoids introducing unnecessary codemod overhead or additional scripts during prototype phase.

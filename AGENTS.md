@@ -23,6 +23,7 @@ It is NOT the final product. It must be small, correct, runnable at all times, a
 - Do not add dependencies. If you believe one is needed, stop and ask, giving the name, purpose, size, and a no-dependency alternative.
 - Do not change `PROTOTYPE_SPEC.md`, the seed data meaning, or the test expectations unless the task says so.
 - Keep every file under 300 lines. Split by responsibility.
+- Table-driven test files may exceed 300 lines; all other files stay under 300.
 - If something is ambiguous, ask ONE specific question and stop. Do not guess silently.
 - If the same error persists after 3 attempts, STOP. Report: the error, what you tried, your best hypothesis. Do not keep looping.
 
@@ -35,6 +36,7 @@ It is NOT the final product. It must be small, correct, runnable at all times, a
 - Passwords are hashed. QR tokens never contain personal data.
 - Seed data is synthetic. Never add real names, registration numbers, or phone numbers.
 - Every user-facing error must say what went wrong and what to do (e.g. "Room LH1 is already used by SE-Y3 at that time").
+- Layouts do not re-run on client navigation and are NOT a security boundary. Every page, route handler and server action must call requireUser, requireAction or authorizeApi itself.
 
 ## 4. Testing rules
 - Every domain function gets unit tests: at least one normal case, one boundary case, one failure case.
