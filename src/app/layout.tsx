@@ -20,7 +20,7 @@ const ROLE_LABEL: Record<string, string> = {
   ADMIN: "Admin",
   OFFICER: "Timetabling Officer",
   DEPT_REP: "Department Rep",
-  HOD: "Head of Department",
+  APPROVER: "Head of Department",
   LECTURER: "Lecturer",
   STUDENT: "Student",
 };

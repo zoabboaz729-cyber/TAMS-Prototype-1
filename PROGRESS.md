@@ -67,3 +67,11 @@
 - Decisions: Initialized Prisma with SQLite dev.db and a placeholder SystemMeta model until M1-T1; Vitest alias @ mapped to ./src; seed:check stubbed for M1-T2 seed integrity.
 - Known problems: Seed data and full domain models are not yet implemented (scheduled for M1).
 - Next suggested task: M0-T2
+
+## 2026-10-29 M1-T3b-fix Harden login error codes and fix role label
+- Done: Both fixes verified already present at HEAD d07059f (commit "M1-T3b-fix: harden login error codes and fix role label"), so no source edits were required: (1) src/app/login/page.tsx uses `Object.hasOwn(ERROR_MESSAGES, rawCode)` instead of `rawCode in ERROR_MESSAGES` — inherited properties (e.g. "toString"), arrays, and unknown codes are ignored; only invalid_credentials, config, bad_request render messages. tsconfig left unchanged (Object.hasOwn is available with target ES2022; no fallback used). (2) src/app/layout.tsx role label map key changed from HOD to APPROVER, label kept "Head of Department"; all six roles from src/domain/types.ts (ADMIN, OFFICER, DEPT_REP, APPROVER, LECTURER, STUDENT) have labels; role enum unchanged.
+- Files changed: none in src (fixes already committed in d07059f: src/app/login/page.tsx, src/app/layout.tsx); PROGRESS.md updated with this entry only.
+- Verify: PASS — `npm run verify`: typecheck 0 errors; lint ✔ no ESLint warnings or errors; vitest 43 tests passed across 5 files; seed:check 9 tests passed.
+- Decisions: no test added — the 3-file limit (login page, layout, PROGRESS.md) leaves no slot for a test file, and no source changed since both fixes were already committed.
+- Known problems: none from this task.
+- Next suggested task: M1-T3c (role-based home pages and route guard helper)

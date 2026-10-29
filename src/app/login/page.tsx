@@ -35,7 +35,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
   const rawCode = params.e;
   // Accept only a single string value; ignore arrays or unknown codes.
   const errorCode =
-    typeof rawCode === "string" && rawCode in ERROR_MESSAGES ? rawCode : null;
+    typeof rawCode === "string" && Object.hasOwn(ERROR_MESSAGES, rawCode) ? rawCode : null;
   const errorMessage = errorCode ? ERROR_MESSAGES[errorCode] : null;
 
   return (
