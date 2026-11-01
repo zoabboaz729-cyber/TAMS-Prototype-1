@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { decideAccess } from "../access";
+import { decideAccess, decideAnyAccess } from "../access";
 import type { AccessDecision } from "../access";
 import type { Action, Actor, Resource } from "../permissions";
 import { ACTIONS } from "../permissions";
@@ -150,5 +150,93 @@ describe("decideAccess", () => {
         ).toBe(true);
       }
     }
+  });
+});
+
+describe("decideAnyAccess", () => {
+  const admin: Actor = {
+    id: "u-admin-1",
+    role: "ADMIN",
+    departmentId: null,
+    studentGroupId: null,
+  };
+
+  const approver: Actor = {
+    id: "u-approver-1",
+    role: "APPROVER",
+    departmentId: "dept-computing",
+    studentGroupId: null,
+  };
+
+  const deptRepNoDepartment: Actor = {
+    ...deptRep,
+    departmentId: null,
+  };
+
+  it("returns UNAUTHENTICATED for a null actor", () => {
+    expect(decideAnyAccess(null, "DECLARE_VENUE")).toEqual({
+      status: "UNAUTHENTICATED",
+    });
+    expect(decideAnyAccess(null, "MANAGE_USERS")).toEqual({
+      status: "UNAUTHENTICATED",
+    });
+  });
+
+  it("allows an officer DECLARE_VENUE at page level (scope ALL)", () => {
+    expect(decideAnyAccess(officer, "DECLARE_VENUE")).toEqual({
+      status: "ALLOW",
+    });
+  });
+
+  it("allows a dept rep DECLARE_VENUE at page level (scope OWN_DEPARTMENT)", () => {
+    expect(decideAnyAccess(deptRep, "DECLARE_VENUE")).toEqual({
+      status: "ALLOW",
+    });
+  });
+
+  it("allows a dept rep with departmentId null DECLARE_VENUE at page level", () => {
+    expect(decideAnyAccess(deptRepNoDepartment, "DECLARE_VENUE")).toEqual({
+      status: "ALLOW",
+    });
+  });
+
+  it("forbids approver, lecturer, student and admin DECLARE_VENUE", () => {
+    expect(decideAnyAccess(approver, "DECLARE_VENUE")).toEqual({
+      status: "FORBIDDEN",
+    });
+    expect(decideAnyAccess(lecturer, "DECLARE_VENUE")).toEqual({
+      status: "FORBIDDEN",
+    });
+    expect(decideAnyAccess(student, "DECLARE_VENUE")).toEqual({
+      status: "FORBIDDEN",
+    });
+    expect(decideAnyAccess(admin, "DECLARE_VENUE")).toEqual({
+      status: "FORBIDDEN",
+    });
+  });
+
+  it("forbids a student MANAGE_USERS", () => {
+    expect(decideAnyAccess(student, "MANAGE_USERS")).toEqual({
+      status: "FORBIDDEN",
+    });
+  });
+
+  it("allows an admin MANAGE_USERS", () => {
+    expect(decideAnyAccess(admin, "MANAGE_USERS")).toEqual({
+      status: "ALLOW",
+    });
+  });
+
+  it("denies a runtime-cast unknown role without throwing", () => {
+    const unknownRoleActor: Actor = {
+      id: "u-unknown",
+      role: "NOT_A_ROLE" as UserRole,
+      departmentId: null,
+      studentGroupId: null,
+    };
+    expect(() => decideAnyAccess(unknownRoleActor, "DECLARE_VENUE")).not.toThrow();
+    expect(decideAnyAccess(unknownRoleActor, "DECLARE_VENUE")).toEqual({
+      status: "FORBIDDEN",
+    });
   });
 });

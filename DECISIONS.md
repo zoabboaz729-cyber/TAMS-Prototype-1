@@ -117,6 +117,14 @@
 - **Decision**: `ALLOWED_FACILITIES = ["projector", "computers", "whiteboard", "accessible"]`; venue input is validated with Zod (code trimmed and uppercased, 2–10 chars, A-Z / 0-9 / "-" only; capacity integer 1–1000 rejecting decimals, 0, negatives and numeric strings; facilities deduplicated and capped at 4; status defaults to ACTIVE; ownerDepartmentId 1–100 chars or null for a shared venue). (`src/domain/venueSchema.ts`)
 - **Decision**: Changing the capacity or type of a venue already used in timetable entries must trigger re-validation of those entries (capacity/type rules); this is deferred to the M3 conflict validator and is not enforced in M2.
 
+## 2026-11-01 Any-access page decision, page guard and filter parsing (M2-T1b1)
+- **Decision**: Page entry uses `decideAnyAccess` (permission scope not NONE) rather than `decideAccess`, because an OWN_DEPARTMENT scope needs a resource and would lock department reps out of the venue register page before they have picked a department. (`src/domain/access.ts`, `src/server/guards.ts`)
+  - Reason: `declareVenue` for a department rep is scoped to OWN_DEPARTMENT; at page entry no venue/resource exists yet, so `decideAccess` would return FORBIDDEN for every department rep.
+- **Decision**: Per-record permission is always rechecked in the server action that changes data, using `decideAccess` or the action-specific rule function (e.g. `decideVenueWrite`); `decideAnyAccess` / `requireAnyAction` never authorizes a write by itself.
+  - Reason: page entry is not a security boundary; layouts do not re-run on client navigation.
+- **Decision**: Filter query parameters are parsed leniently — invalid or unknown values are silently ignored, never an error — because they come from the browser address bar. Repeated keys (array values) and inherited keys (`__proto__`, `toString`) are ignored. (`src/domain/venueFilterParams.ts`)
+  - Reason: address-bar input is user-controlled and must never surface a 400/500 for a mistyped filter; dropping invalid values keeps the list page usable.
+
 ## 2026-11-01 Venue ownerDepartmentId required and capacity parsed as number (M2-T1a2)
 - **Decision**: `ownerDepartmentId` in `VenueInputSchema` is required: a trimmed 1–100 character string or `null` (shared venue) is accepted, but a missing field (`undefined`) is rejected — explicit `null` means shared, a missing field must never silently create a shared venue.
 - **Reason**: `venueRules.ts` decides write access per owner; a silently shared venue would bypass department scoping.

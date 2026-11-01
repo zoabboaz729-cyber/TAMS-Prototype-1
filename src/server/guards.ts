@@ -13,7 +13,7 @@
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { getCurrentUser, type SafeUser } from "@/server/auth";
-import { decideAccess, type AccessDecision } from "@/domain/access";
+import { decideAccess, decideAnyAccess, type AccessDecision } from "@/domain/access";
 import type { Action, Resource } from "@/domain/permissions";
 
 /**
@@ -44,6 +44,32 @@ export async function requireAction(
     redirect("/login");
   }
   const decision: AccessDecision = decideAccess(user, action, resource);
+  if (decision.status !== "ALLOW") {
+    redirect("/forbidden");
+  }
+  return user;
+}
+
+/**
+ * Require an authenticated user who may perform `action` on SOME resource
+ * (page-entry decision). No per-record check is made here.
+ * - No session              -> redirect("/login").
+ * - decideAnyAccess not ALLOW -> redirect("/forbidden").
+ * - ALLOW                   -> return the user.
+ *
+ * Use for page entry only: OWN_DEPARTMENT-scoped actions (e.g. DECLARE_VENUE
+ * for a department rep) need a resource to be rechecked, and that recheck
+ * happens in the server action that changes data. redirect() throws, so it
+ * stays outside any try/catch.
+ */
+export async function requireAnyAction(
+  action: Action,
+): Promise<SafeUser> {
+  const user = await getCurrentUser();
+  if (user === null) {
+    redirect("/login");
+  }
+  const decision: AccessDecision = decideAnyAccess(user, action);
   if (decision.status !== "ALLOW") {
     redirect("/forbidden");
   }

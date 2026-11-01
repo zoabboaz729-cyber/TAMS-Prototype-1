@@ -160,3 +160,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: ownerDepartmentId is required because a missing field must never silently create a shared venue — explicit null means shared; the venue form action must convert capacity from text to a number before validation because HTML forms send strings.
 - Known problems: none
 - Next suggested task: M2-T1b venue register list/filter page
+
+## 2026-11-01 M2-T1b1 Add any-access decision, page guard and filter parsing
+- Done: Added pure `decideAnyAccess(actor, action)` to access.ts (page-entry decision: scope not NONE → ALLOW, null actor → UNAUTHENTICATED, never throws); added `requireAnyAction(action)` guard to src/server/guards.ts (redirect /login or /forbidden, redirect outside try/catch); added pure lenient `parseVenueFilterParams` in new venueFilterParams.ts (invalid/unknown values and array/inherited keys ignored); added unit tests for both with literal expectations; recorded decisions in DECISIONS.md. Existing decideAccess, requireAction, authorizeApi and access tests unchanged.
+- Files changed: src/domain/access.ts, src/domain/__tests__/access.test.ts, src/domain/venueFilterParams.ts (new), src/domain/__tests__/venueFilterParams.test.ts (new), src/server/guards.ts, DECISIONS.md, PROGRESS.md
+- Verify: PASS — typecheck: 0 errors; lint: 0 warnings/errors; vitest: 207 tests passed across 16 files; seed:check: 9 tests passed.
+- Decisions: page entry uses decideAnyAccess because OWN_DEPARTMENT scope needs a resource and would lock department reps out; per-record permission is always rechecked in the data-changing server action; address-bar filter params are parsed leniently since invalid values must never error the list page.
+- Known problems: none
+- Next suggested task: M2-T1b venue register list/filter page
