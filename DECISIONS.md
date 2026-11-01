@@ -152,3 +152,9 @@
   - Reason: `venueRules.ts` decides write access per owner; a silently shared venue would bypass department scoping.
 - **Decision**: The form parser (`src/domain/venueForm.ts`) is pure and never throws; the server action will re-run `decideVenueWrite` on the server.
   - Reason: business logic stays pure and testable; authorization is always rechecked server-side.
+## 2026-11-02 Venue write logic and audit helper (M2-T1c2)
+- **Decision**: Write logic takes storage as a parameter so every permission case is unit tested without a database.
+- **Decision**: The current owner always comes from the database, never from the form.
+- **Decision**: The role-level check runs before validation so forbidden users learn nothing about the form.
+- **Decision**: Every venue write creates an audit row in the same transaction.
+- **Decision**: Changing a venue's capacity or type does NOT yet re-check existing timetable entries, which the M3 validator will report as violations (known limitation).

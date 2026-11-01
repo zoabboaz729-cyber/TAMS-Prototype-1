@@ -217,7 +217,7 @@ describe("parseVenueForm", () => {
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.errors.type).toBeTruthy();
+      expect(result.errors.type).toBe("Choose a valid venue type");
     }
   });
 
@@ -273,10 +273,10 @@ describe("parseVenueForm", () => {
     }).not.toThrow();
     expect(result).toBeDefined();
     if (result && !result.ok) {
-      expect(result.errors.code).toBeTruthy();
-      expect(result.errors.type).toBeTruthy();
-      expect(result.errors.capacity).toBeTruthy();
-      expect(result.errors.owner).toBeTruthy();
+      expect(result.errors.code).toBe("Venue code is required");
+      expect(result.errors.type).toBe("Choose a valid venue type");
+      expect(result.errors.capacity).toBe("Capacity must be a whole number from 1 to 1000");
+      expect(result.errors.owner).toBe("Choose an owner or Shared");
     }
   });
 });

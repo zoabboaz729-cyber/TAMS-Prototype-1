@@ -191,4 +191,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Verify: PASS — typecheck 0 errors; lint 0 warnings/errors; vitest 236 tests passed across 18 files; seed:check 9 tests passed; next build OK (/venues listed)
 - Decisions: file size guideline; owner explicit sentinel; form parser pure, server re-runs decideVenueWrite.
 - Known problems: none
+## 2026-11-02 M2-T1c2 Add tested venue write logic, audit helper and Prisma store
+- Done: Added venueAudit pure helper, venueWrite tested write orchestration, Prisma store adapter; cleaned venueForm messages.
+- Files changed: src/domain/venueForm.ts, src/domain/__tests__/venueForm.test.ts, src/domain/venueAudit.ts (new), src/domain/__tests__/venueAudit.test.ts (new), src/server/venueWrite.ts (new), src/server/__tests__/venueWrite.test.ts (new), src/server/venueStorePrisma.ts (new), PROGRESS.md, DECISIONS.md
+- Verify: PASS — typecheck 0 errors; lint 0 warnings/errors; vitest 255 tests passed across 20 files; seed:check 9 tests passed; next build OK.
+- Decisions: write logic takes storage as parameter; current owner from DB; role-level check before validation; audit row in same transaction; capacity/type changes do not re-check timetable entries.
+- Known problems: none
+- Next suggested task: M2-T1c3
 - Next suggested task: M2-T1c2
