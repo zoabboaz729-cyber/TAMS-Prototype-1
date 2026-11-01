@@ -22,8 +22,8 @@ It is NOT the final product. It must be small, correct, runnable at all times, a
 - Database is SQLite for the prototype (see spec §4). Do not add Docker or PostgreSQL files until task M9-T1.
 - Do not add dependencies. If you believe one is needed, stop and ask, giving the name, purpose, size, and a no-dependency alternative.
 - Do not change `PROTOTYPE_SPEC.md`, the seed data meaning, or the test expectations unless the task says so.
-- Keep every file under 300 lines. Split by responsibility.
-- Table-driven test files may exceed 300 lines; all other files stay under 300.
+- File size: aim for about 300 lines per file (up to about 400 is fine if the file is cohesive). Tests, schemas, seed data and tables are exempt. When a file nears the target, split by responsibility (extract components or functions) and say so in the report.
+  NEVER delete or shorten code, comments, validation, tests or accessibility only to meet a line target.
 - If something is ambiguous, ask ONE specific question and stop. Do not guess silently.
 - If the same error persists after 3 attempts, STOP. Report: the error, what you tried, your best hypothesis. Do not keep looping.
 

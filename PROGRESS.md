@@ -183,3 +183,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: requireAnyAction not requireAction so department reps (OWN_DEPARTMENT scope) are not locked out at page entry; summary counts all venues while the table respects filters; .clinerules now only points to AGENTS.md so the two cannot drift; session-duration entry reworded as a design choice (ASSUMPTION-3 removed; A3 covers the whole-year timetable).
 - Known problems: none
 - Next suggested task: M2-T1c venue create/edit forms
+
+
+## 2026-11-02 M2-T1c1 Split venue page, add form parsing, relax file-size rule
+- Done: Split /venues page into VenueFilterForm and VenueTable components; added pure parseVenueForm domain module and tests; relaxed AGENTS.md file-size rule.
+- Files changed: AGENTS.md, src/components/venues/VenueFilterForm.tsx (new), src/components/venues/VenueTable.tsx (new), src/app/venues/page.tsx, src/domain/venueForm.ts (new), src/domain/__tests__/venueForm.test.ts (new), PROGRESS.md, DECISIONS.md
+- Verify: PASS — typecheck 0 errors; lint 0 warnings/errors; vitest 236 tests passed across 18 files; seed:check 9 tests passed; next build OK (/venues listed)
+- Decisions: file size guideline; owner explicit sentinel; form parser pure, server re-runs decideVenueWrite.
+- Known problems: none
+- Next suggested task: M2-T1c2

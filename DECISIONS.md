@@ -143,3 +143,12 @@
 - **Decision**: `.clinerules` now contains only a pointer to `AGENTS.md` so the two rule files cannot drift apart.
 - **Reason**: `DECLARE_VENUE` is OWN_DEPARTMENT-scoped for department reps, so `requireAction` (which requires a resource) would lock them out at page entry; per-record write permission is still rechecked in the data-changing action (M2-T1c). A single rules source avoids drift; separating the all-venues summary from the filtered table matches the spec.
 - **Alternative rejected**: `requireAction("DECLARE_VENUE")` — rejected because it would redirect department reps to `/forbidden` at page entry.
+
+
+## 2026-11-02 File-size rule relaxed; explicit owner; pure form parser (M2-T1c1)
+- **Decision**: File size is now a guideline ("aim for about 300 lines, up to about 400 if cohesive") rather than a hard cap; tests, schemas, seed data and tables are exempt. Split by responsibility when near the target; never delete or shorten code, comments, validation, tests or accessibility only to meet a line target.
+  - Reason: a hard cap made the agent compress code; the target is a guideline with split-by-responsibility.
+- **Decision**: The venue `owner` form field must be chosen explicitly; "shared" is a deliberate sentinel value (`SHARED_OWNER_VALUE = "__SHARED__"`), never the default. A missing/empty/whitespace/non-string owner is an error "Choose an owner or Shared".
+  - Reason: `venueRules.ts` decides write access per owner; a silently shared venue would bypass department scoping.
+- **Decision**: The form parser (`src/domain/venueForm.ts`) is pure and never throws; the server action will re-run `decideVenueWrite` on the server.
+  - Reason: business logic stays pure and testable; authorization is always rechecked server-side.
