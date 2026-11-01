@@ -93,6 +93,11 @@
     reachable in production, never be callable cross-site, and never reveal
     which accounts exist.
 
+## 2026-11-01 Role home page, demo switcher, and guarded placeholders (M1-T3c-5)
+- **Decision**: `/officer` (`await requireAction("EDIT_DRAFT")`) and `/admin` (`await requireAction("MANAGE_USERS")`) are guard-probe placeholders rendering "Officer area (placeholder)" / "Admin area (placeholder)"; they will become real dashboards in later milestones. Every page enforces its own guard — layouts are not a security boundary (AGENTS.md §3).
+- **Decision**: `DemoSwitcher` renders only when `isDemoEnabled(DEMO_MODE, NODE_ENV)` — DEMO_MODE exactly "true" and NODE_ENV not "production" — and returns `null` otherwise, so the demo switcher never shows in production and renders nothing at all when demo mode is off.
+- **Decision**: The home page never calls `requireAction`; it renders exactly `menuForRole(user.role)` items in list order, with unbuilt items greyed out ("Coming soon") rather than links.
+
 ## 2026-11-01 Same-origin auth guard and demo credentials (M1-T3c-3)
 - **Decision (a): No login rate limiting in the prototype.** Login attempts are not throttled and there is no lockout; this remains a server-side production concern.
   - Reason: Keeps the prototype dependency-free and simple for the demo; rate limiting does not affect the stakeholder walkthrough.

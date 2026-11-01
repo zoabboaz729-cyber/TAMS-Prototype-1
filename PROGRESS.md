@@ -115,3 +115,11 @@
 - Decisions: menus are derived from PERMISSION_SCOPE so the UI stays consistent with enforced authorization (UI is never a security boundary); PUBLISH_TIMETABLE and MANAGE_SHARED_VENUES deliberately have no menu entries; built flags flip to true as pages are delivered; demo switch is production-gated, same-origin-gated, and enumeration-resistant; no password is read or logged and nothing is logged.
 - Known problems: no pages/components consume the menu yet (next task); demo accounts share one password (documented in DECISIONS.md).
 - Next suggested task: M1-T3c role-based home pages rendering menuForRole.
+
+## 2026-11-01 M1-T3c-5 Role home page, demo switcher, and guarded placeholders
+- Done: Added async DemoSwitcher server component listing demo accounts (amber "DEMO MODE ON" control with "Switch demo account" <details>, one server POST /api/demo/switch form per account, current account bold+disabled), wired it next to UserBar in the root header with a single getCurrentUser() call, replaced the home page with a public role-menu page (signed-out welcome + "Prototype built on assumptions; please correct us" + Sign in link; signed-in menuForRole list in order with unbuilt items greyed "Coming soon"), added guard-probe placeholders /officer (requireAction EDIT_DRAFT) and /admin (requireAction MANAGE_USERS), and set /forbidden to min-h-[calc(100vh-8rem)].
+- Files changed: src/components/DemoSwitcher.tsx (new), src/app/layout.tsx, src/app/page.tsx, src/app/officer/page.tsx (new), src/app/admin/page.tsx (new), src/app/forbidden/page.tsx, DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify`: typecheck 0 errors; lint no ESLint warnings or errors; vitest 133 tests passed across 12 files; seed:check 9 tests passed. `npm run build`: succeeded; all pages render dynamically on demand as expected.
+- Decisions: /officer and /admin are guard-probe placeholders that become real dashboards in later milestones; the demo switcher renders only when DEMO_MODE === "true" and NODE_ENV !== "production" (never in production); the home page never calls requireAction and renders only menuForRole(user.role) items.
+- Known problems: none.
+- Next suggested task: deliver the first built menu page (flip a built: false flag to true).

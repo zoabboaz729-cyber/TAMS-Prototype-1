@@ -7,7 +7,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
-import { getCurrentUser } from "@/server/auth";
+import DemoSwitcher from "@/components/DemoSwitcher";
+import { getCurrentUser, type SafeUser } from "@/server/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -30,13 +31,7 @@ const ROLE_LABEL: Record<string, string> = {
  * Identity comes exclusively from getCurrentUser() (server-side session).
  * No client-supplied values are trusted or displayed.
  */
-async function UserBar() {
-  // getCurrentUser catches errors internally and returns null on any failure,
-  // including a missing SESSION_SECRET. The user bar will appear signed-out
-  // in that case. The login route handler separately detects and reports the
-  // config issue when the user attempts to sign in.
-  const user = await getCurrentUser();
-
+function UserBar({ user }: { user: SafeUser | null }) {
   if (!user) {
     // Not authenticated — show a sign-in link, no fabricated identity.
     return (
@@ -85,6 +80,11 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Get the current user once. The layout is not a security boundary — every
+  // page guards itself — but both the user bar and the demo switcher need
+  // the same identity from getCurrentUser().
+  const user = await getCurrentUser();
+
   return (
     <html lang="en">
       <body className="antialiased min-h-screen bg-slate-50 text-slate-900 flex flex-col">
@@ -100,8 +100,9 @@ export default async function RootLayout({
             >
               TAMS
             </Link>
-            {/* UserBar is an async Server Component — renders without client JS */}
-            <UserBar />
+            <DemoSwitcher currentUserId={user?.id ?? null} />
+            {/* UserBar is a server component receiving identity from the layout */}
+            <UserBar user={user} />
           </div>
         </header>
 

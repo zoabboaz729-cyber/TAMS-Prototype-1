@@ -8,7 +8,7 @@ import Link from "next/link";
  */
 export default function ForbiddenPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6 text-center">
+    <main className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center p-6 text-center">
       <h1 className="text-xl font-bold text-slate-800">
         You do not have permission to open that page.
       </h1>
