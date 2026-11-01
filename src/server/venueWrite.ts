@@ -8,6 +8,8 @@ import type { StoredVenueFields } from "../domain/venueAudit";
 import { serializeJsonFacilities } from "../domain/types";
 import type { Actor } from "../domain/permissions";
 
+const DUPLICATE_CODE_ERROR = "A venue with this code already exists";
+
 export type { StoredVenueFields } from "../domain/venueAudit";
 
 export type VenueFormErrors = FormErrors;
@@ -101,7 +103,7 @@ export async function performVenueWrite(
     return {
       ok: false,
       kind: "VALIDATION",
-      errors: { code: "A venue with this code already exists" },
+      errors: { code: DUPLICATE_CODE_ERROR },
     };
   }
 
@@ -126,7 +128,7 @@ export async function performVenueWrite(
       return {
         ok: false,
         kind: "VALIDATION",
-        errors: { code: "A venue with this code already exists" },
+        errors: { code: DUPLICATE_CODE_ERROR },
       };
     }
     return { ok: true, venueId: result.id, changed: true };
@@ -147,7 +149,7 @@ export async function performVenueWrite(
     return {
       ok: false,
       kind: "VALIDATION",
-      errors: { code: "A venue with this code already exists" },
+      errors: { code: DUPLICATE_CODE_ERROR },
     };
   }
   if ("notFound" in result) {

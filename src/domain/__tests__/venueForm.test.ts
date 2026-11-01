@@ -253,6 +253,48 @@ describe("parseVenueForm", () => {
     }
   });
 
+  it("V33: missing code -> Venue code is required", () => {
+    const result = parseVenueForm({
+      type: "ROOM",
+      capacity: "40",
+      facilities: [],
+      owner: "dept-computing",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.code).toBe("Venue code is required");
+    }
+  });
+
+  it("V34: type BOGUS -> Choose a valid venue type", () => {
+    const result = parseVenueForm({
+      code: "CR1",
+      type: "BOGUS",
+      capacity: "40",
+      facilities: [],
+      owner: "dept-computing",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.type).toBe("Choose a valid venue type");
+    }
+  });
+
+  it("V35: status BOGUS -> Choose a valid status", () => {
+    const result = parseVenueForm({
+      code: "CR1",
+      type: "ROOM",
+      capacity: "40",
+      facilities: [],
+      status: "BOGUS",
+      owner: "dept-computing",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.status).toBe("Choose a valid status");
+    }
+  });
+
   it("extra unknown keys are ignored", () => {
     const result = parseVenueForm({
       code: "CR1",

@@ -158,3 +158,6 @@
 - **Decision**: The role-level check runs before validation so forbidden users learn nothing about the form.
 - **Decision**: Every venue write creates an audit row in the same transaction.
 - **Decision**: Changing a venue's capacity or type does NOT yet re-check existing timetable entries, which the M3 validator will report as violations (known limitation).
+
+## 2026-11-02 Venue write transaction owner-read limitation (M2-T1c2b)
+- **Decision**: The current owner is read before the write transaction, so two simultaneous edits could conflict (acceptable for a single-user prototype; revisit at M9 with a version column or a check inside the transaction).

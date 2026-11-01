@@ -1,12 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { performVenueWrite } from "../venueWrite";
 import type { VenueStore, StoredVenue, StoredVenueFields, AuditDraft } from "../venueWrite";
+import type { Actor } from "../../domain/permissions";
+import { SHARED_OWNER_VALUE } from "../../domain/venueForm";
+import type { VenueFormRaw } from "../../domain/venueForm";
 import { seedVenues, seedDepartments } from "../../domain/seedData";
 import { serializeJsonFacilities } from "../../domain/types";
 
-type Actor = { id: string; role: any; departmentId: string | null; studentGroupId: string | null };
-
-function actor(id: string, role: any, departmentId: string | null = null, studentGroupId: string | null = null): Actor {
+function actor(
+  id: string,
+  role: Actor["role"],
+  departmentId: string | null = null,
+  studentGroupId: string | null = null,
+): Actor {
   return { id, role, departmentId, studentGroupId };
 }
 
@@ -27,6 +33,7 @@ class FakeStore implements VenueStore {
   auditDrafts: AuditDraft[] = [];
   forceConflictCreate = false;
   forceConflictUpdate = false;
+  forceNotFoundUpdate = false;
 
   constructor() {
     for (const d of seedDepartments) this.departments.add(d.id);
@@ -61,6 +68,7 @@ class FakeStore implements VenueStore {
     this.updateCalls.push({ id, fields, audit });
     this.auditDrafts.push(audit);
     if (this.forceConflictUpdate) return { conflict: true } as const;
+    if (this.forceNotFoundUpdate) return { notFound: true } as const;
     const existing = this.venues.get(id);
     if (!existing) return { notFound: true } as const;
     this.venues.set(id, { id, ...fields });
@@ -68,7 +76,7 @@ class FakeStore implements VenueStore {
   }
 }
 
-const validRaw = {
+const validRaw: VenueFormRaw = {
   code: "NEW1",
   type: "ROOM",
   capacity: "40",
@@ -78,19 +86,21 @@ const validRaw = {
 };
 
 describe("performVenueWrite", () => {
-  it("null actor -> UNAUTHENTICATED", async () => {
+  it("V1: null actor with a valid form -> UNAUTHENTICATED", async () => {
     const store = new FakeStore();
-    const r = await performVenueWrite(store, null, { op: "CREATE", raw: validRaw as any });
+    const r = await performVenueWrite(store, null, { op: "CREATE", raw: validRaw });
     expect(r).toEqual({ ok: false, kind: "UNAUTHENTICATED" });
     expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
   });
 
-  it("officer create shared", async () => {
+  it("V7: officer creates a shared venue", async () => {
     const store = new FakeStore();
-    const raw = { ...validRaw, owner: "__SHARED__" };
-    const r = await performVenueWrite(store, officer as any, { op: "CREATE", raw: raw as any });
+    const raw = { ...validRaw, owner: SHARED_OWNER_VALUE };
+    const r = await performVenueWrite(store, officer, { op: "CREATE", raw });
     expect(r.ok).toBe(true);
     if (r.ok) {
+      expect(r.changed).toBe(true);
       const v = await store.findVenue(r.venueId);
       expect(v?.code).toBe("NEW1");
       expect(v?.ownerDepartmentId).toBeNull();
@@ -99,27 +109,39 @@ describe("performVenueWrite", () => {
     expect(store.auditDrafts[0]).toEqual({ actorId: "user-officer", action: "VENUE_CREATE", reason: "created" });
   });
 
-  it("invalid form from officer", async () => {
+  it("V13: officer submits capacity abc and no owner -> VALIDATION both capacity and owner", async () => {
     const store = new FakeStore();
-    const r = await performVenueWrite(store, officer as any, { op: "CREATE", raw: { code: "NEW1", type: "ROOM", capacity: "abc", facilities: [], owner: undefined } as any });
-    expect(r.ok).toBe(false);
-    if (!r.ok && r.kind === "VALIDATION") {
-      expect(r.errors.capacity).toBe("Capacity must be a whole number from 1 to 1000");
-      expect(r.errors.owner).toBe("Choose an owner or Shared");
-    }
+    const r = await performVenueWrite(store, officer, {
+      op: "CREATE",
+      raw: { code: "NEW1", type: "ROOM", capacity: "abc", facilities: [] },
+    });
+    expect(r).toEqual({
+      ok: false,
+      kind: "VALIDATION",
+      errors: {
+        capacity: "Capacity must be a whole number from 1 to 1000",
+        owner: "Choose an owner or Shared",
+      },
+    });
     expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
   });
 
-  it("duplicate code create", async () => {
+  it("V15: create with code CR1 -> VALIDATION duplicate code", async () => {
     const store = new FakeStore();
-    const r = await performVenueWrite(store, officer as any, { op: "CREATE", raw: { ...validRaw, code: "CR1" } as any });
+    const r = await performVenueWrite(store, officer, { op: "CREATE", raw: { ...validRaw, code: "CR1" } });
     expect(r).toEqual({ ok: false, kind: "VALIDATION", errors: { code: "A venue with this code already exists" } });
     expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
   });
 
-  it("computing rep edit CR1 capacity", async () => {
+  it("V21: Computing rep edits venue-CR1 capacity to 70", async () => {
     const store = new FakeStore();
-    const r = await performVenueWrite(store, computingRep as any, { op: "EDIT", venueId: "venue-CR1", raw: { code: "CR1", type: "ROOM", capacity: "70", facilities: [], status: "ACTIVE", owner: "dept-computing" } as any });
+    const r = await performVenueWrite(store, computingRep, {
+      op: "EDIT",
+      venueId: "venue-CR1",
+      raw: { code: "CR1", type: "ROOM", capacity: "70", facilities: [], status: "ACTIVE", owner: "dept-computing" },
+    });
     expect(r).toEqual({ ok: true, venueId: "venue-CR1", changed: true });
     const v = await store.findVenue("venue-CR1");
     expect(v?.capacity).toBe(70);
@@ -127,11 +149,313 @@ describe("performVenueWrite", () => {
     expect(last).toEqual({ actorId: "user-deptrep-computing", action: "VENUE_EDIT", reason: "changed: capacity" });
   });
 
-  it("no-op edit", async () => {
+  it("V29: identical edit returns changed false without an update call", async () => {
     const store = new FakeStore();
-    const r = await performVenueWrite(store, computingRep as any, { op: "EDIT", venueId: "venue-CR1", raw: { code: "CR1", type: "ROOM", capacity: "60", facilities: [], status: "ACTIVE", owner: "dept-computing" } as any });
+    const r = await performVenueWrite(store, computingRep, { op: "EDIT", venueId: "venue-CR1", raw: { code: "CR1", type: "ROOM", capacity: "60", facilities: [], status: "ACTIVE", owner: "dept-computing" } });
     expect(r).toEqual({ ok: true, venueId: "venue-CR1", changed: false });
+    expect(store.updateCalls).toHaveLength(0);
+    expect(store.createCalls).toHaveLength(0);
+  });
+
+  it("V2: student with a valid form -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, student, { op: "CREATE", raw: validRaw });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
     expect(store.updateCalls).toHaveLength(0);
   });
 
+  it("V3: lecturer with a valid form -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, lecturer, { op: "CREATE", raw: validRaw });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V4: approver with a valid form -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, approver, { op: "CREATE", raw: validRaw });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V5: admin with a valid form -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, admin, { op: "CREATE", raw: validRaw });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it.each([
+    ["student", student],
+    ["lecturer", lecturer],
+    ["approver", approver],
+    ["admin", admin],
+  ] as const)("V6: %s with an invalid form is FORBIDDEN without validation errors", async (_, actorWithNoAccess) => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, actorWithNoAccess, {
+      op: "CREATE",
+      raw: { code: "NEW1", type: "ROOM", capacity: "abc" },
+    });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V8: officer creates a venue owned by dept-mathematics", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, officer, {
+      op: "CREATE",
+      raw: { ...validRaw, owner: "dept-mathematics" },
+    });
+    expect(r.ok).toBe(true);
+  });
+
+  it("V9: Computing rep creates a venue owned by dept-computing", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, computingRep, {
+      op: "CREATE",
+      raw: { ...validRaw, code: "NEW2" },
+    });
+    expect(r.ok).toBe(true);
+  });
+
+  it("V10: Computing rep creates a venue owned by dept-mathematics -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, computingRep, {
+      op: "CREATE",
+      raw: { ...validRaw, owner: "dept-mathematics" },
+    });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V11: Computing rep creates a shared venue -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, computingRep, {
+      op: "CREATE",
+      raw: { ...validRaw, owner: SHARED_OWNER_VALUE },
+    });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V12: dept rep with departmentId null creates a venue -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, nullDeptRep, { op: "CREATE", raw: validRaw });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V14: officer creates with owner dept-unknown -> VALIDATION { owner: Unknown department }", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, officer, {
+      op: "CREATE",
+      raw: { ...validRaw, owner: "dept-unknown" },
+    });
+    expect(r).toEqual({ ok: false, kind: "VALIDATION", errors: { owner: "Unknown department" } });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V16: edit venue-CR2 changing its code to CR1 -> same code error", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, computingRep, {
+      op: "EDIT",
+      venueId: "venue-CR2",
+      raw: { code: "CR1", type: "ROOM", capacity: "50", facilities: [], status: "ACTIVE", owner: "dept-computing" },
+    });
+    expect(r).toEqual({ ok: false, kind: "VALIDATION", errors: { code: "A venue with this code already exists" } });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V17: edit venue-CR1 keeping code CR1 and changing capacity -> ok", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, computingRep, {
+      op: "EDIT",
+      venueId: "venue-CR1",
+      raw: { code: "CR1", type: "ROOM", capacity: "70", facilities: [], status: "ACTIVE", owner: "dept-computing" },
+    });
+    expect(r).toEqual({ ok: true, venueId: "venue-CR1", changed: true });
+    expect(store.updateCalls).toHaveLength(1);
+    expect(store.createCalls).toHaveLength(0);
+  });
+
+  // Forced store failures intentionally attempt one write; V18/V19/V31 assert the other method is untouched.
+  it("V18: store conflict on create -> duplicate-code VALIDATION and nothing persisted", async () => {
+    const store = new FakeStore();
+    store.forceConflictCreate = true;
+    const venueCountBefore = store.venues.size;
+    const r = await performVenueWrite(store, officer, { op: "CREATE", raw: validRaw });
+    expect(r).toEqual({ ok: false, kind: "VALIDATION", errors: { code: "A venue with this code already exists" } });
+    expect(store.createCalls).toHaveLength(1);
+    expect(store.updateCalls).toHaveLength(0);
+    expect(store.venues.size).toBe(venueCountBefore);
+    expect(await store.findVenueByCode("NEW1")).toBeNull();
+  });
+
+  // Forced store failures intentionally attempt one write; V18/V19/V31 assert the other method is untouched.
+  it("V19: store conflict on update -> duplicate-code VALIDATION and unchanged venue", async () => {
+    const store = new FakeStore();
+    store.forceConflictUpdate = true;
+    const before = { ...store.venues.get("venue-CR1")! };
+    const r = await performVenueWrite(store, computingRep, {
+      op: "EDIT",
+      venueId: "venue-CR1",
+      raw: { code: "CR1", type: "ROOM", capacity: "70", facilities: [], status: "ACTIVE", owner: "dept-computing" },
+    });
+    expect(r).toEqual({ ok: false, kind: "VALIDATION", errors: { code: "A venue with this code already exists" } });
+    expect(store.updateCalls).toHaveLength(1);
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.venues.get("venue-CR1")).toEqual(before);
+  });
+
+  it("V20: officer edits an id that does not exist -> NOT_FOUND", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, officer, {
+      op: "EDIT",
+      venueId: "venue-missing",
+      raw: validRaw,
+    });
+    expect(r).toEqual({ ok: false, kind: "NOT_FOUND" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V22: Computing rep edits Mathematics venue-CR3 claiming Computing ownership -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, computingRep, {
+      op: "EDIT",
+      venueId: "venue-CR3",
+      raw: { code: "CR3", type: "ROOM", capacity: "40", facilities: [], status: "ACTIVE", owner: "dept-computing" },
+    });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V23: Computing rep edits shared venue-GR1 -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, computingRep, {
+      op: "EDIT",
+      venueId: "venue-GR1",
+      raw: { code: "GR1", type: "ROOM", capacity: "80", facilities: [], status: "ACTIVE", owner: SHARED_OWNER_VALUE },
+    });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V24: Computing rep proposes Mathematics ownership for own venue-CR1 -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, computingRep, {
+      op: "EDIT",
+      venueId: "venue-CR1",
+      raw: { code: "CR1", type: "ROOM", capacity: "60", facilities: [], status: "ACTIVE", owner: "dept-mathematics" },
+    });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V25: Computing rep proposes shared ownership for own venue-CR1 -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, computingRep, {
+      op: "EDIT",
+      venueId: "venue-CR1",
+      raw: { code: "CR1", type: "ROOM", capacity: "60", facilities: [], status: "ACTIVE", owner: SHARED_OWNER_VALUE },
+    });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V26: Mathematics rep edits venue-LH2 -> ok", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, mathsRep, {
+      op: "EDIT",
+      venueId: "venue-LH2",
+      raw: { code: "LH2", type: "HALL", capacity: "110", facilities: ["projector"], status: "ACTIVE", owner: "dept-mathematics" },
+    });
+    expect(r).toEqual({ ok: true, venueId: "venue-LH2", changed: true });
+  });
+
+  it("V27: Mathematics rep edits venue-CR1 -> FORBIDDEN", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, mathsRep, {
+      op: "EDIT",
+      venueId: "venue-CR1",
+      raw: { code: "CR1", type: "ROOM", capacity: "60", facilities: [], status: "ACTIVE", owner: "dept-computing" },
+    });
+    expect(r).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+  });
+
+  it("V28: officer changes venue-GR1 owner to dept-computing", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, officer, {
+      op: "EDIT",
+      venueId: "venue-GR1",
+      raw: { code: "GR1", type: "ROOM", capacity: "80", facilities: [], status: "ACTIVE", owner: "dept-computing" },
+    });
+    expect(r).toEqual({ ok: true, venueId: "venue-GR1", changed: true });
+    expect(store.auditDrafts[store.auditDrafts.length - 1]).toEqual({
+      actorId: "user-officer",
+      action: "VENUE_EDIT",
+      reason: "changed: owner",
+    });
+  });
+
+  it("V30: edit changing type, capacity and status records the exact audit reason", async () => {
+    const store = new FakeStore();
+    const r = await performVenueWrite(store, officer, {
+      op: "EDIT",
+      venueId: "venue-CR1",
+      raw: { code: "CR1", type: "LAB", capacity: "70", facilities: [], status: "INACTIVE", owner: "dept-computing" },
+    });
+    expect(r).toEqual({ ok: true, venueId: "venue-CR1", changed: true });
+    expect(store.auditDrafts[store.auditDrafts.length - 1]).toEqual({
+      actorId: "user-officer",
+      action: "VENUE_EDIT",
+      reason: "changed: type, capacity, status",
+    });
+  });
+
+  // Forced store failures intentionally attempt one write; V18/V19/V31 assert the other method is untouched.
+  it("V31: update store returns notFound -> NOT_FOUND and unchanged venue", async () => {
+    const store = new FakeStore();
+    store.forceNotFoundUpdate = true;
+    const before = { ...store.venues.get("venue-CR1")! };
+    const r = await performVenueWrite(store, computingRep, {
+      op: "EDIT",
+      venueId: "venue-CR1",
+      raw: { code: "CR1", type: "ROOM", capacity: "70", facilities: [], status: "ACTIVE", owner: "dept-computing" },
+    });
+    expect(r).toEqual({ ok: false, kind: "NOT_FOUND" });
+    expect(store.updateCalls).toHaveLength(1);
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.venues.get("venue-CR1")).toEqual(before);
+  });
+
+  it("V32: failed edit leaves the stored venue unchanged", async () => {
+    const store = new FakeStore();
+    const before = { ...store.venues.get("venue-CR1")! };
+    const r = await performVenueWrite(store, officer, {
+      op: "EDIT",
+      venueId: "venue-CR1",
+      raw: { code: "CR1", type: "ROOM", capacity: "70", facilities: [], status: "ACTIVE", owner: "dept-unknown" },
+    });
+    expect(r).toEqual({ ok: false, kind: "VALIDATION", errors: { owner: "Unknown department" } });
+    expect(store.createCalls).toHaveLength(0);
+    expect(store.updateCalls).toHaveLength(0);
+    expect(store.venues.get("venue-CR1")).toEqual(before);
+  });
 });

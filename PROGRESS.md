@@ -199,3 +199,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Known problems: none
 - Next suggested task: M2-T1c3
 - Next suggested task: M2-T1c2
+
+## 2026-11-02 M2-T1c2b Complete venue write test audit
+- Done: Completed V1–V32 venue-write coverage, added V33–V35 parser message tests, and consolidated venue status/duplicate-code constants.
+- Files changed: src/server/__tests__/venueWrite.test.ts, src/domain/__tests__/venueForm.test.ts, src/domain/venueForm.ts, src/server/venueWrite.ts, PROGRESS.md, DECISIONS.md
+- Verify: PASS — `npm run verify`; typecheck passed; lint reported 0 warnings/errors; Vitest 287 tests passed across 20 files; seed check 9 tests passed.
+- Decisions: V18, V19, and V31 intentionally assert one attempted write to exercise store conflict/not-found results; all other failed writes assert zero calls. Recorded the owner-read-before-transaction limitation in DECISIONS.md.
+- Known problems: `next lint` emitted its existing deprecation notice.
+- Next suggested task: M2-T1c3

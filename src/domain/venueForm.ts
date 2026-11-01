@@ -1,6 +1,6 @@
 import { VenueInputSchema } from "./venueSchema";
 import type { VenueInput } from "./venueSchema";
-import { VENUE_TYPES } from "./types";
+import { VENUE_TYPES, VENUE_STATUSES } from "./types";
 
 export const SHARED_OWNER_VALUE = "__SHARED__";
 
@@ -105,7 +105,7 @@ export function parseVenueForm(raw: VenueFormRaw): VenueFormResult {
     status = undefined; // schema default applies
   } else if (
     typeof input.status === "string" &&
-    ["ACTIVE", "INACTIVE", "MAINTENANCE"].includes(input.status)
+    (VENUE_STATUSES as readonly string[]).includes(input.status)
   ) {
     status = input.status;
   } else {
