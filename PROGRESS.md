@@ -132,3 +132,11 @@
 - Decisions: cookies() outside try/catch to avoid swallowing Next.js dynamic-rendering signals; role labels single-sourced from src/domain/roles.ts.
 - Known problems: none.
 - Next suggested task: deliver the first built menu page (flip a built: false flag to true).
+
+## 2026-11-01 M2-T1a Venue schema, write rules and filters
+- Done: Added pure domain logic for the venue register — venueSchema.ts (Zod input schema + venueOwnership) and venueRules.ts (decideVenueWrite + filterVenues) — with unit tests using literal expected values and seedVenues as the filter fixture.
+- Files changed: src/domain/venueSchema.ts (new), src/domain/venueRules.ts (new), src/domain/__tests__/venueSchema.test.ts (new), src/domain/__tests__/venueRules.test.ts (new), PROGRESS.md, DECISIONS.md
+- Verify: PASS — typecheck 0 errors; lint 0 warnings/errors; vitest 189 tests passed across 15 files (51 new); seed:check 9 tests passed
+- Decisions: write access requires canAct over both the current owner (EDIT only) and the proposed owner — a null (shared) owner needs MANAGE_SHARED_VENUES, a department id needs DECLARE_VENUE scoped to that department; no role names hard-coded. Changing capacity or type of a venue already used in timetable entries must trigger re-validation, deferred to M3.
+- Known problems: none
+- Next suggested task: M2-T1b venue register list/filter page
