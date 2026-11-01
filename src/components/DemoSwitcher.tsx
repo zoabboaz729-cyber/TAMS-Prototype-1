@@ -9,6 +9,7 @@
  * route. No client JavaScript, no new dependencies.
  */
 import type { ReactElement } from "react";
+import { roleLabel } from "@/domain/roles";
 import { DEMO_EMAIL_DOMAIN, isDemoAccountEmail, isDemoEnabled } from "@/server/demoMode";
 import { prisma } from "@/server/db";
 import { UserRole, UserRoleSchema } from "@/domain/types";
@@ -20,15 +21,6 @@ const ROLE_ORDER: Record<UserRole, number> = {
   APPROVER: 3,
   LECTURER: 4,
   STUDENT: 5,
-};
-
-const ROLE_LABEL: Record<UserRole, string> = {
-  ADMIN: "Admin",
-  OFFICER: "Timetabling Officer",
-  DEPT_REP: "Department Rep",
-  APPROVER: "Head of Department",
-  LECTURER: "Lecturer",
-  STUDENT: "Student",
 };
 
 type DemoAccount = {
@@ -70,13 +62,13 @@ export default async function DemoSwitcher({
 
   return (
     <details className="border border-amber-300 rounded-md bg-amber-50 p-3 text-sm">
-      <summary className="list-item font-bold text-amber-800 cursor-pointer">
+      <summary className="list-item font-bold text-amber-800 cursor-pointer flex items-center gap-2">
         Switch demo account
-      </summary>
-      <div className="mt-2 space-y-1">
-        <span className="block mb-1 text-[10px] uppercase tracking-wider font-bold text-amber-600">
+        <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold text-red-600 bg-red-100 border border-red-200">
           DEMO MODE ON
         </span>
+      </summary>
+      <div className="mt-2 space-y-1">
         {accounts.map((account) => {
           const isCurrent = account.id === currentUserId;
           return (
@@ -91,7 +83,7 @@ export default async function DemoSwitcher({
                     : "border-slate-300 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1"
                 }`}
               >
-                {account.name} ({ROLE_LABEL[account.role]})
+                {account.name} ({roleLabel(account.role)})
               </button>
             </form>
           );

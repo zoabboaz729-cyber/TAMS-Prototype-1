@@ -2,7 +2,7 @@
  * POST /api/demo/switch
  * Switches the session to a demo account without a password.
  *
- * Three protections, in order:
+ * Six ordered checks (a to f), in order:
  *  a. 404 unless demo mode is enabled (DEMO_MODE === "true" and
  *     NODE_ENV !== "production") — the route does not exist otherwise.
  *  b. Same-origin check (Origin/Host plus Sec-Fetch-Site fallback) — 403 on
@@ -21,6 +21,10 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(): Promise<NextResponse> {
+  return NextResponse.json({ error: "not_found" }, { status: 404 });
+}
 import { z } from "zod";
 import { isSameOriginRequest } from "@/server/origin";
 import { isDemoEnabled, isDemoAccountEmail } from "@/server/demoMode";

@@ -123,3 +123,12 @@
 - Decisions: /officer and /admin are guard-probe placeholders that become real dashboards in later milestones; the demo switcher renders only when DEMO_MODE === "true" and NODE_ENV !== "production" (never in production); the home page never calls requireAction and renders only menuForRole(user.role) items.
 - Known problems: none.
 - Next suggested task: deliver the first built menu page (flip a built: false flag to true).
+
+## 2026-11-01 M1-T3c-6 Cleanup before merging M1
+- Done: Moved `cookies()` outside try/catch in `getCurrentUser()` (with comment); added `src/domain/roles.ts` with `ROLE_LABEL` + `roleLabel()` (single source of truth, `Object.hasOwn`-based, never throws); removed duplicate maps from layout.tsx, page.tsx, DemoSwitcher.tsx; added red "DEMO MODE ON" badge inside `<summary>` of DemoSwitcher and removed the duplicate in-body label; added `GET` (404 not_found) to /api/demo/switch route and fixed header comment to "six ordered checks (a to f)"; recorded decisions in DECISIONS.md.
+- Files changed: src/domain/roles.ts (new), src/domain/__tests__/roles.test.ts (new), src/server/auth.ts, src/app/api/demo/switch/route.ts, src/components/DemoSwitcher.tsx, src/app/layout.tsx, src/app/page.tsx, DECISIONS.md, PROGRESS.md
+- Verify: PASS (typecheck 0 errors; lint 0 warnings/errors; vitest 138 tests passed across 13 files; seed:check 9 tests passed)
+- Build: PASS (next build succeeded, zero `[auth]` lines in output)
+- Decisions: cookies() outside try/catch to avoid swallowing Next.js dynamic-rendering signals; role labels single-sourced from src/domain/roles.ts.
+- Known problems: none.
+- Next suggested task: deliver the first built menu page (flip a built: false flag to true).

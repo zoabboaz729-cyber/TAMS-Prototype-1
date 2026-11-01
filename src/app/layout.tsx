@@ -8,22 +8,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import DemoSwitcher from "@/components/DemoSwitcher";
+import { roleLabel } from "@/domain/roles";
 import { getCurrentUser, type SafeUser } from "@/server/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "TAMS Prototype — Kisii University",
   description: "Timetabling and Attendance Management System Prototype",
-};
-
-/** Role display labels — keeps role strings out of UI raw. */
-const ROLE_LABEL: Record<string, string> = {
-  ADMIN: "Admin",
-  OFFICER: "Timetabling Officer",
-  DEPT_REP: "Department Rep",
-  APPROVER: "Head of Department",
-  LECTURER: "Lecturer",
-  STUDENT: "Student",
 };
 
 /**
@@ -48,17 +39,17 @@ function UserBar({ user }: { user: SafeUser | null }) {
     );
   }
 
-  const roleLabel = ROLE_LABEL[user.role] ?? user.role;
+  const label = roleLabel(user.role);
 
   return (
     <div className="flex items-center gap-4">
       {/* User identity — sourced from DB via getCurrentUser(), never from form data */}
       <span className="text-sm text-slate-700 hidden sm:inline">
         <span className="font-medium">{user.name}</span>
-        <span className="text-slate-500 ml-1">({roleLabel})</span>
+        <span className="text-slate-500 ml-1">({label})</span>
       </span>
       {/* Mobile: role only */}
-      <span className="text-xs text-slate-500 sm:hidden">{roleLabel}</span>
+      <span className="text-xs text-slate-500 sm:hidden">{label}</span>
 
       {/* Logout — POST-only; a plain link would be a GET and is disallowed */}
       <form method="POST" action="/api/auth/logout">

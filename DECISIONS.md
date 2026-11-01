@@ -98,6 +98,12 @@
 - **Decision**: `DemoSwitcher` renders only when `isDemoEnabled(DEMO_MODE, NODE_ENV)` — DEMO_MODE exactly "true" and NODE_ENV not "production" — and returns `null` otherwise, so the demo switcher never shows in production and renders nothing at all when demo mode is off.
 - **Decision**: The home page never calls `requireAction`; it renders exactly `menuForRole(user.role)` items in list order, with unbuilt items greyed out ("Coming soon") rather than links.
 
+## 2026-11-01 Cleanup before merging M1 (M1-T3c-6)
+- **Decision**: `cookies()` must be called outside the try/catch in `getCurrentUser()` (src/server/auth.ts). Next.js throws a special error from `cookies()` during static analysis, and catching it would swallow dynamic-rendering signals. Comment added to enforce this.
+  - Reason: Prevents silently swallowing Next.js dynamic-rendering errors while preserving the existing catch behaviour (log prefix + message, return null) for all other failures.
+- **Decision**: Role labels live only in `src/domain/roles.ts` (`ROLE_LABEL` record + `roleLabel()`). Duplicate maps in layout.tsx, page.tsx, and DemoSwitcher.tsx were removed and replaced with imports. `roleLabel()` never throws — it returns the raw string for unknown roles and uses `Object.hasOwn` so `"__proto__"` / `"toString"` are safe.
+  - Reason: Single source of truth for role labels; prevents drift between UI copies.
+
 ## 2026-11-01 Same-origin auth guard and demo credentials (M1-T3c-3)
 - **Decision (a): No login rate limiting in the prototype.** Login attempts are not throttled and there is no lockout; this remains a server-side production concern.
   - Reason: Keeps the prototype dependency-free and simple for the demo; rate limiting does not affect the stakeholder walkthrough.

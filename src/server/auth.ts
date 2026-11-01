@@ -103,8 +103,10 @@ const USER_SELECT = {
  * or the user no longer exists in the database.
  */
 export async function getCurrentUser(): Promise<SafeUser | null> {
+  // cookies() must stay outside the try/catch: Next throws a special error
+  // from it during static analysis.
+  const cookieStore = await cookies();
   try {
-    const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (!token) return null;
 

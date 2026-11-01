@@ -1,16 +1,8 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/server/auth";
 import { menuForRole } from "@/domain/menu";
+import { roleLabel } from "@/domain/roles";
 import { UserRole } from "@/domain/types";
-
-const ROLE_LABEL: Record<UserRole, string> = {
-  ADMIN: "Admin",
-  OFFICER: "Timetabling Officer",
-  DEPT_REP: "Department Rep",
-  APPROVER: "Head of Department",
-  LECTURER: "Lecturer",
-  STUDENT: "Student",
-};
 
 /**
  * Home page for TAMS (task M1-T3c-5).
@@ -43,13 +35,13 @@ export default async function HomePage() {
     );
   }
 
-  const roleLabel = ROLE_LABEL[user.role] ?? user.role;
+  const label = roleLabel(user.role);
   const items = menuForRole(user.role);
 
   return (
     <main className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center p-6 text-center">
       <h1 className="text-2xl font-bold tracking-tight text-slate-800">
-        Welcome, {user.name} ({roleLabel})
+        Welcome, {user.name} ({label})
       </h1>
       <ul className="mt-6 max-w-xl w-full text-left space-y-2">
         {items.map((item) => (
