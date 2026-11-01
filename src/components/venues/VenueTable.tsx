@@ -76,7 +76,15 @@ export function VenueTable({ rows }: { rows: VenueRow[] }) {
                 <td className="h-11 px-4">{ownershipBadge(row.ownership)}</td>
                 <td className="h-11 px-4">
                   {row.canEdit ? (
-                    <span className="text-green-700">You can edit</span>
+                    <span className="inline-flex items-center gap-2">
+                      <span className="text-green-700">You can edit</span>
+                      <Link
+                        href={`/venues/${encodeURIComponent(row.id)}/edit`}
+                        className="font-medium text-indigo-600 hover:underline"
+                      >
+                        Edit
+                      </Link>
+                    </span>
                   ) : (
                     <span className="text-slate-500">Read only</span>
                   )}

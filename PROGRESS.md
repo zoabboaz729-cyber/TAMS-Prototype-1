@@ -215,3 +215,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Kept the action as a wrapper around tested parsing and write functions; validated untrusted operation/id values and rechecked stored-venue permissions; filtered owner choices through `decideVenueWrite`; used only fixed notice keys; retained `__SHARED__` as the explicit shared-owner selection.
 - Known problems: `next lint` emitted its existing deprecation notice.
 - Next suggested task: M2-T1c3b
+
+## 2026-11-02 M2-T1c3b Add venue create and edit pages
+- Done: Added tested venue form view helpers, the client create/edit form, guarded create/edit pages, register notices and create/edit links.
+- Files changed: src/server/venueFormView.ts, src/server/__tests__/venueFormView.test.ts, src/components/venues/VenueForm.tsx, src/app/venues/new/page.tsx, src/app/venues/[id]/edit/page.tsx, src/app/venues/page.tsx, src/components/venues/VenueTable.tsx, DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify` (typecheck passed; lint 0 warnings/errors; 333 tests passed across 23 files; seed check 9 tests passed); `npm run build` passed and listed both new routes; dev server returned GET / 200.
+- Decisions: Kept client props serialisable; authorization is checked before edit rendering and rechecked in the action; server-side validation owns messages; notice text is selected from a fixed table.
+- Known problems: Manual workflow, tampering, role, and audit-row tests are deferred to the user as requested.
+- Next suggested task: User manual validation; wait for explicit authorization before M2-T2.

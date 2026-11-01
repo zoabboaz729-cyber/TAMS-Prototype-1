@@ -167,4 +167,11 @@
 - **Decision**: The `op` and `venueId` fields come from the form and are untrusted; the server validates them and re-checks authorization against the stored venue before writing.
 - **Decision**: Owner dropdown options are filtered through `decideVenueWrite`, so the UI cannot offer an owner the server would refuse.
 - **Decision**: Success and not-found outcomes use fixed notice keys in the address bar, never raw text.
+
+## 2026-11-02 Venue create and edit pages (M2-T1c3b)
+- **Decision**: `VenueForm` is the only client component in the venue write flow and receives only serialisable form values and owner options.
+- **Decision**: The hidden `op` and `venueId` fields are untrusted; the action validates them and checks authorization against the stored venue. The edit page also runs `decideVenueWrite` for the stored venue before rendering.
+- **Decision**: Capacity uses a text input with `inputMode="numeric"` and the form uses `noValidate`, keeping server validation messages authoritative while preserving invalid input for correction.
+- **Decision**: A sole permitted owner is preselected; a shared owner is never selected by default.
+- **Decision**: Register notices are selected from a fixed key-to-message table; unrecognized query values render no message.
 - **Decision**: `__SHARED__` is the explicit form sentinel for choosing a shared venue.
