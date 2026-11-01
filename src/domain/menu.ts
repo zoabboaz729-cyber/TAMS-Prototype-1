@@ -26,7 +26,7 @@ export type MenuItem = {
 export const MENU_ITEMS: readonly MenuItem[] = [
   { key: "timetable", label: "Timetable", href: "/timetable", action: "VIEW_TIMETABLE", built: false },
   { key: "venue-status", label: "Venue status", href: "/venues/status", action: "VIEW_VENUE_STATUS", built: false },
-  { key: "venue-register", label: "Venue register", href: "/venues", action: "DECLARE_VENUE", built: false },
+  { key: "venue-register", label: "Venue register", href: "/venues", action: "DECLARE_VENUE", built: true },
   { key: "submission-edit", label: "Department submission", href: "/department/submission", action: "EDIT_SUBMISSION", built: false },
   { key: "submission-review", label: "Review submissions", href: "/department/review", action: "REVIEW_SUBMISSION", built: false },
   { key: "draft-editor", label: "Draft editor", href: "/officer/draft", action: "EDIT_DRAFT", built: false },

@@ -4,7 +4,7 @@
 ## 2026-10-26 Signed-Cookie Sessions Instead of Auth.js (M1-T3a)
 - **Decision**: Implemented custom signed-cookie sessions using Node built-in `crypto` (HMAC-SHA256) rather than Auth.js (next-auth).
   - Token format: `base64url(JSON payload)` + `.` + `base64url(HMAC-SHA256 signature)`.
-  - Session duration: **8 hours** (SESSION_DURATION_MS = 28 800 000 ms). ASSUMPTION-3: assumed reasonable session length for university staff; to be confirmed.
+  - Session duration: **8 hours** (SESSION_DURATION_MS = 28 800 000 ms). design choice, to be confirmed with the university.
   - No login lockout in the prototype — lockout logic is a server-side rate-limit concern deferred to the production system.
   - `authenticate()` always runs `verifyPassword` even when the email is not found to prevent timing attacks that would reveal whether an email exists.
 - **Reason**: Auth.js adds ~80 kB of dependency surface, requires adapter config, and hides the session model behind abstractions. A custom 120-line implementation is auditable, requires zero new packages, and satisfies the prototype's "no external dependencies" rule (AGENTS.md §2).
@@ -136,3 +136,10 @@
 - **Reason**: `venueRules.ts` decides write access per owner; a silently shared venue would bypass department scoping.
 - **Decision**: The venue form action must convert `capacity` from text to a number before validation — HTML form inputs send strings, but `VenueInputSchema` requires a number.
 - **Alternative rejected**: Keeping `.nullish().default(null)` on `ownerDepartmentId`, which would silently turn a missing field into `null` (shared).
+
+## 2026-11-01 Venue register page (M2-T1b3)
+- **Decision**: The `/venues` page entry uses `requireAnyAction("DECLARE_VENUE")`, so only roles with a venue-declare scope (officer, department rep) see the Venue register menu item and page, while every signed-in role can read venue status elsewhere. (`src/app/venues/page.tsx`)
+- **Decision**: The summary strip counts ALL venues (`summariseVenues` over all rows), while the table respects the active filters (`filterVenues(rows, filter)`); "Showing N of M" reports the filtered count N of the total M.
+- **Decision**: `.clinerules` now contains only a pointer to `AGENTS.md` so the two rule files cannot drift apart.
+- **Reason**: `DECLARE_VENUE` is OWN_DEPARTMENT-scoped for department reps, so `requireAction` (which requires a resource) would lock them out at page entry; per-record write permission is still rechecked in the data-changing action (M2-T1c). A single rules source avoids drift; separating the all-venues summary from the filtered table matches the spec.
+- **Alternative rejected**: `requireAction("DECLARE_VENUE")` — rejected because it would redirect department reps to `/forbidden` at page entry.

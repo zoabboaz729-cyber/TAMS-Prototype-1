@@ -176,3 +176,10 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: page entry uses decideAnyAccess because OWN_DEPARTMENT scope needs a resource and would lock department reps out; per-record permission is always rechecked in the data-changing server action; address-bar filter params are parsed leniently since invalid values must never error the list page.
 - Known problems: none
 - Next suggested task: M2-T1b venue register list/filter page
+## 2026-11-01 M2-T1b3 Venue register page
+- Done: Added the /venues server page (requireAnyAction("DECLARE_VENUE") entry guard, GET filter form, filtered table, all-venues summary strip) and src/server/venueData.ts loaders; marked venue-register built in the menu and updated its test; repointed .clinerules to AGENTS.md only.
+- Files changed: src/server/venueData.ts (new), src/app/venues/page.tsx (new), src/domain/menu.ts, src/domain/__tests__/menu.test.ts, .clinerules, DECISIONS.md, PROGRESS.md
+- Verify: PASS — typecheck: 0 errors; lint: 0 warnings/errors; vitest: 217 tests passed across 17 files; seed:check: 9 tests passed; next build: OK (/venues listed, no [auth] lines)
+- Decisions: requireAnyAction not requireAction so department reps (OWN_DEPARTMENT scope) are not locked out at page entry; summary counts all venues while the table respects filters; .clinerules now only points to AGENTS.md so the two cannot drift; session-duration entry reworded as a design choice (ASSUMPTION-3 removed; A3 covers the whole-year timetable).
+- Known problems: none
+- Next suggested task: M2-T1c venue create/edit forms

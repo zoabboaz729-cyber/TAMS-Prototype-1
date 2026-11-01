@@ -45,10 +45,15 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
 };
 
 describe("MENU_ITEMS", () => {
-  it("has exactly 15 items, all with built === false", () => {
+  it("exactly one item is built, and it is venue-register", () => {
     expect(MENU_ITEMS).toHaveLength(15);
+    const built = MENU_ITEMS.filter((item) => item.built);
+    expect(built).toHaveLength(1);
+    expect(built[0].key).toBe("venue-register");
     for (const item of MENU_ITEMS) {
-      expect(item.built).toBe(false);
+      if (item.key !== "venue-register") {
+        expect(item.built).toBe(false);
+      }
     }
   });
 
