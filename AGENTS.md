@@ -50,6 +50,7 @@ It is NOT the final product. It must be small, correct, runnable at all times, a
 - Anything unfinished is marked `// STUB:` in code and shown as "Not implemented in prototype" in the UI.
 - The UI always shows a banner: "Prototype — sample data. Not official university records."
 - Anything based on an unverified assumption about Kisii's process carries a tag `ASSUMPTION-<n>` in code comments (list in spec §9).
+- ASSUMPTION-<n> tags may only be used for the matching item in PROTOTYPE_SPEC section 9 (A1 to A18). Never invent a number or reuse one for something else; if a behaviour is only a design choice, record it in DECISIONS.md instead.
 
 ## 6. Git rules
 - One branch per milestone: `m3-validator`. One commit per task: `M3-T2: add lecturer overlap check`.

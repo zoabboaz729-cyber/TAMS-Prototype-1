@@ -161,6 +161,14 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Known problems: none
 - Next suggested task: M2-T1b venue register list/filter page
 
+## 2026-11-01 M2-T1b2 Venue register rows and summary
+- Done: Added pure domain logic for the venue register — buildVenueRows (sorted rows with parsed facilities, ownership, ownerName, canEdit via decideVenueWrite) and summariseVenues (every department listed, including Humanities with 0), plus unit tests with literal expectations built from seedVenues/seedDepartments.
+- Files changed: src/domain/venueRegister.ts (new), src/domain/__tests__/venueRegister.test.ts (new), src/domain/venueFilterParams.ts, AGENTS.md, DECISIONS.md, PROGRESS.md
+- Verify: PASS — typecheck 0 errors; lint 0 warnings/errors; vitest 217 tests passed across 17 files; seed:check 9 tests passed
+- Decisions: canEdit is computed from decideVenueWrite so the UI hint and the server write rule cannot disagree; the register shows all venues to every allowed role (read) while editing stays per-record; Humanities is deliberately shown with 0 venues to illustrate departments without rooms; removed wrongly-tagged ASSUMPTION-8 from venueFilterParams.ts (spec §9 A8 is semester dates, not filter leniency).
+- Known problems: none
+- Next suggested task: M2-T1b venue register list/filter page
+
 ## 2026-11-01 M2-T1b1 Add any-access decision, page guard and filter parsing
 - Done: Added pure `decideAnyAccess(actor, action)` to access.ts (page-entry decision: scope not NONE → ALLOW, null actor → UNAUTHENTICATED, never throws); added `requireAnyAction(action)` guard to src/server/guards.ts (redirect /login or /forbidden, redirect outside try/catch); added pure lenient `parseVenueFilterParams` in new venueFilterParams.ts (invalid/unknown values and array/inherited keys ignored); added unit tests for both with literal expectations; recorded decisions in DECISIONS.md. Existing decideAccess, requireAction, authorizeApi and access tests unchanged.
 - Files changed: src/domain/access.ts, src/domain/__tests__/access.test.ts, src/domain/venueFilterParams.ts (new), src/domain/__tests__/venueFilterParams.test.ts (new), src/server/guards.ts, DECISIONS.md, PROGRESS.md

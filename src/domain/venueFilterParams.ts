@@ -7,9 +7,6 @@
  * every invalid or unknown value is silently ignored (the key is simply left
  * out), never an error. Repeated keys (array values) are ignored too.
  *
- * ASSUMPTION-8: filter query parameters are optional and free-form text from
- * the browser address bar, so invalid values are dropped rather than surfaced
- * as errors; to be confirmed at the stakeholder walkthrough.
  */
 import type { VenueStatus, VenueType } from "./types";
 import type { VenueFilter } from "./venueRules";

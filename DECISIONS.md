@@ -117,6 +117,12 @@
 - **Decision**: `ALLOWED_FACILITIES = ["projector", "computers", "whiteboard", "accessible"]`; venue input is validated with Zod (code trimmed and uppercased, 2–10 chars, A-Z / 0-9 / "-" only; capacity integer 1–1000 rejecting decimals, 0, negatives and numeric strings; facilities deduplicated and capped at 4; status defaults to ACTIVE; ownerDepartmentId 1–100 chars or null for a shared venue). (`src/domain/venueSchema.ts`)
 - **Decision**: Changing the capacity or type of a venue already used in timetable entries must trigger re-validation of those entries (capacity/type rules); this is deferred to the M3 conflict validator and is not enforced in M2.
 
+## 2026-11-01 Venue register rows and summary (M2-T1b2)
+- **Decision**: `canEdit` on each register row is computed with `decideVenueWrite` from `src/domain/venueRules.ts`, so the UI edit hint and the server-side write rule cannot disagree (`src/domain/venueRegister.ts`).
+- **Decision**: the register shows all venues to every allowed role (read) while editing stays per-record; ownership gates the edit column, never visibility.
+- **Decision**: Humanities is deliberately included in `summariseVenues` output with 0 venues to illustrate departments without rooms (spec §10: "plus one department that owns no shared rooms").
+- **Reason**: Read access must not leak per-record authorization; a single source of truth for the write rule avoids UI/server divergence; a zero-venue department makes the owned-versus-shared contrast visible at the walkthrough.
+
 ## 2026-11-01 Any-access page decision, page guard and filter parsing (M2-T1b1)
 - **Decision**: Page entry uses `decideAnyAccess` (permission scope not NONE) rather than `decideAccess`, because an OWN_DEPARTMENT scope needs a resource and would lock department reps out of the venue register page before they have picked a department. (`src/domain/access.ts`, `src/server/guards.ts`)
   - Reason: `declareVenue` for a department rep is scoped to OWN_DEPARTMENT; at page entry no venue/resource exists yet, so `decideAccess` would return FORBIDDEN for every department rep.
