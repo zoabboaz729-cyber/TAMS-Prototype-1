@@ -107,3 +107,11 @@
 - Decisions: recorded in DECISIONS.md — (a) no login rate limiting in the prototype; (b) all demo accounts share one password and data is synthetic, never deploy publicly; (c) cross-site check uses the Origin header with a Sec-Fetch-Site fallback instead of CSRF tokens.
 - Known problems: none from this task.
 - Next suggested task: M1-T3c-4 role-based home pages using the new guards.
+
+## 2026-11-01 M1-T3c-4 Role-based menus and guarded demo account switch
+- Done: Added role-based navigation menus derived from the permission matrix (MENU_ITEMS, all built: false; menuForRole returns items whose permissionScope is not "NONE" in list order; unknown roles return []) plus the guarded POST /api/demo/switch demo-account switch with three protections (demo-mode gate → 404 not_found, same-origin check → 403 forbidden, demo-account-only sessioning with generic /login?e=bad_request for unknown ids and non-demo accounts); updated .env.example with DEMO_MODE=false and recorded the design in DECISIONS.md.
+- Files changed: src/domain/menu.ts (new), src/domain/__tests__/menu.test.ts (new), src/server/demoMode.ts (new), src/server/__tests__/demoMode.test.ts (new), src/app/api/demo/switch/route.ts (new), .env.example, DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify`: typecheck 0 errors; lint 0 warnings/errors; vitest 133 tests passed across 12 files (32 new); seed:check 9 tests passed.
+- Decisions: menus are derived from PERMISSION_SCOPE so the UI stays consistent with enforced authorization (UI is never a security boundary); PUBLISH_TIMETABLE and MANAGE_SHARED_VENUES deliberately have no menu entries; built flags flip to true as pages are delivered; demo switch is production-gated, same-origin-gated, and enumeration-resistant; no password is read or logged and nothing is logged.
+- Known problems: no pages/components consume the menu yet (next task); demo accounts share one password (documented in DECISIONS.md).
+- Next suggested task: M1-T3c role-based home pages rendering menuForRole.

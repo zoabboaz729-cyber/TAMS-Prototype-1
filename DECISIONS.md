@@ -67,6 +67,32 @@
 - **Alternative rejected**: Deriving scopes at runtime from role/resource shape; implicit default scopes.
 - **Note**: In the prototype ADMIN is granted only MANAGE_USERS (plus timetable/venue-status viewing); ADMIN does not manage venues, submissions, or timetables.
 
+## 2026-11-01 Role-based menus and guarded demo account switch (M1-T3c-4)
+
+- **Decision (a): Role-based menus derived from the permission matrix.**
+  `src/domain/menu.ts` defines `MENU_ITEMS` (all `built: false`; the flag is
+  flipped to `true` as each corresponding page is delivered) and
+  `menuForRole(role)`, which returns, in list order, the items whose
+  `permissionScope(role, action)` is not "NONE" — unknown roles yield an
+  empty menu and nothing ever throws. `PUBLISH_TIMETABLE` and
+  `MANAGE_SHARED_VENUES` have no menu entries; they live inside other pages.
+  - Reason: menus stay consistent with the enforceable permission matrix.
+    The UI is never a security boundary — every page, route handler, and
+    server action enforces authorization itself.
+- **Decision (b): Demo account switch at POST /api/demo/switch with three protections.**
+  (1) 404 `{"error":"not_found"}` unless `isDemoEnabled(DEMO_MODE, NODE_ENV)`
+  (pure function in src/server/demoMode.ts: true only when DEMO_MODE is
+  exactly "true" and NODE_ENV is not "production"); (2) 403
+  `{"error":"forbidden"}` on same-origin check failure via `isSameOriginRequest`;
+  (3) only existing users with a `@demo.tams.test` email and a valid role are
+  sessioned — unknown ids and non-demo accounts get one generic
+  `/login?e=bad_request` redirect, preventing account enumeration. No password
+  is read or accepted, nothing is logged, and every redirect path is a
+  hard-coded constant.
+  - Reason: the switch is a walkthrough convenience, so it must never be
+    reachable in production, never be callable cross-site, and never reveal
+    which accounts exist.
+
 ## 2026-11-01 Same-origin auth guard and demo credentials (M1-T3c-3)
 - **Decision (a): No login rate limiting in the prototype.** Login attempts are not throttled and there is no lockout; this remains a server-side production concern.
   - Reason: Keeps the prototype dependency-free and simple for the demo; rate limiting does not affect the stakeholder walkthrough.
