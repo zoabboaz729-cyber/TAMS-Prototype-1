@@ -161,3 +161,10 @@
 
 ## 2026-11-02 Venue write transaction owner-read limitation (M2-T1c2b)
 - **Decision**: The current owner is read before the write transaction, so two simultaneous edits could conflict (acceptable for a single-user prototype; revisit at M9 with a version column or a check inside the transaction).
+
+## 2026-11-02 Venue submission action and owner options (M2-T1c3a)
+- **Decision**: The venue server action is a thin wrapper; parsing, authorization, validation, and write behavior remain in tested functions.
+- **Decision**: The `op` and `venueId` fields come from the form and are untrusted; the server validates them and re-checks authorization against the stored venue before writing.
+- **Decision**: Owner dropdown options are filtered through `decideVenueWrite`, so the UI cannot offer an owner the server would refuse.
+- **Decision**: Success and not-found outcomes use fixed notice keys in the address bar, never raw text.
+- **Decision**: `__SHARED__` is the explicit form sentinel for choosing a shared venue.

@@ -212,6 +212,15 @@ describe("performVenueWrite", () => {
       raw: { ...validRaw, owner: "dept-mathematics" },
     });
     expect(r.ok).toBe(true);
+    if (r.ok) {
+      const stored = await store.findVenue(r.venueId);
+      expect(stored?.ownerDepartmentId).toBe("dept-mathematics");
+    }
+    expect(store.auditDrafts[0]).toEqual({
+      actorId: "user-officer",
+      action: "VENUE_CREATE",
+      reason: "created",
+    });
   });
 
   it("V9: Computing rep creates a venue owned by dept-computing", async () => {
@@ -221,6 +230,11 @@ describe("performVenueWrite", () => {
       raw: { ...validRaw, code: "NEW2" },
     });
     expect(r.ok).toBe(true);
+    if (r.ok) {
+      const stored = await store.findVenue(r.venueId);
+      expect(stored?.ownerDepartmentId).toBe("dept-computing");
+    }
+    expect(store.auditDrafts[0]?.actorId).toBe("user-deptrep-computing");
   });
 
   it("V10: Computing rep creates a venue owned by dept-mathematics -> FORBIDDEN", async () => {
@@ -385,6 +399,11 @@ describe("performVenueWrite", () => {
       raw: { code: "LH2", type: "HALL", capacity: "110", facilities: ["projector"], status: "ACTIVE", owner: "dept-mathematics" },
     });
     expect(r).toEqual({ ok: true, venueId: "venue-LH2", changed: true });
+    const stored = await store.findVenue("venue-LH2");
+    expect(stored?.capacity).toBe(110);
+    expect(store.auditDrafts[store.auditDrafts.length - 1]?.reason).toBe(
+      "changed: capacity",
+    );
   });
 
   it("V27: Mathematics rep edits venue-CR1 -> FORBIDDEN", async () => {

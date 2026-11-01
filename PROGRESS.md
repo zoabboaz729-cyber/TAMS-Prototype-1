@@ -207,3 +207,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: V18, V19, and V31 intentionally assert one attempted write to exercise store conflict/not-found results; all other failed writes assert zero calls. Recorded the owner-read-before-transaction limitation in DECISIONS.md.
 - Known problems: `next lint` emitted its existing deprecation notice.
 - Next suggested task: M2-T1c3
+
+## 2026-11-02 M2-T1c3a Owner options, submission parsing and save action
+- Done: Added permission-filtered owner options, pure FormData-to-write-request parsing, and a thin same-origin/authenticated venue save action; strengthened V8, V9, and V26 assertions.
+- Files changed: src/domain/venueOwnerOptions.ts, src/domain/__tests__/venueOwnerOptions.test.ts, src/server/venueSubmission.ts, src/server/__tests__/venueSubmission.test.ts, src/app/venues/actions.ts, src/server/__tests__/venueWrite.test.ts, DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify` (typecheck passed; lint 0 warnings/errors; 317 tests passed across 22 files; seed check 9 tests passed); `npm run build` passed; `npm run dev` responded HTTP 200.
+- Decisions: Kept the action as a wrapper around tested parsing and write functions; validated untrusted operation/id values and rechecked stored-venue permissions; filtered owner choices through `decideVenueWrite`; used only fixed notice keys; retained `__SHARED__` as the explicit shared-owner selection.
+- Known problems: `next lint` emitted its existing deprecation notice.
+- Next suggested task: M2-T1c3b
