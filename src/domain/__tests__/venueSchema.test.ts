@@ -142,6 +142,24 @@ describe("VenueInputSchema", () => {
       }).success,
     ).toBe(false);
   });
+
+  it("accepts ownerDepartmentId 'dept-computing'", () => {
+    const result = parse(validInput());
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.ownerDepartmentId).toBe("dept-computing");
+  });
+
+  it("rejects a missing ownerDepartmentId key", () => {
+    const input = validInput();
+    delete (input as Record<string, unknown>).ownerDepartmentId;
+    expect(parse(input).success).toBe(false);
+  });
+
+  it("rejects ownerDepartmentId explicitly set to undefined", () => {
+    expect(
+      parse({ ...validInput(), ownerDepartmentId: undefined } as unknown).success,
+    ).toBe(false);
+  });
 });
 
 describe("venueOwnership", () => {

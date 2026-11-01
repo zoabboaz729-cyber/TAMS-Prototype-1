@@ -48,13 +48,13 @@ export const VenueInputSchema = z
       .default([]),
     status: VenueStatusSchema.default("ACTIVE"),
     // Trimmed 1-100 characters, or null meaning a shared venue.
+    // A missing field (undefined) is rejected: an owner must be explicit.
     ownerDepartmentId: z
       .string()
       .trim()
       .min(1, "An owning department is required")
       .max(100, "Owning department id must be at most 100 characters")
-      .nullish()
-      .default(null),
+      .nullable(),
   });
 
 export type VenueInput = z.infer<typeof VenueInputSchema>;
