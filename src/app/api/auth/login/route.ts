@@ -12,7 +12,8 @@
  *   URL can be injected through form data.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { isSameOriginRequest } from "@/server/origin";
+import { LoginSchema } from "@/server/loginSchema";
 import { authenticate, startSession, getSessionSecret } from "@/server/auth";
 
 // Redirect helpers — all paths are same-origin constants.
@@ -21,14 +22,24 @@ const REDIRECT_LOGIN_BAD = "/login?e=invalid_credentials";
 const REDIRECT_LOGIN_CONFIG = "/login?e=config";
 const REDIRECT_LOGIN_BAD_REQUEST = "/login?e=bad_request";
 
-const LoginSchema = z.object({
-  // Basic email shape; deliberate auth failure returns no detail.
-  email: z.string().email(),
-  // Non-empty string; whitespace is intentionally NOT trimmed per spec.
-  password: z.string().min(1),
-});
-
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // -------------------------------------------------------------------------
+  // 0. Same-origin check — Origin header with Sec-Fetch-Site fallback.
+  //    Deny by default: nothing else runs if this fails.
+  // -------------------------------------------------------------------------
+  if (
+    !isSameOriginRequest({
+      origin: request.headers.get("origin"),
+      host: request.headers.get("host"),
+      secFetchSite: request.headers.get("sec-fetch-site"),
+    })
+  ) {
+    return NextResponse.redirect(
+      new URL(REDIRECT_LOGIN_BAD_REQUEST, request.url),
+      { status: 303 },
+    );
+  }
+
   // -------------------------------------------------------------------------
   // 1. Verify configuration before touching credentials.
   //    If SESSION_SECRET is missing, report a config error — not an auth error.

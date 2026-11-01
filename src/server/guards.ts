@@ -44,7 +44,7 @@ export async function requireAction(
     redirect("/login");
   }
   const decision: AccessDecision = decideAccess(user, action, resource);
-  if (decision.status === "FORBIDDEN") {
+  if (decision.status !== "ALLOW") {
     redirect("/forbidden");
   }
   return user;
@@ -72,7 +72,7 @@ export async function authorizeApi(
     };
   }
   const decision: AccessDecision = decideAccess(user, action, resource);
-  if (decision.status === "FORBIDDEN") {
+  if (decision.status !== "ALLOW") {
     return {
       ok: false,
       response: NextResponse.json({ error: "forbidden" }, { status: 403 }),

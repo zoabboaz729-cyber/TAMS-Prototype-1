@@ -99,3 +99,11 @@
 - Decisions: matrix is deny-by-default and scope-based; Record<UserRole, Record<Action, Scope>> makes the table compile-time complete with no defaults or fall-through; ADMIN only has MANAGE_USERS (plus view rights) in the prototype; unknown roles/actions passed at runtime return NONE/false, never throw.
 - Known problems: none from this task.
 - Next suggested task: M1-T3c route guard helper and role-based menus built with allowedActions()
+
+## 2026-11-01 M1-T3c-3 Same-origin check, email trim, deny-by-default guards
+- Done: Added pure same-origin request check (Origin header vs Host including port, Sec-Fetch-Site fallback, deny by default, never throws) with 12 unit tests; extracted shared LoginSchema out of the login route (email trimmed before validation via z.string().trim().email(), password untrimmed z.string().min(1)) plus a normaliseLoginEmail helper applying normaliseEmail, with 6 unit tests; applied the check to the login route (303 /login?e=bad_request before anything else, shared schema, all other behaviour unchanged) and logout route (403 { error: "forbidden" }, cookie not cleared on failure); changed requireAction and authorizeApi to deny-by-default (decision.status !== "ALLOW").
+- Files changed: src/server/origin.ts (new), src/server/__tests__/origin.test.ts (new), src/server/loginSchema.ts (new), src/server/__tests__/loginSchema.test.ts (new), src/app/api/auth/login/route.ts, src/app/api/auth/logout/route.ts, src/server/guards.ts, DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify`: typecheck 0 errors; lint 0 warnings/errors; vitest 101 tests passed across 10 files (18 new); seed:check 9 tests passed.
+- Decisions: recorded in DECISIONS.md — (a) no login rate limiting in the prototype; (b) all demo accounts share one password and data is synthetic, never deploy publicly; (c) cross-site check uses the Origin header with a Sec-Fetch-Site fallback instead of CSRF tokens.
+- Known problems: none from this task.
+- Next suggested task: M1-T3c-4 role-based home pages using the new guards.

@@ -66,3 +66,11 @@
 - **Reason**: Pure, testable domain logic (AGENTS.md §3) that the server can enforce on every route/action; the Record type makes every cell compile-time accounted for.
 - **Alternative rejected**: Deriving scopes at runtime from role/resource shape; implicit default scopes.
 - **Note**: In the prototype ADMIN is granted only MANAGE_USERS (plus timetable/venue-status viewing); ADMIN does not manage venues, submissions, or timetables.
+
+## 2026-11-01 Same-origin auth guard and demo credentials (M1-T3c-3)
+- **Decision (a): No login rate limiting in the prototype.** Login attempts are not throttled and there is no lockout; this remains a server-side production concern.
+  - Reason: Keeps the prototype dependency-free and simple for the demo; rate limiting does not affect the stakeholder walkthrough.
+- **Decision (b): All demo accounts share one password and all data is synthetic — never deploy publicly.** Seed names, registration numbers, and contacts are made up, and a shared password is a known demo weakness.
+  - Reason: Honesty about prototype limitations; prevents the demo being mistaken for real university records or exposed on the public internet.
+- **Decision (c): Cross-site protection uses the Origin header with a Sec-Fetch-Site fallback instead of CSRF tokens.** `isSameOriginRequest()` (src/server/origin.ts) guards POST /api/auth/login and POST /api/auth/logout before any other logic.
+  - Reason: Simpler than issuing and validating CSRF tokens while still rejecting cross-site form POSTs; Origin/host comparison covers browsers that send Origin, Sec-Fetch-Site covers those that do not.
