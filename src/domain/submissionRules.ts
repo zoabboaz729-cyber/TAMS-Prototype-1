@@ -51,7 +51,7 @@ export function decideSubmissionTransition(
     return { status: "INVALID_STATE" };
   }
 
-  const trimmedNote = note?.trim() || null;
+  const trimmedNote = typeof note === "string" ? note.trim() || null : null;
   if (trimmedNote !== null && trimmedNote.length > NOTE_MAX) {
     return { status: "NOTE_TOO_LONG" };
   }

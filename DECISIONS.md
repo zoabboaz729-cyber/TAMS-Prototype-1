@@ -56,8 +56,22 @@
 - **Reason**: Standard Next.js lint runner works cleanly with current config and avoids introducing unnecessary codemod overhead or additional scripts during prototype phase.
 - **Alternative rejected**: Migrating to standalone ESLint CLI command at this time.
 
-## 2026-10-26 Baseline Stack Initialization (M0-T1)
-- **Decision**: Configured Next.js App Router with TypeScript strict mode, Vitest unit test runner with `@/*` alias, Tailwind CSS, ESLint, and Prisma with SQLite (`dev.db`).
+## 2026-11-02 Submission write pipeline and compare-and-set transition guard (M2-T2b)
+- **Decision (a)**: The write logic accepts a storage interface instead of importing Prisma or Next.js so every permission and state case is unit-tested in isolation without a database.
+  - **Reason**: `performSubmissionWrite()` is pure domain logic at the server boundary; a test can supply a fake store, test role checks and stale races, and the real Prisma-backed store remains a thin adapter.
+- **Decision (b)**: Department and status are always resolved from the store record, never from the request payload.
+  - **Reason**: The action is authorized against the currently stored department and state, which prevents an attacker from forging department ownership or bypassing transitions via an unsafe request object.
+- **Decision (c)**: The role-level check runs before the lookup so an unauthorized actor cannot probe a submission id or learn whether it exists.
+  - **Reason**: `decideAnyAccess(actor, permission)` happens before `findSubmission()`, returning `FORBIDDEN` for accounts without permission, even when the id is unknown.
+- **Decision (d)**: The state transition uses compare-and-set in the database `WHERE` clause (`status = expectedStatus`), and the service treats a stale status as `CONFLICT`.
+  - **Reason**: Double clicks and simultaneous approvals cannot both succeed; a lost race is rejected cleanly without writing a second audit record for the stale transition.
+- **Decision (e)**: `Submission.note` and `reviewerId` hold only the latest values, while the audit log keeps the full history and resubmission clears the older note and reviewer.
+  - **Reason**: The current submission reflects the latest review outcome, but every transition remains traceable in `AuditLog` for human review and debugging.
+- **Decision (f)**: Submission ids are not treated as secret in the prototype, so `NOT_FOUND` for a missing id and `FORBIDDEN` for another department's known id are acceptable differences when the caller is not authorized.
+  - **Reason**: The spec emphasises role enforcement and auditability over hiding the existence of a valid submission from a different department; the prototype is intentionally small and explicit about authorization boundaries.
+- **Alternative rejected**: Embedding the department or status in the request and trusting it; this creates a tampering vector and prevents reliable compare-and-set semantics.
+
+## 2026-10-26 Baseline Stack Initialization (M0-T1)- **Decision**: Configured Next.js App Router with TypeScript strict mode, Vitest unit test runner with `@/*` alias, Tailwind CSS, ESLint, and Prisma with SQLite (`dev.db`).
 - **Reason**: Matches the prototype stack specification §4 and repository layout §5. Fast to run locally without Docker for prototype demos.
 - **Alternative rejected**: PostgreSQL with Docker Compose at this stage (rejected per spec §4 and §11 until M9-T1).
 

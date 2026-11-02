@@ -203,6 +203,22 @@ describe("decideSubmissionTransition", () => {
     }
   });
 
+  it("non-string notes are treated as absent without throwing", () => {
+    const numericNote = 123 as never;
+    expect(() =>
+      decideSubmissionTransition(computingRep, submissionFor("DRAFT"), "SUBMIT", numericNote),
+    ).not.toThrow();
+    expect(
+      decideSubmissionTransition(computingRep, submissionFor("DRAFT"), "SUBMIT", numericNote),
+    ).toEqual({ status: "ALLOW", nextStatus: "SUBMITTED", note: null });
+    expect(() =>
+      decideSubmissionTransition(computingApprover, submissionFor("SUBMITTED"), "RETURN", numericNote),
+    ).not.toThrow();
+    expect(
+      decideSubmissionTransition(computingApprover, submissionFor("SUBMITTED"), "RETURN", numericNote),
+    ).toEqual({ status: "NOTE_REQUIRED" });
+  });
+
   it("RETURN: notes over 500 characters are NOTE_TOO_LONG and 500 characters are allowed", () => {
     const tooLongNote = "x".repeat(NOTE_MAX + 1);
     const maximumNote = "x".repeat(NOTE_MAX);

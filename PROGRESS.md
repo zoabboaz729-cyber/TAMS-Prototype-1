@@ -231,3 +231,10 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: APPROVED is final; permissions precede state and note checks; RETURN needs a trimmed 3-character note; Submission.note holds the latest note while the audit log keeps history.
 - Known problems: None.
 - Next suggested task: M2-T2b
+## 2026-11-02 M2-T2b Harden submission rules and add write logic
+- Done: Hardened non-string note handling in submission rule validation and implemented the submission write path with a role guard, department/state checks from the store, compare-and-set transition application, and Prisma-backed audit writes.
+- Files changed: src/domain/submissionRules.ts, src/domain/__tests__/submissionRules.test.ts, src/server/submissionWrite.ts, src/server/submissionStorePrisma.ts, src/server/__tests__/submissionWrite.test.ts, DECISIONS.md, PROGRESS.md
+- Verify: PASS (typecheck: 0 errors; lint: 0 warnings/errors; vitest: 378 tests passed across 25 files; seed:check: 9 tests passed; npm run build: compiled successfully)
+- Decisions: Kept the write service storage-agnostic so all permission/state/race cases are unit-tested; department and status always come from the store; the role gate runs before lookup; transitions use compare-and-set to prevent double submissions and lost races; audit log records every successful transition while the current submission only keeps the latest note and reviewer.
+- Known problems: None in the prototype scope for this task.
+- Next suggested task: M2-T3 lecturer availability form
