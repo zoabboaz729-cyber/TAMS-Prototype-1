@@ -27,6 +27,7 @@ describe("Seed Integrity Check (seedData.ts pure assertions)", () => {
     expect(seedDepartments).toHaveLength(3);
     expect(seedLecturers).toHaveLength(6);
     expect(seedStudentGroups).toHaveLength(3);
+    expect(seedUsers).toHaveLength(17);
 
     // 13 real SOEN units of which exactly 1 has scheduled=false (SOEN 321) and 12 are scheduled
     const soenUnits = seedUnits.filter((u) => u.code.startsWith("SOEN"));
@@ -38,6 +39,38 @@ describe("Seed Integrity Check (seedData.ts pure assertions)", () => {
 
     const scheduledSoen = soenUnits.filter((u) => u.scheduled);
     expect(scheduledSoen).toHaveLength(12);
+  });
+
+  it("provides a department representative and approver for every seeded submission", () => {
+    for (const submission of seedSubmissions) {
+      expect(
+        seedUsers.some(
+          (user) =>
+            user.role === "DEPT_REP" &&
+            user.departmentId === submission.departmentId,
+        ),
+      ).toBe(true);
+      expect(
+        seedUsers.some(
+          (user) =>
+            user.role === "APPROVER" &&
+            user.departmentId === submission.departmentId,
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it("seeds the Mathematics approver with the exact demo account fields", () => {
+    expect(
+      seedUsers.find((user) => user.id === "user-approver-maths"),
+    ).toEqual({
+      id: "user-approver-maths",
+      name: "Mathematics Approver (sample)",
+      email: "approver.maths@demo.tams.test",
+      role: "APPROVER",
+      departmentId: "dept-mathematics",
+      studentGroupId: null,
+    });
   });
 
   it("ensures all IDs are globally unique across all seed records", () => {

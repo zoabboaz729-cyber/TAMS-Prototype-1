@@ -247,3 +247,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: DECISIONS.md diagnostics were 16 insertions/2 deletions, 158 lines in HEAD~1, and 172 current lines. Existing M2-T2b decisions (a)–(f) were already present; the previous baseline-stack decision heading/line break had been malformed, so it was restored without changing its wording.
 - Known problems: None introduced by this task.
 - Next suggested task: M2-T2c submission pages and a Mathematics approver in the seed
+
+## 2026-11-02 M2-T2c1 Mathematics approver, submission views and teaching loaders
+- Done: Added the Mathematics approver, tested permission-filtered submission views and notices, and added scoped read-only data loaders.
+- Files changed: AGENTS.md, DECISIONS.md, PROGRESS.md, src/domain/seedData.ts, src/domain/__tests__/seed-check.test.ts, src/domain/submissionView.ts, src/domain/__tests__/submissionView.test.ts, src/server/submissionData.ts
+- Verify: PASS ? `npm run verify` (typecheck passed, lint clean, 402 tests passed across 26 files, seed check 11 tests passed); `npm run build` compiled successfully.
+- Decisions: `sessionLength` is stored in hours, as documented by the seed data; teaching totals use direct multiplication.
+- Known problems: The Prisma data loaders are verified by typecheck/build only; no database-backed loader tests were added.
+- Next suggested task: M2-T2c2

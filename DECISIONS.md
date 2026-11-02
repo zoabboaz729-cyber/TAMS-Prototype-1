@@ -198,3 +198,12 @@
 - **Decision**: Returning a submission requires a note of at least 3 trimmed characters.
 - **Decision**: `Submission.note` holds only the latest note; the audit log keeps the history.
 - **Decision**: `availableSubmissionActions` derives visible actions from the same transition decisions the server accepts.
+
+## 2026-11-02 Submission views and teaching loaders (M2-T2c1)
+- **Decision**: Add a Mathematics approver to support the seeded Mathematics submission workflow.
+- **Decision**: Submission visibility is checked per record and per view using existing `canAct` permissions.
+- **Decision**: Officers receive an overview; department representatives and approvers see only records they are authorized to access.
+- **Decision**: Teaching lists provide read-only context.
+- **Decision**: Invalid statuses are dropped.
+- **Decision**: Status labels, tones, and notice messages use the fixed mappings specified for this task.
+- **Decision**: This task explicitly permits eight files, overriding the normal five-file limit.
