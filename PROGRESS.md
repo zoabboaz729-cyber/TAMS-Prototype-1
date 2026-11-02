@@ -256,3 +256,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: `sessionLength` is stored in hours, as documented by the seed data; teaching totals use direct multiplication.
 - Known problems: The Prisma data loaders are verified by typecheck/build only; no database-backed loader tests were added.
 - Next suggested task: M2-T2c2
+
+## 2026-11-02 M2-T2c2a Implement submission server actions
+- Done: Added same-origin-protected submit, approve, and return server actions using authenticated session identity, Zod input validation, and the existing submission write workflow.
+- Files changed: src/app/submissions/actions.ts, src/server/__tests__/submissionActions.test.ts, PROGRESS.md
+- Verify: PASS — `npm run verify` (typecheck passed; lint reported 0 warnings/errors; 419 tests passed across 27 files; seed check passed with 11 tests).
+- Decisions: No new architectural decision; the existing workflow remains authoritative for department/state checks and transactional audit writes.
+- Known problems: Action tests use the established fake-store pattern; the Prisma submission adapter still has no database-backed integration coverage.
+- Next suggested task: M2-T2c2b
