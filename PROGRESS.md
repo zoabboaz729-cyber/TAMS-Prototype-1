@@ -4,7 +4,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 
 ## Status
 - Current milestone: M2
-- Last verified commit: 99ef542
+- Last verified code commit: 99ef542 (later branch commits are documentation-only)
 - Demo-ready: no
 
 ## Log
@@ -61,7 +61,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Files changed: src/server/session.ts, src/server/__tests__/session.test.ts, src/server/db.ts, src/server/auth.ts, .env.example, PROGRESS.md, DECISIONS.md
 - Verify: PASS (typecheck: 0 errors; lint: 0 warnings/errors; vitest: 43 tests passed across 5 files; seed:check: 9 tests passed)
 - Decisions: Signed-cookie sessions (custom HMAC) instead of Auth.js — see DECISIONS.md; no login lockout in prototype; 8-hour sessions (SESSION_DURATION_MS).
-- Known problems: No login page yet (M1-T3b or later). getCurrentUser and authenticate not directly unit-testable without DB mock — covered by integration tests later.
+- Known problems: No login page yet (M1-T3b or later). getCurrentUser and authenticate are not directly unit-testable without a DB mock; no database-backed integration tests for these helpers are recorded in this log.
 - Next suggested task: M1-T3b (login/logout page and route handler)
 
 ## 2026-10-26 M1-T3b Login Page, Logout, and User Bar
@@ -161,6 +161,14 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Known problems: none
 - Next suggested task: M2-T1b venue register list/filter page
 
+## 2026-11-01 M2-T1b1 Add any-access decision, page guard and filter parsing
+- Done: Added pure `decideAnyAccess(actor, action)` to access.ts (page-entry decision: scope not NONE → ALLOW, null actor → UNAUTHENTICATED, never throws); added `requireAnyAction(action)` guard to src/server/guards.ts (redirect /login or /forbidden, redirect outside try/catch); added pure lenient `parseVenueFilterParams` in new venueFilterParams.ts (invalid/unknown values and array/inherited keys ignored); added unit tests for both with literal expectations; recorded decisions in DECISIONS.md. Existing decideAccess, requireAction, authorizeApi and access tests unchanged.
+- Files changed: src/domain/access.ts, src/domain/__tests__/access.test.ts, src/domain/venueFilterParams.ts (new), src/domain/__tests__/venueFilterParams.test.ts (new), src/server/guards.ts, DECISIONS.md, PROGRESS.md
+- Verify: PASS — typecheck: 0 errors; lint: 0 warnings/errors; vitest: 207 tests passed across 16 files; seed:check: 9 tests passed.
+- Decisions: page entry uses decideAnyAccess because OWN_DEPARTMENT scope needs a resource and would lock department reps out; per-record permission is always rechecked in the data-changing server action; address-bar filter params are parsed leniently since invalid values must never error the list page.
+- Known problems: none
+- Next suggested task: M2-T1b venue register list/filter page
+
 ## 2026-11-01 M2-T1b2 Venue register rows and summary
 - Done: Added pure domain logic for the venue register — buildVenueRows (sorted rows with parsed facilities, ownership, ownerName, canEdit via decideVenueWrite) and summariseVenues (every department listed, including Humanities with 0), plus unit tests with literal expectations built from seedVenues/seedDepartments.
 - Files changed: src/domain/venueRegister.ts (new), src/domain/__tests__/venueRegister.test.ts (new), src/domain/venueFilterParams.ts, AGENTS.md, DECISIONS.md, PROGRESS.md
@@ -169,13 +177,6 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Known problems: none
 - Next suggested task: M2-T1b venue register list/filter page
 
-## 2026-11-01 M2-T1b1 Add any-access decision, page guard and filter parsing
-- Done: Added pure `decideAnyAccess(actor, action)` to access.ts (page-entry decision: scope not NONE → ALLOW, null actor → UNAUTHENTICATED, never throws); added `requireAnyAction(action)` guard to src/server/guards.ts (redirect /login or /forbidden, redirect outside try/catch); added pure lenient `parseVenueFilterParams` in new venueFilterParams.ts (invalid/unknown values and array/inherited keys ignored); added unit tests for both with literal expectations; recorded decisions in DECISIONS.md. Existing decideAccess, requireAction, authorizeApi and access tests unchanged.
-- Files changed: src/domain/access.ts, src/domain/__tests__/access.test.ts, src/domain/venueFilterParams.ts (new), src/domain/__tests__/venueFilterParams.test.ts (new), src/server/guards.ts, DECISIONS.md, PROGRESS.md
-- Verify: PASS — typecheck: 0 errors; lint: 0 warnings/errors; vitest: 207 tests passed across 16 files; seed:check: 9 tests passed.
-- Decisions: page entry uses decideAnyAccess because OWN_DEPARTMENT scope needs a resource and would lock department reps out; per-record permission is always rechecked in the data-changing server action; address-bar filter params are parsed leniently since invalid values must never error the list page.
-- Known problems: none
-- Next suggested task: M2-T1b venue register list/filter page
 ## 2026-11-01 M2-T1b3 Venue register page
 - Done: Added the /venues server page (requireAnyAction("DECLARE_VENUE") entry guard, GET filter form, filtered table, all-venues summary strip) and src/server/venueData.ts loaders; marked venue-register built in the menu and updated its test; repointed .clinerules to AGENTS.md only.
 - Files changed: src/server/venueData.ts (new), src/app/venues/page.tsx (new), src/domain/menu.ts, src/domain/__tests__/menu.test.ts, .clinerules, DECISIONS.md, PROGRESS.md
@@ -228,8 +229,8 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Done: Added the officer-only VIEW_SUBMISSIONS permission and menu entry, plus pure submission transition decisions, available actions, and audit reasons with literal unit tests.
 - Files changed: src/domain/permissions.ts, src/domain/__tests__/permissions.test.ts, src/domain/menu.ts, src/domain/__tests__/menu.test.ts, src/domain/submissionRules.ts, src/domain/__tests__/submissionRules.test.ts, PROTOTYPE_SPEC.md, DECISIONS.md, PROGRESS.md
 - Verify: PASS — `npm run verify` (typecheck passed; lint 0 warnings/errors; 353 tests passed across 24 files; seed check 9 tests passed).
-- Decisions: APPROVED is final; permissions precede state and note checks; RETURN needs a trimmed 3-character note; Submission.note holds the latest note while the audit log keeps history.
-- Known problems: None.
+- Decisions: APPROVED is final; permissions precede state and note checks; RETURN needs a trimmed 3-character note; `Submission.note` holds only the latest note; the audit log keeps the history.
+- Known problems: None introduced by this task.
 - Next suggested task: M2-T2b
 
 ## 2026-11-02 M2-T2b Harden submission rules and add write logic
@@ -237,7 +238,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Files changed: src/domain/submissionRules.ts, src/domain/__tests__/submissionRules.test.ts, src/server/submissionWrite.ts, src/server/submissionStorePrisma.ts, src/server/__tests__/submissionWrite.test.ts, DECISIONS.md, PROGRESS.md
 - Verify: PASS (typecheck: 0 errors; lint: 0 warnings/errors; vitest: 378 tests passed across 25 files; seed:check: 9 tests passed; npm run build: compiled successfully)
 - Decisions: Kept the write service storage-agnostic so all permission/state/race cases are unit-tested; department and status always come from the store; the role gate runs before lookup; transitions use compare-and-set to prevent double submissions and lost races; audit log records every successful transition while the current submission only keeps the latest note and reviewer.
-- Known problems: Prisma submission adapter and write path are untested until M2-T2c; the agent deleted the untracked user folder .vscode during this task (not recoverable from git)
+- Known problems: The Prisma submission adapter and write path had no database-backed integration coverage; the write orchestration tests use a fake store. The agent deleted the untracked user folder .vscode during this task (not recoverable from git)
 - Next suggested task: M2-T2c submission pages and a Mathematics approver in the seed
 
 ## 2026-11-02 M2-T2b2 Harden submission write tests and repair notes
@@ -245,13 +246,13 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Files changed: src/server/__tests__/submissionWrite.test.ts, src/server/submissionStorePrisma.ts, DECISIONS.md, PROGRESS.md, AGENTS.md
 - Verify: PASS — focused submission write tests: 24 passed; `npm run verify`: typecheck passed, lint 0 warnings/errors, 378 tests passed across 25 files, seed check 9 tests passed; `npm run build`: compiled successfully.
 - Decisions: DECISIONS.md diagnostics were 16 insertions/2 deletions, 158 lines in HEAD~1, and 172 current lines. Existing M2-T2b decisions (a)–(f) were already present; the previous baseline-stack decision heading/line break had been malformed, so it was restored without changing its wording.
-- Known problems: None introduced by this task.
+- Known problems: The Prisma submission adapter and write path still have no database-backed integration coverage; submission-write unit tests use a fake store.
 - Next suggested task: M2-T2c submission pages and a Mathematics approver in the seed
 
 ## 2026-11-02 M2-T2c1 Mathematics approver, submission views and teaching loaders
 - Done: Added the Mathematics approver, tested permission-filtered submission views and notices, and added scoped read-only data loaders.
 - Files changed: AGENTS.md, DECISIONS.md, PROGRESS.md, src/domain/seedData.ts, src/domain/__tests__/seed-check.test.ts, src/domain/submissionView.ts, src/domain/__tests__/submissionView.test.ts, src/server/submissionData.ts
-- Verify: PASS ? `npm run verify` (typecheck passed, lint clean, 402 tests passed across 26 files, seed check 11 tests passed); `npm run build` compiled successfully.
+- Verify: PASS — `npm run verify` (typecheck passed, lint clean, 402 tests passed across 26 files, seed check 11 tests passed); `npm run build` compiled successfully.
 - Decisions: `sessionLength` is stored in hours, as documented by the seed data; teaching totals use direct multiplication.
 - Known problems: The Prisma data loaders are verified by typecheck/build only; no database-backed loader tests were added.
 - Next suggested task: M2-T2c2
