@@ -16,6 +16,7 @@ It is NOT the final product. It must be small, correct, runnable at all times, a
 
 ## 2. Working rules
 - Do ONE task per session (tasks have IDs such as `M3-T2`). Never start the next task on your own.
+- Never delete, move or overwrite files or folders the task did not create. Do not run Remove-Item, rm, git clean, git reset --hard or git checkout -- on anything except files the task itself created. Untracked files and folders (for example .vscode) belong to the user. Every command that deletes anything must be listed in the task report.
 - Change at most 5 files per task. If you need more, stop and propose splitting the task.
 - The app must run (`npm run dev`) and `npm run verify` must pass at the end of every task. Never leave it broken.
 - Do not refactor, rename, or "improve" code outside the task.

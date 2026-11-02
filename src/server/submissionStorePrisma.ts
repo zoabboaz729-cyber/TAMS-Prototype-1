@@ -1,5 +1,4 @@
-import { Prisma } from "@prisma/client";
-import { SubmissionStatusSchema } from "../domain/types";
+import { SubmissionStatusSchema, type SubmissionStatus } from "../domain/types";
 import { prisma } from "./db";
 import type { SubmissionStore, StoredSubmission, SubmissionAuditDraft, SubmissionUpdate } from "./submissionWrite";
 
@@ -37,7 +36,7 @@ export function createPrismaSubmissionStore(): SubmissionStore {
 
     async applyTransition(
       id: string,
-      expectedStatus: string,
+      expectedStatus: SubmissionStatus,
       update: SubmissionUpdate,
       audit: SubmissionAuditDraft,
     ) {

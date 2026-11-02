@@ -104,99 +104,116 @@ class FakeSubmissionStore implements SubmissionStore {
   }
 }
 
-function snapshot(store: FakeSubmissionStore) {
-  return JSON.stringify(Array.from(store.submissions.entries()));
+function copyOf(store: FakeSubmissionStore) {
+  return structuredClone(Array.from(store.submissions.entries()));
 }
 
-function assertUnchangedAfterFailure(store: FakeSubmissionStore) {
+function expectNoWrites(
+  store: FakeSubmissionStore,
+  before: ReturnType<typeof copyOf>,
+) {
   expect(store.applyCalls).toHaveLength(0);
-  expect(snapshot(store)).toBe(snapshot(store));
+  expect(Array.from(store.submissions.entries())).toEqual(before);
 }
 
 describe("performSubmissionWrite", () => {
   it("S1: null actor -> UNAUTHENTICATED", async () => {
     const store = new FakeSubmissionStore();
+    const before = copyOf(store);
     const result = await performSubmissionWrite(store, null, {
       submissionId: "sub-computing-s1",
       action: "SUBMIT",
     });
 
     expect(result).toEqual({ ok: false, kind: "UNAUTHENTICATED" });
-    expect(store.applyCalls).toHaveLength(0);
+    expectNoWrites(store, before);
   });
 
   it("S2: student is FORBIDDEN on SUBMIT for a computing submission", async () => {
     const store = new FakeSubmissionStore();
-    const result = await performSubmissionWrite(store, student, {
-      submissionId: "sub-computing-s1",
-      action: "SUBMIT",
-      note: "valid note",
-    });
-    expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
-    expect(store.applyCalls).toHaveLength(0);
+    for (const action of ["SUBMIT", "APPROVE", "RETURN"] as const) {
+      const before = copyOf(store);
+      const result = await performSubmissionWrite(store, student, {
+        submissionId: "sub-computing-s1",
+        action,
+        note: action === "RETURN" ? "valid note" : undefined,
+      });
+      expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
+      expectNoWrites(store, before);
+    }
   });
 
   it("S3: lecturer is FORBIDDEN on APPROVE and RETURN for a computing submission", async () => {
     const store = new FakeSubmissionStore();
+    const beforeSubmit = copyOf(store);
     const submitResult = await performSubmissionWrite(store, lecturer, {
       submissionId: "sub-computing-s1",
       action: "SUBMIT",
       note: "valid note",
     });
+    expectNoWrites(store, beforeSubmit);
+    const beforeApprove = copyOf(store);
     const approveResult = await performSubmissionWrite(store, lecturer, {
       submissionId: "sub-computing-s1",
       action: "APPROVE",
       note: "valid note",
     });
+    expectNoWrites(store, beforeApprove);
+    const beforeReturn = copyOf(store);
     const returnResult = await performSubmissionWrite(store, lecturer, {
       submissionId: "sub-computing-s1",
       action: "RETURN",
       note: "valid note",
     });
+    expectNoWrites(store, beforeReturn);
     expect(submitResult).toEqual({ ok: false, kind: "FORBIDDEN" });
     expect(approveResult).toEqual({ ok: false, kind: "FORBIDDEN" });
     expect(returnResult).toEqual({ ok: false, kind: "FORBIDDEN" });
-    expect(store.applyCalls).toHaveLength(0);
   });
 
   it("S4: admin is FORBIDDEN on SUBMIT, APPROVE and RETURN", async () => {
     const store = new FakeSubmissionStore();
     const actions: Array<"SUBMIT" | "APPROVE" | "RETURN"> = ["SUBMIT", "APPROVE", "RETURN"];
     for (const action of actions) {
+      const before = copyOf(store);
       const result = await performSubmissionWrite(store, admin, {
         submissionId: "sub-computing-s1",
         action,
         note: "valid note",
       });
       expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
+      expectNoWrites(store, before);
     }
-    expect(store.applyCalls).toHaveLength(0);
   });
 
   it("S5: officer is FORBIDDEN on SUBMIT, APPROVE and RETURN", async () => {
     const store = new FakeSubmissionStore();
     for (const action of ["SUBMIT", "APPROVE", "RETURN"] as const) {
+      const before = copyOf(store);
       const result = await performSubmissionWrite(store, officer, {
         submissionId: "sub-computing-s1",
         action,
         note: "valid note",
       });
       expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
+      expectNoWrites(store, before);
     }
-    expect(store.applyCalls).toHaveLength(0);
   });
 
   it("S6: forbidden roles on an UNKNOWN id return FORBIDDEN before lookup", async () => {
     const store = new FakeSubmissionStore();
     for (const actor of [student, lecturer, admin, officer]) {
-      const result = await performSubmissionWrite(store, actor, {
-        submissionId: "missing-submission",
-        action: "SUBMIT",
-        note: "valid note",
-      });
-      expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
+      for (const action of ["SUBMIT", "APPROVE", "RETURN"] as const) {
+        const before = copyOf(store);
+        const result = await performSubmissionWrite(store, actor, {
+          submissionId: "missing-submission",
+          action,
+          note: action === "RETURN" ? "valid note" : undefined,
+        });
+        expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
+        expectNoWrites(store, before);
+      }
     }
-    expect(store.applyCalls).toHaveLength(0);
   });
 
   it("S7: computing rep can submit a DRAFT submission", async () => {
@@ -233,33 +250,36 @@ describe("performSubmissionWrite", () => {
   it("S9: disallowed rep/approver roles are FORBIDDEN on submission", async () => {
     const store = new FakeSubmissionStore();
     for (const actor of [mathsRep, repWithoutDepartment, computingApprover, mathsApprover]) {
+      const before = copyOf(store);
       const result = await performSubmissionWrite(store, actor, {
         submissionId: "sub-computing-s1",
         action: "SUBMIT",
       });
       expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
+      expectNoWrites(store, before);
     }
-    expect(store.applyCalls).toHaveLength(0);
   });
 
   it("S10: computing rep SUBMIT on unknown id returns NOT_FOUND", async () => {
     const store = new FakeSubmissionStore();
+    const before = copyOf(store);
     const result = await performSubmissionWrite(store, computingRep, {
       submissionId: "missing-submission",
       action: "SUBMIT",
     });
     expect(result).toEqual({ ok: false, kind: "NOT_FOUND" });
-    expect(store.applyCalls).toHaveLength(0);
+    expectNoWrites(store, before);
   });
 
   it("S11: computing rep SUBMIT on another department is FORBIDDEN", async () => {
     const store = new FakeSubmissionStore();
+    const before = copyOf(store);
     const result = await performSubmissionWrite(store, computingRep, {
       submissionId: "sub-maths-s1",
       action: "SUBMIT",
     });
     expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
-    expect(store.applyCalls).toHaveLength(0);
+    expectNoWrites(store, before);
   });
 
   it("S12: SUBMIT on a SUBMITTED or APPROVED submission is INVALID_STATE", async () => {
@@ -309,31 +329,41 @@ describe("performSubmissionWrite", () => {
 
   it("S14: forbidden roles cannot approve across departments or without a department", async () => {
     const store = new FakeSubmissionStore();
-    for (const actor of [computingApprover, mathsApprover, approverWithoutDepartment]) {
-      const result = await performSubmissionWrite(store, actor, {
-        submissionId: actor.departmentId === "dept-computing" ? "sub-maths-s1" : "sub-computing-s1",
-        action: "APPROVE",
-      });
-      if (actor.id === "user-approver-maths") {
-        expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
-      } else if (actor.id === "u-approver-no-department") {
-        expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
-      } else {
-        expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
-      }
-    }
-    expect(store.applyCalls).toHaveLength(0);
+    const beforeComputing = copyOf(store);
+    const computingResult = await performSubmissionWrite(store, computingApprover, {
+      submissionId: "sub-maths-s1",
+      action: "APPROVE",
+    });
+    expect(computingResult).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expectNoWrites(store, beforeComputing);
+
+    const beforeMaths = copyOf(store);
+    const mathsResult = await performSubmissionWrite(store, mathsApprover, {
+      submissionId: "sub-computing-s1",
+      action: "APPROVE",
+    });
+    expect(mathsResult).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expectNoWrites(store, beforeMaths);
+
+    const beforeNoDepartment = copyOf(store);
+    const noDepartmentResult = await performSubmissionWrite(store, approverWithoutDepartment, {
+      submissionId: "sub-maths-s1",
+      action: "APPROVE",
+    });
+    expect(noDepartmentResult).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expectNoWrites(store, beforeNoDepartment);
   });
 
   it("S15: approver on DRAFT submission is INVALID_STATE", async () => {
     const store = new FakeSubmissionStore();
+    const before = copyOf(store);
     const result = await performSubmissionWrite(store, computingApprover, {
       submissionId: "sub-computing-s1",
       action: "APPROVE",
       note: "valid note",
     });
     expect(result).toEqual({ ok: false, kind: "INVALID_STATE" });
-    expect(store.applyCalls).toHaveLength(0);
+    expectNoWrites(store, before);
   });
 
   it("S16: maths approver can return sub-maths-s1 with a note", async () => {
@@ -363,6 +393,7 @@ describe("performSubmissionWrite", () => {
       reviewerId: null,
     });
     for (const note of [undefined, null, "", "   ", "ab"] as const) {
+      const before = copyOf(store);
       const result = await performSubmissionWrite(store, computingApprover, {
         submissionId: "sub-computing-s1",
         action: "RETURN",
@@ -374,9 +405,12 @@ describe("performSubmissionWrite", () => {
         reason: "NOTE_REQUIRED",
         message: "Please give a reason of at least 3 characters when returning a submission",
       });
+      expectNoWrites(store, before);
+      expect(store.submissions.get("sub-computing-s1")?.status).toBe("SUBMITTED");
     }
 
     const tooLong = "x".repeat(501);
+    const beforeTooLong = copyOf(store);
     const longResult = await performSubmissionWrite(store, computingApprover, {
       submissionId: "sub-computing-s1",
       action: "RETURN",
@@ -388,6 +422,8 @@ describe("performSubmissionWrite", () => {
       reason: "NOTE_TOO_LONG",
       message: "The note is too long (500 characters at most)",
     });
+    expectNoWrites(store, beforeTooLong);
+    expect(store.submissions.get("sub-computing-s1")?.status).toBe("SUBMITTED");
 
     const maxNote = "x".repeat(500);
     const maxResult = await performSubmissionWrite(store, computingApprover, {
@@ -400,24 +436,26 @@ describe("performSubmissionWrite", () => {
 
   it("S18: forbidden actor cannot return on another department submission with no note", async () => {
     const store = new FakeSubmissionStore();
+    const before = copyOf(store);
     const result = await performSubmissionWrite(store, computingRep, {
       submissionId: "sub-maths-s1",
       action: "RETURN",
       note: "",
     });
     expect(result).toEqual({ ok: false, kind: "FORBIDDEN" });
-    expect(store.applyCalls).toHaveLength(0);
+    expectNoWrites(store, before);
   });
 
   it("S19: invalid note on allowed approver in DRAFT state is INVALID_STATE not VALIDATION", async () => {
     const store = new FakeSubmissionStore();
+    const before = copyOf(store);
     const result = await performSubmissionWrite(store, computingApprover, {
       submissionId: "sub-computing-s1",
       action: "RETURN",
       note: "",
     });
     expect(result).toEqual({ ok: false, kind: "INVALID_STATE" });
-    expect(store.applyCalls).toHaveLength(0);
+    expectNoWrites(store, before);
   });
 
   it("S20: stale status from beforeApply yields CONFLICT and one call", async () => {
@@ -448,12 +486,14 @@ describe("performSubmissionWrite", () => {
   it("S21: forceNotFound yields NOT_FOUND and one call", async () => {
     const store = new FakeSubmissionStore();
     store.forceNotFound = true;
+    const beforeSubmission = structuredClone(store.submissions.get("sub-computing-s1"));
     const result = await performSubmissionWrite(store, computingRep, {
       submissionId: "sub-computing-s1",
       action: "SUBMIT",
     });
     expect(result).toEqual({ ok: false, kind: "NOT_FOUND" });
     expect(store.applyCalls).toHaveLength(1);
+    expect(store.submissions.get("sub-computing-s1")).toEqual(beforeSubmission);
   });
 
   it("S22: full walkthrough produces the expected audit sequence", async () => {
@@ -463,6 +503,8 @@ describe("performSubmissionWrite", () => {
       action: "SUBMIT",
     });
     expect(first).toEqual({ ok: true, submissionId: "sub-computing-s1", status: "SUBMITTED" });
+    expect(store.submissions.get("sub-computing-s1")?.note).toBeNull();
+    expect(store.submissions.get("sub-computing-s1")?.reviewerId).toBeNull();
 
     const second = await performSubmissionWrite(store, computingApprover, {
       submissionId: "sub-computing-s1",
@@ -470,18 +512,24 @@ describe("performSubmissionWrite", () => {
       note: "Please add the missing lecturer",
     });
     expect(second).toEqual({ ok: true, submissionId: "sub-computing-s1", status: "RETURNED" });
+    expect(store.submissions.get("sub-computing-s1")?.note).toBe("Please add the missing lecturer");
+    expect(store.submissions.get("sub-computing-s1")?.reviewerId).toBe("user-approver-computing");
 
     const third = await performSubmissionWrite(store, computingRep, {
       submissionId: "sub-computing-s1",
       action: "SUBMIT",
     });
     expect(third).toEqual({ ok: true, submissionId: "sub-computing-s1", status: "SUBMITTED" });
+    expect(store.submissions.get("sub-computing-s1")?.note).toBeNull();
+    expect(store.submissions.get("sub-computing-s1")?.reviewerId).toBeNull();
 
     const fourth = await performSubmissionWrite(store, computingApprover, {
       submissionId: "sub-computing-s1",
       action: "APPROVE",
     });
     expect(fourth).toEqual({ ok: true, submissionId: "sub-computing-s1", status: "APPROVED" });
+    expect(store.submissions.get("sub-computing-s1")?.reviewerId).toBe("user-approver-computing");
+    expect(store.submissions.get("sub-computing-s1")?.note).toBeNull();
 
     const invalidSubmit = await performSubmissionWrite(store, computingRep, {
       submissionId: "sub-computing-s1",
@@ -516,23 +564,38 @@ describe("performSubmissionWrite", () => {
 
   it("S23: extra fields on request are ignored and stored values still decide", async () => {
     const store = new FakeSubmissionStore();
-    const result = await performSubmissionWrite(store, computingRep as Actor, {
+    const forgedRequest = {
       submissionId: "sub-computing-s1",
       action: "SUBMIT",
-      note: "ok",
-    } as never);
+      departmentId: "dept-mathematics",
+      status: "APPROVED",
+      reviewerId: "attacker",
+      role: "ADMIN",
+    } as never;
+    const result = await performSubmissionWrite(store, computingRep, forgedRequest);
     expect(result).toEqual({ ok: true, submissionId: "sub-computing-s1", status: "SUBMITTED" });
+    expect(store.submissions.get("sub-computing-s1")?.status).toBe("SUBMITTED");
+    expect(store.submissions.get("sub-computing-s1")?.departmentId).toBe("dept-computing");
+    expect(store.submissions.get("sub-computing-s1")?.reviewerId).toBeNull();
+
+    const mathsStore = new FakeSubmissionStore();
+    const before = copyOf(mathsStore);
+    const forbiddenResult = await performSubmissionWrite(mathsStore, mathsRep, forgedRequest);
+    expect(forbiddenResult).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expectNoWrites(mathsStore, before);
   });
 
   it("S24: runtime-cast unknown values are rejected without throwing", async () => {
     const store = new FakeSubmissionStore();
+    const beforeAction = copyOf(store);
     const actionResult = await performSubmissionWrite(store, computingRep, {
       submissionId: "sub-computing-s1",
       action: "DELETE" as never,
     });
     expect(actionResult).toEqual({ ok: false, kind: "FORBIDDEN" });
-    expect(store.applyCalls).toHaveLength(0);
+    expectNoWrites(store, beforeAction);
 
+    const beforeRole = copyOf(store);
     const unknownRoleResult = await performSubmissionWrite(store, {
       ...computingRep,
       role: "UNKNOWN" as never,
@@ -541,6 +604,6 @@ describe("performSubmissionWrite", () => {
       action: "SUBMIT",
     });
     expect(unknownRoleResult).toEqual({ ok: false, kind: "FORBIDDEN" });
-    expect(store.applyCalls).toHaveLength(0);
+    expectNoWrites(store, beforeRole);
   });
 });

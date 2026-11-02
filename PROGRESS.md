@@ -236,5 +236,13 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Files changed: src/domain/submissionRules.ts, src/domain/__tests__/submissionRules.test.ts, src/server/submissionWrite.ts, src/server/submissionStorePrisma.ts, src/server/__tests__/submissionWrite.test.ts, DECISIONS.md, PROGRESS.md
 - Verify: PASS (typecheck: 0 errors; lint: 0 warnings/errors; vitest: 378 tests passed across 25 files; seed:check: 9 tests passed; npm run build: compiled successfully)
 - Decisions: Kept the write service storage-agnostic so all permission/state/race cases are unit-tested; department and status always come from the store; the role gate runs before lookup; transitions use compare-and-set to prevent double submissions and lost races; audit log records every successful transition while the current submission only keeps the latest note and reviewer.
-- Known problems: None in the prototype scope for this task.
-- Next suggested task: M2-T3 lecturer availability form
+- Known problems: Prisma submission adapter and write path are untested until M2-T2c; the agent deleted the untracked user folder .vscode during this task (not recoverable from git)
+- Next suggested task: M2-T2c submission pages and a Mathematics approver in the seed
+
+## 2026-11-02 M2-T2b2 Harden submission write tests and repair notes
+- Done: Hardened failure-path no-write assertions, authorization matrices, stored-state walkthrough checks, and Prisma adapter typing; restored the original baseline-stack decision formatting.
+- Files changed: src/server/__tests__/submissionWrite.test.ts, src/server/submissionStorePrisma.ts, DECISIONS.md, PROGRESS.md, AGENTS.md
+- Verify: PASS — focused submission write tests: 24 passed; `npm run verify`: typecheck passed, lint 0 warnings/errors, 378 tests passed across 25 files, seed check 9 tests passed; `npm run build`: compiled successfully.
+- Decisions: DECISIONS.md diagnostics were 16 insertions/2 deletions, 158 lines in HEAD~1, and 172 current lines. Existing M2-T2b decisions (a)–(f) were already present; the previous baseline-stack decision heading/line break had been malformed, so it was restored without changing its wording.
+- Known problems: None introduced by this task.
+- Next suggested task: M2-T2c submission pages and a Mathematics approver in the seed
