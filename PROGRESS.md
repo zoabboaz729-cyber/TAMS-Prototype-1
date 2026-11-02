@@ -191,6 +191,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Verify: PASS — typecheck 0 errors; lint 0 warnings/errors; vitest 236 tests passed across 18 files; seed:check 9 tests passed; next build OK (/venues listed)
 - Decisions: file size guideline; owner explicit sentinel; form parser pure, server re-runs decideVenueWrite.
 - Known problems: none
+
 ## 2026-11-02 M2-T1c2 Add tested venue write logic, audit helper and Prisma store
 - Done: Added venueAudit pure helper, venueWrite tested write orchestration, Prisma store adapter; cleaned venueForm messages.
 - Files changed: src/domain/venueForm.ts, src/domain/__tests__/venueForm.test.ts, src/domain/venueAudit.ts (new), src/domain/__tests__/venueAudit.test.ts (new), src/server/venueWrite.ts (new), src/server/__tests__/venueWrite.test.ts (new), src/server/venueStorePrisma.ts (new), PROGRESS.md, DECISIONS.md
@@ -198,7 +199,6 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: write logic takes storage as parameter; current owner from DB; role-level check before validation; audit row in same transaction; capacity/type changes do not re-check timetable entries.
 - Known problems: none
 - Next suggested task: M2-T1c3
-- Next suggested task: M2-T1c2
 
 ## 2026-11-02 M2-T1c2b Complete venue write test audit
 - Done: Completed V1–V32 venue-write coverage, added V33–V35 parser message tests, and consolidated venue status/duplicate-code constants.
@@ -219,10 +219,10 @@ Entries are listed newest-last; the Status block below is authoritative.
 ## 2026-11-02 M2-T1c3b Add venue create and edit pages
 - Done: Added tested venue form view helpers, the client create/edit form, guarded create/edit pages, register notices and create/edit links.
 - Files changed: src/server/venueFormView.ts, src/server/__tests__/venueFormView.test.ts, src/components/venues/VenueForm.tsx, src/app/venues/new/page.tsx, src/app/venues/[id]/edit/page.tsx, src/app/venues/page.tsx, src/components/venues/VenueTable.tsx, DECISIONS.md, PROGRESS.md
-- Verify: PASS — `npm run verify` (typecheck passed; lint 0 warnings/errors; 333 tests passed across 23 files; seed check 9 tests passed); `npm run build` passed and listed both new routes; dev server returned GET / 200.
-- Decisions: Kept client props serialisable; authorization is checked before edit rendering and rechecked in the action; server-side validation owns messages; notice text is selected from a fixed table.
-- Known problems: Manual workflow, tampering, role, and audit-row tests are deferred to the user as requested.
-- Next suggested task: User manual validation; wait for explicit authorization before M2-T2.
+- Verify: PASS — `npm run verify` (typecheck passed; lint 0 warnings/errors; 333 tests passed across 23 files; seed check 9 tests passed); `npm run build` passed and listed both new routes; dev server returned GET / 200. User manual verification was also completed for the full M2-T1c3b workflow: venue creation/edit, field validation, duplicate prevention, default ownership, department isolation, record-level authorization, tampering checks, role restrictions, auth redirects, and audit logging in the demo-data flow.
+- Decisions: Kept client props serialisable; authorization is checked before edit rendering and rechecked in the action; server-side validation owns messages; notice text is selected from a fixed table. The user-reported manual procedure is treated as a completed verification record, distinct from the automated test suite.
+- Known problems: None from this task; the manual workflow was validated by the user and is not left as a deferred or untested item.
+- Next suggested task: M2-T2a
 
 ## 2026-11-02 M2-T2a Add submission rules and officer submissions permission
 - Done: Added the officer-only VIEW_SUBMISSIONS permission and menu entry, plus pure submission transition decisions, available actions, and audit reasons with literal unit tests.
@@ -231,6 +231,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: APPROVED is final; permissions precede state and note checks; RETURN needs a trimmed 3-character note; Submission.note holds the latest note while the audit log keeps history.
 - Known problems: None.
 - Next suggested task: M2-T2b
+
 ## 2026-11-02 M2-T2b Harden submission rules and add write logic
 - Done: Hardened non-string note handling in submission rule validation and implemented the submission write path with a role guard, department/state checks from the store, compare-and-set transition application, and Prisma-backed audit writes.
 - Files changed: src/domain/submissionRules.ts, src/domain/__tests__/submissionRules.test.ts, src/server/submissionWrite.ts, src/server/submissionStorePrisma.ts, src/server/__tests__/submissionWrite.test.ts, DECISIONS.md, PROGRESS.md
