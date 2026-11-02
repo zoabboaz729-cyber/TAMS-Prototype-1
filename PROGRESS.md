@@ -4,7 +4,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 
 ## Status
 - Current milestone: M2
-- Last verified commit: e1cc87b
+- Last verified commit: 99ef542
 - Demo-ready: no
 
 ## Log
