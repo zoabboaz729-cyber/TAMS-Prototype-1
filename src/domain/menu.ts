@@ -29,6 +29,7 @@ export const MENU_ITEMS: readonly MenuItem[] = [
   { key: "venue-register", label: "Venue register", href: "/venues", action: "DECLARE_VENUE", built: true },
   { key: "submission-edit", label: "Department submission", href: "/department/submission", action: "EDIT_SUBMISSION", built: false },
   { key: "submission-review", label: "Review submissions", href: "/department/review", action: "REVIEW_SUBMISSION", built: false },
+  { key: "submission-overview", label: "Department submissions", href: "/officer/submissions", action: "VIEW_SUBMISSIONS", built: false },
   { key: "draft-editor", label: "Draft editor", href: "/officer/draft", action: "EDIT_DRAFT", built: false },
   { key: "generate", label: "Generate timetable", href: "/officer/generate", action: "GENERATE_TIMETABLE", built: false },
   { key: "reschedule-decide", label: "Reschedule requests", href: "/officer/reschedules", action: "DECIDE_RESCHEDULE", built: false },

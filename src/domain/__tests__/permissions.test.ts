@@ -36,6 +36,7 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "NONE",
+    VIEW_SUBMISSIONS: "NONE",
   },
   OFFICER: {
     MANAGE_USERS: "NONE",
@@ -55,6 +56,7 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "ALL",
+    VIEW_SUBMISSIONS: "ALL",
   },
   DEPT_REP: {
     MANAGE_USERS: "NONE",
@@ -74,6 +76,7 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_DEPARTMENT",
+    VIEW_SUBMISSIONS: "NONE",
   },
   APPROVER: {
     MANAGE_USERS: "NONE",
@@ -93,6 +96,7 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_DEPARTMENT",
+    VIEW_SUBMISSIONS: "NONE",
   },
   LECTURER: {
     MANAGE_USERS: "NONE",
@@ -112,6 +116,7 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_CLASSES",
+    VIEW_SUBMISSIONS: "NONE",
   },
   STUDENT: {
     MANAGE_USERS: "NONE",
@@ -131,11 +136,12 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "SELF",
+    VIEW_SUBMISSIONS: "NONE",
   },
 };
 
 describe("permissionScope (spec §8 matrix)", () => {
-  it("returns the expected scope for every role x every action (6 x 17 = 102 cells)", () => {
+  it("returns the expected scope for every role x every action (6 x 18 = 108 cells)", () => {
     for (const role of ROLES) {
       for (const action of ACTIONS) {
         expect(permissionScope(role, action)).toBe(EXPECTED_SCOPE[role][action]);
@@ -143,8 +149,9 @@ describe("permissionScope (spec §8 matrix)", () => {
     }
   });
 
-  it("has an entry for every role and every action (no missing cells)", () => {
+  it("has exactly 18 action entries for every role (no missing cells)", () => {
     for (const role of ROLES) {
+      expect(Object.keys(EXPECTED_SCOPE[role])).toHaveLength(18);
       for (const action of ACTIONS) {
         expect(
           Object.prototype.hasOwnProperty.call(EXPECTED_SCOPE[role], action),
@@ -313,6 +320,7 @@ describe("allowedActions", () => {
       "VIEW_VENUE_STATUS",
       "VIEW_ATTENDANCE_REPORT",
       "SEE_ISSUES",
+      "VIEW_SUBMISSIONS",
     ]);
     expect(allowedActions("DEPT_REP")).toEqual([
       "DECLARE_VENUE",

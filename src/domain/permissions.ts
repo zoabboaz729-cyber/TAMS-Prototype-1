@@ -29,6 +29,7 @@ export const ACTIONS = [
   "VIEW_VENUE_STATUS",
   "VIEW_ATTENDANCE_REPORT",
   "SEE_ISSUES",
+  "VIEW_SUBMISSIONS",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
@@ -67,6 +68,7 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "NONE",
+    VIEW_SUBMISSIONS: "NONE",
   },
   OFFICER: {
     MANAGE_USERS: "NONE",
@@ -86,6 +88,7 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "ALL",
+    VIEW_SUBMISSIONS: "ALL",
   },
   DEPT_REP: {
     MANAGE_USERS: "NONE",
@@ -105,6 +108,7 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_DEPARTMENT",
+    VIEW_SUBMISSIONS: "NONE",
   },
   APPROVER: {
     MANAGE_USERS: "NONE",
@@ -124,6 +128,7 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_DEPARTMENT",
+    VIEW_SUBMISSIONS: "NONE",
   },
   LECTURER: {
     MANAGE_USERS: "NONE",
@@ -143,6 +148,7 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_CLASSES",
+    VIEW_SUBMISSIONS: "NONE",
   },
   STUDENT: {
     MANAGE_USERS: "NONE",
@@ -162,6 +168,7 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "SELF",
+    VIEW_SUBMISSIONS: "NONE",
   },
 };
 

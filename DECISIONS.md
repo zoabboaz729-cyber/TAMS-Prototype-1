@@ -175,3 +175,11 @@
 - **Decision**: A sole permitted owner is preselected; a shared owner is never selected by default.
 - **Decision**: Register notices are selected from a fixed key-to-message table; unrecognized query values render no message.
 - **Decision**: `__SHARED__` is the explicit form sentinel for choosing a shared venue.
+
+## 2026-11-02 Submission transition rules and officer overview (M2-T2a)
+- **Decision**: `VIEW_SUBMISSIONS` is officer-only; department representatives and approvers use their own submission pages.
+- **Decision**: `APPROVED` is final in the prototype; whether submissions can be reopened is a question for the meeting.
+- **Decision**: Permission is checked before submission state and note validation so unauthorised users learn nothing about either.
+- **Decision**: Returning a submission requires a note of at least 3 trimmed characters.
+- **Decision**: `Submission.note` holds only the latest note; the audit log keeps the history.
+- **Decision**: `availableSubmissionActions` derives visible actions from the same transition decisions the server accepts.

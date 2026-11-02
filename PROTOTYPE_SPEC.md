@@ -76,6 +76,7 @@ User(id, name, email, passwordHash, role, departmentId?, studentGroupId?) · Dep
 | Scan attendance | | | | | | Y (own group) |
 | View published timetable / venue status | Y | Y | Y | Y | Y | Y |
 | View attendance reports | | Y | Y (own dept) | Y (own dept) | Y (own classes) | own only |
+| View all department submissions | | Y | | | | |
 Server must deny everything not marked Y.
 
 ## 9. Assumptions to label in code and on the `/assumptions` page

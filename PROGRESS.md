@@ -223,3 +223,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Kept client props serialisable; authorization is checked before edit rendering and rechecked in the action; server-side validation owns messages; notice text is selected from a fixed table.
 - Known problems: Manual workflow, tampering, role, and audit-row tests are deferred to the user as requested.
 - Next suggested task: User manual validation; wait for explicit authorization before M2-T2.
+
+## 2026-11-02 M2-T2a Add submission rules and officer submissions permission
+- Done: Added the officer-only VIEW_SUBMISSIONS permission and menu entry, plus pure submission transition decisions, available actions, and audit reasons with literal unit tests.
+- Files changed: src/domain/permissions.ts, src/domain/__tests__/permissions.test.ts, src/domain/menu.ts, src/domain/__tests__/menu.test.ts, src/domain/submissionRules.ts, src/domain/__tests__/submissionRules.test.ts, PROTOTYPE_SPEC.md, DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify` (typecheck passed; lint 0 warnings/errors; 353 tests passed across 24 files; seed check 9 tests passed).
+- Decisions: APPROVED is final; permissions precede state and note checks; RETURN needs a trimmed 3-character note; Submission.note holds the latest note while the audit log keeps history.
+- Known problems: None.
+- Next suggested task: M2-T2b

@@ -10,6 +10,7 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
     "timetable",
     "venue-status",
     "venue-register",
+    "submission-overview",
     "draft-editor",
     "generate",
     "reschedule-decide",
@@ -46,7 +47,7 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
 
 describe("MENU_ITEMS", () => {
   it("exactly one item is built, and it is venue-register", () => {
-    expect(MENU_ITEMS).toHaveLength(15);
+    expect(MENU_ITEMS).toHaveLength(16);
     const built = MENU_ITEMS.filter((item) => item.built);
     expect(built).toHaveLength(1);
     expect(built[0].key).toBe("venue-register");
