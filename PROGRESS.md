@@ -296,3 +296,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: unavailable-period interpretation (confirmed with the user, matches all four seeded rows and spec §7 `LECTURER_UNAVAILABLE`); no reason field and no 08:00-17:00 restriction in this form; `available: true` rows restrict nothing and are dropped; the order message is only emitted when both times are well-formed; malformed times never overlap, so a corrupt row cannot reject a valid period; `findUnavailableConflict` takes stored periods (with ids) so a violation can name the row.
 - Known problems: None from this task. No persistence, permission, page or validator wiring yet — those are M2-T3b/c/d and M3-T1; the conflict validator does not exist, so nothing consumes these periods at runtime yet.
 - Next suggested task: M2-T3b (SET_LECTURER_AVAILABILITY permission with SELF scope)
+
+## 2026-11-04 M2-T3a (review correction) timesOverlap requires positive-length ranges
+- Done: Strengthened `timesOverlap()` so both ranges must be well-formed HH:MM pairs with `start < end` before any comparison, closing the false-overlap edge case the review found (query 15:00-12:00 against a saved 10:00-20:00 range); added reversed/zero-length tests for `timesOverlap`, `periodsOverlap` and `findUnavailableConflict`.
+- Files changed: src/domain/lecturerAvailability.ts, src/domain/__tests__/lecturerAvailability.test.ts, DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify` (typecheck 0 errors; lint "No ESLint warnings or errors" plus the known `next lint` deprecation notice; 461 tests passed across 28 files; seed check 11 tests passed).
+- Decisions: Follow-up commit on the same task rather than an amend, so the review correction is visible in history; a reversed or zero-length query range is treated as matching nothing (it contains no minute), which also means `findUnavailableConflict` cannot report a violation for a degenerate entry.
+- Known problems: None. No behaviour change for validated form input — the form rules already reject a start that is not before the end.
+- Next suggested task: M2-T3b (SET_LECTURER_AVAILABILITY permission with SELF scope)

@@ -179,6 +179,17 @@ describe("timesOverlap — half-open ranges", () => {
     expect(timesOverlap("13:00", "25:00", "13:30", "15:00")).toBe(false);
     expect(timesOverlap("", "", "13:00", "14:00")).toBe(false);
   });
+
+  it("never overlaps when a range has no positive duration", () => {
+    // Reversed range: the proposed interval cannot contain any minute at all.
+    expect(timesOverlap("15:00", "12:00", "10:00", "20:00")).toBe(false);
+    expect(timesOverlap("10:00", "20:00", "15:00", "12:00")).toBe(false);
+    expect(timesOverlap("25:00", "12:00", "10:00", "20:00")).toBe(false);
+    // Zero-length range: [12:00, 12:00) covers no minute.
+    expect(timesOverlap("12:00", "12:00", "10:00", "20:00")).toBe(false);
+    expect(timesOverlap("10:00", "20:00", "12:00", "12:00")).toBe(false);
+    expect(timesOverlap("12:00", "12:00", "12:00", "12:00")).toBe(false);
+  });
 });
 
 describe("periodsOverlap — same day only", () => {
@@ -192,6 +203,12 @@ describe("periodsOverlap — same day only", () => {
   it("does not overlap when only the edges touch", () => {
     expect(periodsOverlap({ day: "MON", start: "14:00", end: "15:00" }, monAfternoon)).toBe(false);
     expect(periodsOverlap({ day: "MON", start: "12:00", end: "13:00" }, monAfternoon)).toBe(false);
+  });
+
+  it("does not overlap when either range is reversed or zero-length", () => {
+    expect(periodsOverlap({ day: "MON", start: "15:00", end: "12:00" }, monAfternoon)).toBe(false);
+    expect(periodsOverlap({ day: "MON", start: "13:30", end: "13:30" }, monAfternoon)).toBe(false);
+    expect(periodsOverlap(monAfternoon, { day: "MON", start: "15:00", end: "12:00" })).toBe(false);
   });
 });
 
@@ -381,6 +398,12 @@ describe("findUnavailableConflict — the rule the validator will use", () => {
     expect(findUnavailableConflict({ day: "SAT", start: "15:00", end: "16:00" }, lecturerAPeriods)).toBeNull();
     expect(findUnavailableConflict({ day: "MON", start: "15:0", end: "16:00" }, lecturerAPeriods)).toBeNull();
     expect(findUnavailableConflict({ day: "MON", start: "13:00", end: "14:00" }, [])).toBeNull();
+  });
+
+  it("returns null for an entry whose range is reversed or zero-length", () => {
+    expect(findUnavailableConflict({ day: "MON", start: "17:00", end: "08:00" }, lecturerAPeriods)).toBeNull();
+    expect(findUnavailableConflict({ day: "MON", start: "16:00", end: "15:00" }, lecturerAPeriods)).toBeNull();
+    expect(findUnavailableConflict({ day: "MON", start: "15:00", end: "15:00" }, lecturerAPeriods)).toBeNull();
   });
 
   it("keeps every seeded timetable entry clear of its own lecturer's unavailable periods", () => {

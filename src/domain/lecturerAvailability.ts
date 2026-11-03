@@ -123,7 +123,8 @@ export function parseUnavailablePeriod(
 /**
  * True when two HH:MM ranges share at least one minute (half-open: `[start, end)`).
  * Touching ranges such as 13:00-14:00 and 14:00-15:00 do NOT overlap.
- * Malformed times never overlap, so unvalidated rows cannot create a false rejection.
+ * Both ranges must be well-formed and have a positive duration, so a malformed, reversed
+ * or empty range never overlaps anything — unvalidated rows cannot create a false conflict.
  */
 export function timesOverlap(
   startA: string,
@@ -131,12 +132,7 @@ export function timesOverlap(
   startB: string,
   endB: string,
 ): boolean {
-  if (
-    !isValidTime(startA) ||
-    !isValidTime(endA) ||
-    !isValidTime(startB) ||
-    !isValidTime(endB)
-  ) {
+  if (!isStartBeforeEnd(startA, endA) || !isStartBeforeEnd(startB, endB)) {
     return false;
   }
   return startA < endB && startB < endA;
@@ -205,7 +201,8 @@ export function unavailablePeriodsFromRecords(
 /**
  * The availability rule behind the future `LECTURER_UNAVAILABLE` violation (M3-T1):
  * the first saved period that a timetable entry overlaps, or null when the entry is free.
- * An entry outside MON-FRI or with malformed times cannot match any period.
+ * An entry outside MON-FRI, with malformed times, or with a reversed or zero-length range
+ * cannot match any period.
  */
 export function findUnavailableConflict(
   entry: { day: string; start: string; end: string },

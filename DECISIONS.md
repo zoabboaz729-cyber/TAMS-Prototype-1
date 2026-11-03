@@ -213,6 +213,6 @@
 - **Decision**: A row with `available: true` restricts nothing and is dropped by `unavailablePeriodsFromRecords()`; the prototype never writes such a row.
 - **Decision**: Periods are half-open ranges, so adjacent periods (13:00-14:00 then 14:00-15:00) are allowed while any shared minute is rejected. An exact repeat is reported as `DUPLICATE` instead of `OVERLAPS` so the UI can name the row the lecturer already saved.
 - **Decision**: "Start must be earlier than end" is only reported when both times are well-formed, so a malformed time does not also produce an order error.
-- **Decision**: Malformed stored rows can never create a conflict — an overlap comparison requires four valid HH:MM values, so a corrupt row cannot reject a valid entry or a valid period.
+- **Decision**: Malformed stored rows can never create a conflict — `timesOverlap()` requires both ranges to be well-formed HH:MM pairs **and** positively sized (`start < end`), so a corrupt, reversed or zero-length range overlaps nothing. A reversed query such as 15:00-12:00 therefore cannot report a false overlap against a wide saved period like 10:00-20:00.
 - **Decision**: No reason field and no restriction to the 08:00-17:00 window in this form: the model has no reason column, and "outside allowed slots" belongs to the validator (ASSUMPTION-9 covers the MON-FRI day set only).
 - **Decision**: `findUnavailableConflict()` is the rule M3-T1's validator will call to produce `LECTURER_UNAVAILABLE`; M2-T3 provides the periods and the loader only, and does not claim validator integration.
