@@ -272,3 +272,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Scoped submission data in the existing loader using the authenticated user’s stored department ID; kept page access under the existing EDIT_SUBMISSION permission and used buildSubmissionRows() for status-aware action visibility.
 - Known problems: Page-specific authentication and client action feedback are validated by the existing authorization/domain tests and production build; no browser-based testing was performed.
 - Next suggested task: M2-T2c2c
+
+## 2026-11-04 M2-T2c2c Build the Department Approver Review Page
+- Done: Added an authenticated department-scoped review page with read-only scheduled teaching, status-gated approve/return controls, safe feedback, and server-data refresh after success.
+- Files changed: src/app/department/review/page.tsx, src/app/department/review/ReviewActionButtons.tsx, src/domain/__tests__/submissionView.test.ts, PROGRESS.md
+- Verify: PASS — `npm run verify` (typecheck passed, lint clean, 421 tests passed across 27 files, seed check passed with 11 tests); `npm run build` compiled successfully and generated `/department/review`. `npm run dev` responded to an unauthenticated route request with HTTP 307 to `/login`.
+- Decisions: Reused the existing REVIEW guard, per-record submission view, loaders, and server actions; no new architectural decision.
+- Known problems: No browser-based manual testing was performed.
+- Next suggested task: M2-T2c2d

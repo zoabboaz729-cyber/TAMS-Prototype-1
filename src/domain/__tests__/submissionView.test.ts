@@ -168,6 +168,40 @@ describe("buildSubmissionRows", () => {
     ]);
   });
 
+  it("limits review rows and actions to submitted records in the approver's department", () => {
+    const reviewRecords: SubmissionRecord[] = [
+      { ...computingDraft, id: "computing-submitted", status: "SUBMITTED" },
+      { ...computingDraft, id: "computing-returned", status: "RETURNED" },
+      { ...computingDraft, id: "computing-approved", status: "APPROVED" },
+      mathematicsSubmitted,
+    ];
+
+    expect(
+      buildSubmissionRows(
+        reviewRecords,
+        departments,
+        computingApprover,
+        "REVIEW",
+      ).map(({ id, status, actions }) => ({ id, status, actions })),
+    ).toEqual([
+      {
+        id: "computing-submitted",
+        status: "SUBMITTED",
+        actions: ["APPROVE", "RETURN"],
+      },
+      {
+        id: "computing-returned",
+        status: "RETURNED",
+        actions: [],
+      },
+      {
+        id: "computing-approved",
+        status: "APPROVED",
+        actions: [],
+      },
+    ]);
+  });
+
   it("shows a Computing draft to its approver without actions", () => {
     expect(
       buildSubmissionRows(records, departments, computingApprover, "REVIEW"),
