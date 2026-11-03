@@ -280,3 +280,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Reused the existing REVIEW guard, per-record submission view, loaders, and server actions; no new architectural decision.
 - Known problems: No browser-based manual testing was performed.
 - Next suggested task: M2-T2c2d
+
+## 2026-11-04 M2-T2c2d Build officer submission overview and activate submission navigation
+- Done: Added the read-only /officer/submissions overview page (requireAnyAction("VIEW_SUBMISSIONS") entry guard, cross-department loadSubmissionRecords() with no department restriction, OVERVIEW rows via buildSubmissionRows, per-submission scheduled teaching via loadTeachingRecords and summariseTeaching, note/reviewer shown when present, empty states for no submissions and no teaching). Flipped built to true for submission-edit, submission-review and submission-overview in menu.ts and updated the menu built-flag test to expect exactly those four built items (with venue-register).
+- Files changed: src/app/officer/submissions/page.tsx (new), src/domain/menu.ts, src/domain/__tests__/menu.test.ts, PROGRESS.md
+- Verify: PASS — `npm run verify` (typecheck passed; lint 0 warnings/errors aside from the known `next lint` deprecation notice; 421 tests passed across 27 files; seed check passed with 11 tests); `npm run build` compiled successfully and listed `/officer/submissions` as a dynamic route.
+- Decisions: Reused the existing OVERVIEW view for status labels, tones, sorting and permission filtering — no new tests added in submissionView.test.ts because officer cross-department sorting, action-free rows and role denials were already covered there; the page exposes no submit/approve/return/resubmit controls (buildSubmissionRows returns empty actions for OVERVIEW); page entry uses requireAnyAction consistent with the other submission pages (VIEW_SUBMISSIONS is ALL-scope for OFFICER and NONE for every other role, so the guard still denies all non-officers).
+- Known problems: No browser-based manual testing was performed; the Prisma loaders remain covered by typecheck/build only.
+- Next suggested task: M2-T3 (lecturer availability form)
