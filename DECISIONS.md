@@ -207,3 +207,12 @@
 - **Decision**: Invalid statuses are dropped.
 - **Decision**: Status labels, tones, and notice messages use the fixed mappings specified for this task.
 - **Decision**: This task explicitly permits eight files, overriding the normal five-file limit.
+
+## 2026-11-04 Lecturer availability semantics and pure rules (M2-T3a)
+- **Decision**: Lecturers record periods when they are **unavailable** to teach; every row the form writes stores `available: false`. Rejected: positive availability windows — all four seeded `LecturerAvailability` rows use `available: false`, the seed integrity tests already read them as "must not be scheduled", and the hard constraint in PROTOTYPE_SPEC §7 is named `LECTURER_UNAVAILABLE`.
+- **Decision**: A row with `available: true` restricts nothing and is dropped by `unavailablePeriodsFromRecords()`; the prototype never writes such a row.
+- **Decision**: Periods are half-open ranges, so adjacent periods (13:00-14:00 then 14:00-15:00) are allowed while any shared minute is rejected. An exact repeat is reported as `DUPLICATE` instead of `OVERLAPS` so the UI can name the row the lecturer already saved.
+- **Decision**: "Start must be earlier than end" is only reported when both times are well-formed, so a malformed time does not also produce an order error.
+- **Decision**: Malformed stored rows can never create a conflict — an overlap comparison requires four valid HH:MM values, so a corrupt row cannot reject a valid entry or a valid period.
+- **Decision**: No reason field and no restriction to the 08:00-17:00 window in this form: the model has no reason column, and "outside allowed slots" belongs to the validator (ASSUMPTION-9 covers the MON-FRI day set only).
+- **Decision**: `findUnavailableConflict()` is the rule M3-T1's validator will call to produce `LECTURER_UNAVAILABLE`; M2-T3 provides the periods and the loader only, and does not claim validator integration.
