@@ -264,3 +264,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: No new architectural decision; the existing workflow remains authoritative for department/state checks and transactional audit writes.
 - Known problems: Action tests use the established fake-store pattern; the Prisma submission adapter still has no database-backed integration coverage.
 - Next suggested task: M2-T2c2b
+
+## 2026-11-03 M2-T2c2b Build the Department Representative Submission Page
+- Done: Added the authenticated, department-scoped submission page with read-only scheduled teaching summaries and submit/resubmit feedback with refresh.
+- Files changed: src/app/department/submission/page.tsx, src/app/department/submission/SubmissionActionButton.tsx, src/server/submissionData.ts, src/domain/__tests__/submissionView.test.ts, PROGRESS.md
+- Verify: PASS — `npm run verify` (typecheck passed, lint clean, 420 tests passed across 27 files, seed check passed with 11 tests); `npm run build` compiled successfully and generated `/department/submission`.
+- Decisions: Scoped submission data in the existing loader using the authenticated user’s stored department ID; kept page access under the existing EDIT_SUBMISSION permission and used buildSubmissionRows() for status-aware action visibility.
+- Known problems: Page-specific authentication and client action feedback are validated by the existing authorization/domain tests and production build; no browser-based testing was performed.
+- Next suggested task: M2-T2c2c

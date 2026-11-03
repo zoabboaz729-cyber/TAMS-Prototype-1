@@ -5,8 +5,11 @@ import type {
 } from "@/domain/submissionView";
 import { prisma } from "./db";
 
-export async function loadSubmissionRecords(): Promise<SubmissionRecord[]> {
+export async function loadSubmissionRecords(
+  departmentId?: string,
+): Promise<SubmissionRecord[]> {
   const submissions = await prisma.submission.findMany({
+    where: departmentId === undefined ? {} : { departmentId },
     select: {
       id: true,
       departmentId: true,

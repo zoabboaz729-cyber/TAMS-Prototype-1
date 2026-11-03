@@ -137,6 +137,26 @@ describe("buildSubmissionRows", () => {
     ]);
   });
 
+  it("only exposes submit or resubmit actions in the representative edit view", () => {
+    const statuses: SubmissionRecord[] = [
+      { ...computingDraft, status: "DRAFT" },
+      { ...computingDraft, id: "returned", status: "RETURNED" },
+      { ...computingDraft, id: "submitted", status: "SUBMITTED" },
+      { ...computingDraft, id: "approved", status: "APPROVED" },
+    ];
+
+    expect(
+      buildSubmissionRows(statuses, departments, computingRep, "EDIT").map(
+        ({ status, actions }) => ({ status, actions }),
+      ),
+    ).toEqual([
+      { status: "DRAFT", actions: ["SUBMIT"] },
+      { status: "RETURNED", actions: ["SUBMIT"] },
+      { status: "SUBMITTED", actions: [] },
+      { status: "APPROVED", actions: [] },
+    ]);
+  });
+
   it("allows the Mathematics approver to review its submission", () => {
     expect(
       buildSubmissionRows(records, departments, mathsApprover, "REVIEW"),
