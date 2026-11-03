@@ -37,6 +37,8 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "NONE",
     VIEW_SUBMISSIONS: "NONE",
+    SET_LECTURER_AVAILABILITY: "NONE",
+    VIEW_LECTURER_AVAILABILITY: "ALL",
   },
   OFFICER: {
     MANAGE_USERS: "NONE",
@@ -57,6 +59,8 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "ALL",
     VIEW_SUBMISSIONS: "ALL",
+    SET_LECTURER_AVAILABILITY: "NONE",
+    VIEW_LECTURER_AVAILABILITY: "ALL",
   },
   DEPT_REP: {
     MANAGE_USERS: "NONE",
@@ -77,6 +81,8 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_DEPARTMENT",
     VIEW_SUBMISSIONS: "NONE",
+    SET_LECTURER_AVAILABILITY: "NONE",
+    VIEW_LECTURER_AVAILABILITY: "NONE",
   },
   APPROVER: {
     MANAGE_USERS: "NONE",
@@ -97,6 +103,8 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_DEPARTMENT",
     VIEW_SUBMISSIONS: "NONE",
+    SET_LECTURER_AVAILABILITY: "NONE",
+    VIEW_LECTURER_AVAILABILITY: "NONE",
   },
   LECTURER: {
     MANAGE_USERS: "NONE",
@@ -117,6 +125,8 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_CLASSES",
     VIEW_SUBMISSIONS: "NONE",
+    SET_LECTURER_AVAILABILITY: "SELF",
+    VIEW_LECTURER_AVAILABILITY: "SELF",
   },
   STUDENT: {
     MANAGE_USERS: "NONE",
@@ -137,11 +147,13 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "SELF",
     VIEW_SUBMISSIONS: "NONE",
+    SET_LECTURER_AVAILABILITY: "NONE",
+    VIEW_LECTURER_AVAILABILITY: "NONE",
   },
 };
 
 describe("permissionScope (spec §8 matrix)", () => {
-  it("returns the expected scope for every role x every action (6 x 18 = 108 cells)", () => {
+  it("returns the expected scope for every role x every action (6 x 20 = 120 cells)", () => {
     for (const role of ROLES) {
       for (const action of ACTIONS) {
         expect(permissionScope(role, action)).toBe(EXPECTED_SCOPE[role][action]);
@@ -149,9 +161,9 @@ describe("permissionScope (spec §8 matrix)", () => {
     }
   });
 
-  it("has exactly 18 action entries for every role (no missing cells)", () => {
+  it("has exactly 20 action entries for every role (no missing cells)", () => {
     for (const role of ROLES) {
-      expect(Object.keys(EXPECTED_SCOPE[role])).toHaveLength(18);
+      expect(Object.keys(EXPECTED_SCOPE[role])).toHaveLength(20);
       for (const action of ACTIONS) {
         expect(
           Object.prototype.hasOwnProperty.call(EXPECTED_SCOPE[role], action),
@@ -302,12 +314,142 @@ describe("canAct", () => {
   });
 });
 
+describe("lecturer availability permissions (spec §8, task M2-T3b)", () => {
+  const lecturerA: Actor = {
+    id: "u-lecturer-a",
+    role: "LECTURER",
+    departmentId: "dept-computing",
+    studentGroupId: null,
+  };
+  const officer: Actor = {
+    id: "u-officer-1",
+    role: "OFFICER",
+    departmentId: null,
+    studentGroupId: null,
+  };
+  const admin: Actor = {
+    id: "u-admin-1",
+    role: "ADMIN",
+    departmentId: null,
+    studentGroupId: null,
+  };
+  const deptRep: Actor = {
+    id: "u-dept-rep-1",
+    role: "DEPT_REP",
+    departmentId: "dept-computing",
+    studentGroupId: null,
+  };
+  const approver: Actor = {
+    id: "u-approver-1",
+    role: "APPROVER",
+    departmentId: "dept-computing",
+    studentGroupId: null,
+  };
+  const student: Actor = {
+    id: "u-student-1",
+    role: "STUDENT",
+    departmentId: null,
+    studentGroupId: "group-se-y4",
+  };
+
+  it("grants SET only to LECTURER, with SELF scope", () => {
+    expect(permissionScope("LECTURER", "SET_LECTURER_AVAILABILITY")).toBe("SELF");
+    expect(permissionScope("ADMIN", "SET_LECTURER_AVAILABILITY")).toBe("NONE");
+    expect(permissionScope("OFFICER", "SET_LECTURER_AVAILABILITY")).toBe("NONE");
+    expect(permissionScope("DEPT_REP", "SET_LECTURER_AVAILABILITY")).toBe("NONE");
+    expect(permissionScope("APPROVER", "SET_LECTURER_AVAILABILITY")).toBe("NONE");
+    expect(permissionScope("STUDENT", "SET_LECTURER_AVAILABILITY")).toBe("NONE");
+  });
+
+  it("grants VIEW to LECTURER (SELF) and to OFFICER and ADMIN (ALL)", () => {
+    expect(permissionScope("LECTURER", "VIEW_LECTURER_AVAILABILITY")).toBe("SELF");
+    expect(permissionScope("OFFICER", "VIEW_LECTURER_AVAILABILITY")).toBe("ALL");
+    expect(permissionScope("ADMIN", "VIEW_LECTURER_AVAILABILITY")).toBe("ALL");
+    expect(permissionScope("DEPT_REP", "VIEW_LECTURER_AVAILABILITY")).toBe("NONE");
+    expect(permissionScope("APPROVER", "VIEW_LECTURER_AVAILABILITY")).toBe("NONE");
+    expect(permissionScope("STUDENT", "VIEW_LECTURER_AVAILABILITY")).toBe("NONE");
+  });
+
+  it("lets a lecturer write only their own availability", () => {
+    expect(
+      canAct(lecturerA, "SET_LECTURER_AVAILABILITY", { subjectUserId: "u-lecturer-a" }),
+    ).toBe(true);
+    expect(
+      canAct(lecturerA, "SET_LECTURER_AVAILABILITY", { subjectUserId: "u-lecturer-b" }),
+    ).toBe(false);
+  });
+
+  it("lets a lecturer read only their own availability", () => {
+    expect(
+      canAct(lecturerA, "VIEW_LECTURER_AVAILABILITY", { subjectUserId: "u-lecturer-a" }),
+    ).toBe(true);
+    expect(
+      canAct(lecturerA, "VIEW_LECTURER_AVAILABILITY", { subjectUserId: "u-lecturer-b" }),
+    ).toBe(false);
+  });
+
+  it("denies writing or reading when the subject is missing or null", () => {
+    expect(canAct(lecturerA, "SET_LECTURER_AVAILABILITY")).toBe(false);
+    expect(canAct(lecturerA, "SET_LECTURER_AVAILABILITY", {})).toBe(false);
+    expect(
+      canAct(lecturerA, "SET_LECTURER_AVAILABILITY", { subjectUserId: null }),
+    ).toBe(false);
+    expect(canAct(lecturerA, "VIEW_LECTURER_AVAILABILITY", {})).toBe(false);
+    expect(
+      canAct(lecturerA, "VIEW_LECTURER_AVAILABILITY", { subjectUserId: null }),
+    ).toBe(false);
+  });
+
+  it("ignores department and class resources for both availability actions", () => {
+    // Neither OWN_DEPARTMENT nor OWN_CLASSES is used here: only subjectUserId can satisfy the lecturer.
+    expect(
+      canAct(lecturerA, "SET_LECTURER_AVAILABILITY", { departmentId: "dept-computing" }),
+    ).toBe(false);
+    expect(
+      canAct(lecturerA, "VIEW_LECTURER_AVAILABILITY", { ownerUserId: "u-lecturer-a" }),
+    ).toBe(false);
+  });
+
+  it("lets officers and admins read any lecturer's availability", () => {
+    expect(canAct(officer, "VIEW_LECTURER_AVAILABILITY", { subjectUserId: "u-lecturer-a" })).toBe(true);
+    expect(canAct(officer, "VIEW_LECTURER_AVAILABILITY")).toBe(true);
+    expect(canAct(admin, "VIEW_LECTURER_AVAILABILITY", { subjectUserId: "u-lecturer-a" })).toBe(true);
+    expect(canAct(admin, "VIEW_LECTURER_AVAILABILITY")).toBe(true);
+  });
+
+  it("never lets an officer or admin write availability, not even their own subject id", () => {
+    expect(
+      canAct(officer, "SET_LECTURER_AVAILABILITY", { subjectUserId: "u-officer-1" }),
+    ).toBe(false);
+    expect(canAct(admin, "SET_LECTURER_AVAILABILITY", { subjectUserId: "u-admin-1" })).toBe(false);
+    expect(canAct(officer, "SET_LECTURER_AVAILABILITY", { subjectUserId: "u-lecturer-a" })).toBe(false);
+  });
+
+  it("denies department reps, approvers and students both availability actions", () => {
+    for (const actor of [deptRep, approver, student]) {
+      expect(
+        canAct(actor, "SET_LECTURER_AVAILABILITY", { subjectUserId: actor.id }),
+      ).toBe(false);
+      expect(
+        canAct(actor, "VIEW_LECTURER_AVAILABILITY", { subjectUserId: "u-lecturer-a" }),
+      ).toBe(false);
+      expect(canAct(actor, "VIEW_LECTURER_AVAILABILITY")).toBe(false);
+    }
+  });
+
+  it("denies a null actor both availability actions", () => {
+    expect(canAct(null, "SET_LECTURER_AVAILABILITY", { subjectUserId: "u-lecturer-a" })).toBe(false);
+    expect(canAct(null, "VIEW_LECTURER_AVAILABILITY", { subjectUserId: "u-lecturer-a" })).toBe(false);
+  });
+});
+
 describe("allowedActions", () => {
   it("returns exactly the granted actions per role (in ACTIONS order)", () => {
     expect(allowedActions("ADMIN")).toEqual([
       "MANAGE_USERS",
       "VIEW_TIMETABLE",
       "VIEW_VENUE_STATUS",
+      "VIEW_LECTURER_AVAILABILITY",
     ]);
     expect(allowedActions("OFFICER")).toEqual([
       "DECLARE_VENUE",
@@ -321,6 +463,7 @@ describe("allowedActions", () => {
       "VIEW_ATTENDANCE_REPORT",
       "SEE_ISSUES",
       "VIEW_SUBMISSIONS",
+      "VIEW_LECTURER_AVAILABILITY",
     ]);
     expect(allowedActions("DEPT_REP")).toEqual([
       "DECLARE_VENUE",
@@ -346,6 +489,8 @@ describe("allowedActions", () => {
       "VIEW_TIMETABLE",
       "VIEW_VENUE_STATUS",
       "VIEW_ATTENDANCE_REPORT",
+      "SET_LECTURER_AVAILABILITY",
+      "VIEW_LECTURER_AVAILABILITY",
     ]);
     expect(allowedActions("STUDENT")).toEqual([
       "SCAN_ATTENDANCE",

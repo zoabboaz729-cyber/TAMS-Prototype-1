@@ -30,6 +30,8 @@ export const ACTIONS = [
   "VIEW_ATTENDANCE_REPORT",
   "SEE_ISSUES",
   "VIEW_SUBMISSIONS",
+  "SET_LECTURER_AVAILABILITY",
+  "VIEW_LECTURER_AVAILABILITY",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
@@ -47,7 +49,9 @@ export type Scope = (typeof SCOPES)[number];
  * One explicit lookup table covering every role and every action.
  * Typed as Record<UserRole, Record<Action, Scope>>, so a missing or
  * extra cell is a compile-time error: no defaults, no fall-through.
- * Values taken from PROTOTYPE_SPEC §8 (SEE_ISSUES added per task M1-T3c-1).
+ * Values taken from PROTOTYPE_SPEC §8 (SEE_ISSUES added per task M1-T3c-1). Both
+ * lecturer-availability actions are keyed on the resource's subjectUserId, so SELF means
+ * "the lecturer whose own availability this is" and a record can only be written by its owner.
  */
 export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
   ADMIN: {
@@ -69,6 +73,8 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "NONE",
     VIEW_SUBMISSIONS: "NONE",
+    SET_LECTURER_AVAILABILITY: "NONE",
+    VIEW_LECTURER_AVAILABILITY: "ALL",
   },
   OFFICER: {
     MANAGE_USERS: "NONE",
@@ -89,6 +95,8 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "ALL",
     VIEW_SUBMISSIONS: "ALL",
+    SET_LECTURER_AVAILABILITY: "NONE",
+    VIEW_LECTURER_AVAILABILITY: "ALL",
   },
   DEPT_REP: {
     MANAGE_USERS: "NONE",
@@ -109,6 +117,8 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_DEPARTMENT",
     VIEW_SUBMISSIONS: "NONE",
+    SET_LECTURER_AVAILABILITY: "NONE",
+    VIEW_LECTURER_AVAILABILITY: "NONE",
   },
   APPROVER: {
     MANAGE_USERS: "NONE",
@@ -129,6 +139,8 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_DEPARTMENT",
     VIEW_SUBMISSIONS: "NONE",
+    SET_LECTURER_AVAILABILITY: "NONE",
+    VIEW_LECTURER_AVAILABILITY: "NONE",
   },
   LECTURER: {
     MANAGE_USERS: "NONE",
@@ -149,6 +161,8 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_CLASSES",
     VIEW_SUBMISSIONS: "NONE",
+    SET_LECTURER_AVAILABILITY: "SELF",
+    VIEW_LECTURER_AVAILABILITY: "SELF",
   },
   STUDENT: {
     MANAGE_USERS: "NONE",
@@ -169,6 +183,8 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "SELF",
     VIEW_SUBMISSIONS: "NONE",
+    SET_LECTURER_AVAILABILITY: "NONE",
+    VIEW_LECTURER_AVAILABILITY: "NONE",
   },
 };
 

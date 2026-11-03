@@ -304,3 +304,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Follow-up commit on the same task rather than an amend, so the review correction is visible in history; a reversed or zero-length query range is treated as matching nothing (it contains no minute), which also means `findUnavailableConflict` cannot report a violation for a degenerate entry.
 - Known problems: None. No behaviour change for validated form input — the form rules already reject a start that is not before the end.
 - Next suggested task: M2-T3b (SET_LECTURER_AVAILABILITY permission with SELF scope)
+
+## 2026-11-04 M2-T3b Lecturer availability permissions
+- Done: Added `SET_LECTURER_AVAILABILITY` (LECTURER SELF only) and `VIEW_LECTURER_AVAILABILITY` (LECTURER SELF, OFFICER ALL, ADMIN ALL) to the pure permission matrix, with literal per-role scope expectations, SELF/ALL behaviour tests through `canAct`, updated `allowedActions` lists, and two new PROTOTYPE_SPEC §8 rows (record own unavailable periods; view a lecturer's unavailable periods).
+- Files changed: src/domain/permissions.ts, src/domain/__tests__/permissions.test.ts, PROTOTYPE_SPEC.md, DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify` (typecheck 0 errors; lint "No ESLint warnings or errors" plus the known `next lint` deprecation notice; 471 tests passed across 28 files, including 10 new availability-permission tests; seed check 11 tests passed). `src/domain/__tests__/menu.test.ts` still passes unchanged (12 tests), confirming no navigation change.
+- Decisions: Read separated from write so officers/admins can inspect but never modify; ADMIN ALL on the read action follows the existing ADMIN convention (system-wide for MANAGE_USERS and VIEW_* only); both actions keyed on `subjectUserId` (the lecturer's user id, not `Lecturer.id`) so a browser-supplied lecturer id cannot redirect ownership; DEPT_REP/APPROVER/STUDENT are NONE for both; actions appended to `ACTIONS` so existing order is preserved.
+- Known problems: No server action, loader or page enforces these permissions yet — that is M2-T3c (persistence/actions) and M2-T3d (page + menu entry). Nothing in the app is protected by them until then.
+- Next suggested task: M2-T3c (Prisma persistence, server actions and the validator-shaped loader)

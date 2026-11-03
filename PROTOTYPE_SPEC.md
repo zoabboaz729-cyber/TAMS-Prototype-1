@@ -77,6 +77,8 @@ User(id, name, email, passwordHash, role, departmentId?, studentGroupId?) · Dep
 | View published timetable / venue status | Y | Y | Y | Y | Y | Y |
 | View attendance reports | | Y | Y (own dept) | Y (own dept) | Y (own classes) | own only |
 | View all department submissions | | Y | | | | |
+| Record own unavailable periods (M2-T3) | | | | | Y (self) | |
+| View a lecturer's unavailable periods | Y | Y | | | Y (self) | |
 Server must deny everything not marked Y.
 
 ## 9. Assumptions to label in code and on the `/assumptions` page
