@@ -38,6 +38,7 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
     "timetable",
     "venue-status",
     "reschedule-request",
+    "lecturer-availability",
     "issues-new",
     "attendance-open",
     "attendance-report",
@@ -46,14 +47,15 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
 };
 
 describe("MENU_ITEMS", () => {
-  it("exactly four items are built: venue register and the three submission pages", () => {
-    expect(MENU_ITEMS).toHaveLength(16);
+  it("exactly five items are built: venue register, the three submission pages, my availability", () => {
+    expect(MENU_ITEMS).toHaveLength(17);
     const built = MENU_ITEMS.filter((item) => item.built).map((item) => item.key);
     expect(built).toEqual([
       "venue-register",
       "submission-edit",
       "submission-review",
       "submission-overview",
+      "lecturer-availability",
     ]);
     for (const item of MENU_ITEMS) {
       if (!built.includes(item.key)) {
@@ -102,5 +104,13 @@ describe("menuForRole", () => {
   it("returns [] for an unknown role cast at runtime (never throws)", () => {
     expect(() => menuForRole("NOT_A_ROLE" as UserRole)).not.toThrow();
     expect(menuForRole("NOT_A_ROLE" as UserRole)).toEqual([]);
+  });
+
+  it("shows My availability to lecturers only, although officers/admins hold the VIEW action", () => {
+    // The sidebar audience (audienceRoles) is narrower than the read
+    // permission by design; the server guard, not this list, enforces access.
+    expect(menuForRole("OFFICER").map((item) => item.key)).not.toContain("lecturer-availability");
+    expect(menuForRole("ADMIN").map((item) => item.key)).not.toContain("lecturer-availability");
+    expect(menuForRole("LECTURER").map((item) => item.key)).toContain("lecturer-availability");
   });
 });

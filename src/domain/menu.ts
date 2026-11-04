@@ -3,13 +3,14 @@
  *
  * Pure domain module: no Next.js, no database, no clock, never throws.
  *
- * - `MENU_ITEMS` is in sidebar order; every item has `built: false` and the
- *   flag is flipped to `true` as each page is delivered (see DECISIONS.md).
+ * - `MENU_ITEMS` is in sidebar order; the `built` flag is false until the
+ *   page is delivered and flipped to `true` by that task (see DECISIONS.md).
  * - `PUBLISH_TIMETABLE` and `MANAGE_SHARED_VENUES` deliberately have no
  *   menu entry — they live inside other pages.
  * - `menuForRole(role)` returns, in `MENU_ITEMS` order, the items whose
- *   `permissionScope(role, action)` is not "NONE". Unknown roles (e.g. cast
- *   in at runtime) yield an empty menu.
+ *   `permissionScope(role, action)` is not "NONE" and whose `audienceRoles`
+ *   (when set) include the role. Unknown roles (e.g. cast in at runtime)
+ *   yield an empty menu.
  */
 
 import { type UserRole } from "./types";
@@ -21,6 +22,15 @@ export type MenuItem = {
   href: string;
   action: Action;
   built: boolean;
+  /**
+   * Optional sidebar audience override. `menuForRole` normally filters by
+   * `permissionScope(role, action) !== "NONE"`, but "My availability" is a
+   * lecturer workspace while VIEW_LECTURER_AVAILABILITY is ALL-scope for
+   * officers/admins (they read availability in the service, not in a menu).
+   * This field narrows the NAVIGATION only — it never grants or denies
+   * anything; server guards remain the sole enforcement point.
+   */
+  audienceRoles?: readonly UserRole[];
 };
 
 export const MENU_ITEMS: readonly MenuItem[] = [
@@ -34,6 +44,7 @@ export const MENU_ITEMS: readonly MenuItem[] = [
   { key: "generate", label: "Generate timetable", href: "/officer/generate", action: "GENERATE_TIMETABLE", built: false },
   { key: "reschedule-decide", label: "Reschedule requests", href: "/officer/reschedules", action: "DECIDE_RESCHEDULE", built: false },
   { key: "reschedule-request", label: "Request a reschedule", href: "/lecturer/reschedule", action: "REQUEST_RESCHEDULE", built: false },
+  { key: "lecturer-availability", label: "My availability", href: "/lecturer/availability", action: "VIEW_LECTURER_AVAILABILITY", built: true, audienceRoles: ["LECTURER"] },
   { key: "issues-new", label: "Report an issue", href: "/issues/new", action: "REPORT_ISSUE", built: false },
   { key: "issues-list", label: "Issues", href: "/issues", action: "SEE_ISSUES", built: false },
   { key: "attendance-open", label: "Open attendance", href: "/lecturer/attendance", action: "OPEN_ATTENDANCE", built: false },
@@ -43,9 +54,14 @@ export const MENU_ITEMS: readonly MenuItem[] = [
 ];
 
 /**
- * Menu items for a role, in MENU_ITEMS order, filtered to granted actions.
- * Unknown roles passed at runtime return [] — never throw.
+ * Menu items for a role, in MENU_ITEMS order, filtered to granted actions
+ * (and, where set, to the item's audienceRoles). Unknown roles passed at
+ * runtime return [] — never throw.
  */
 export function menuForRole(role: UserRole): MenuItem[] {
-  return MENU_ITEMS.filter((item) => permissionScope(role, item.action) !== "NONE");
+  return MENU_ITEMS.filter(
+    (item) =>
+      permissionScope(role, item.action) !== "NONE" &&
+      (item.audienceRoles === undefined || item.audienceRoles.includes(role)),
+  );
 }
