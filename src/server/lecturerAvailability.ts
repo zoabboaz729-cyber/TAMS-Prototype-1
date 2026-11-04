@@ -51,10 +51,11 @@ export type LecturerAvailabilityRecord = {
 
 /**
  * Minimal availability shape for the lecturer page (M2-T3d) and the M3
- * validator: ids, day and times only — never emails or other personal data.
+ * validator: lecturer id plus day/time periods only. The lecturer's user id
+ * stays in the internal persistence record (permission checks) and is never
+ * returned.
  */
 export type LecturerAvailabilityView = {
-  lecturerUserId: string;
   lecturerId: string;
   periods: StoredUnavailablePeriod[];
 };
@@ -126,12 +127,11 @@ function canWriteOwnAvailability(actor: Actor): boolean {
 }
 
 function viewFor(
-  profile: LecturerProfile,
+  lecturerId: string,
   records: readonly LecturerAvailabilityRecord[],
 ): LecturerAvailabilityView {
   return {
-    lecturerUserId: profile.lecturerUserId,
-    lecturerId: profile.lecturerId,
+    lecturerId,
     periods: unavailablePeriodsFromRecords(records),
   };
 }
@@ -235,6 +235,9 @@ export async function performRemoveUnavailablePeriod(
  * Availability for one subject lecturer, gated by
  * VIEW_LECTURER_AVAILABILITY: a lecturer sees only their own rows (SELF),
  * officers/admins see any subject (ALL), everyone else is FORBIDDEN.
+ * The permission check runs BEFORE any store query, so a denied caller sees
+ * the same FORBIDDEN for a nonexistent subject as for a real one (no
+ * existence oracle) and no data is read.
  */
 export async function loadLecturerAvailability(
   store: LecturerAvailabilityStore,
@@ -245,19 +248,19 @@ export async function loadLecturerAvailability(
     return { ok: false, kind: "UNAUTHENTICATED" };
   }
 
+  const resource: Resource = { subjectUserId };
+  if (!canAct(actor, "VIEW_LECTURER_AVAILABILITY", resource)) {
+    return { ok: false, kind: "FORBIDDEN" };
+  }
+
   try {
     const profile = await store.findLecturerByUserId(subjectUserId);
     if (profile === null) {
       return { ok: true, views: [] };
     }
 
-    const resource: Resource = { subjectUserId: profile.lecturerUserId };
-    if (!canAct(actor, "VIEW_LECTURER_AVAILABILITY", resource)) {
-      return { ok: false, kind: "FORBIDDEN" };
-    }
-
     const records = await store.listUnavailableRecordsByLecturerId(profile.lecturerId);
-    return { ok: true, views: [viewFor(profile, records)] };
+    return { ok: true, views: [viewFor(profile.lecturerId, records)] };
   } catch (error) {
     console.error(
       "[lecturerAvailability] load failed:",
@@ -299,14 +302,7 @@ export async function loadAllLecturerAvailability(
 
     const views: LecturerAvailabilityView[] = [];
     for (const [lecturerId, lecturerRecords] of byLecturerId) {
-      const first = lecturerRecords[0];
-      if (first === undefined) continue;
-      views.push(
-        viewFor(
-          { lecturerId, lecturerUserId: first.lecturerUserId },
-          lecturerRecords,
-        ),
-      );
+      views.push(viewFor(lecturerId, lecturerRecords));
     }
     return { ok: true, views };
   } catch (error) {

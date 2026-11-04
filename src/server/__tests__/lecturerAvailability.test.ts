@@ -34,6 +34,8 @@ class FakeLecturerAvailabilityStore implements LecturerAvailabilityStore {
   records = new Map<string, LecturerAvailabilityRecord>();
   createCalls: Array<{ lecturerId: string; period: unknown; available: false }> = [];
   deleteCalls: string[] = [];
+  /** Counts every store method call so tests can prove denied reads never query. */
+  queryCount = 0;
   private nextId = 1;
 
   addProfile(userId: string, lecturerId: string): void {
@@ -52,22 +54,27 @@ class FakeLecturerAvailabilityStore implements LecturerAvailabilityStore {
   }
 
   async findLecturerByUserId(userId: string) {
+    this.queryCount++;
     return this.profiles.get(userId) ?? null;
   }
 
   async findRecord(availabilityId: string) {
+    this.queryCount++;
     return this.records.get(availabilityId) ?? null;
   }
 
   async listUnavailableRecordsByLecturerId(lecturerId: string) {
+    this.queryCount++;
     return [...this.records.values()].filter((r) => r.lecturerId === lecturerId);
   }
 
   async listAllUnavailableRecords() {
+    this.queryCount++;
     return [...this.records.values()];
   }
 
   async createUnavailablePeriod(lecturerId: string, period: { day: string; start: string; end: string }) {
+    this.queryCount++;
     const id = `av-${this.nextId++}`;
     this.records.set(id, { id, lecturerId, lecturerUserId: "pending", ...period, available: false });
     this.createCalls.push({ lecturerId, period, available: false });
@@ -75,6 +82,7 @@ class FakeLecturerAvailabilityStore implements LecturerAvailabilityStore {
   }
 
   async deleteRecord(availabilityId: string) {
+    this.queryCount++;
     this.records.delete(availabilityId);
     this.deleteCalls.push(availabilityId);
   }
@@ -392,7 +400,6 @@ describe("lecturer availability reads", () => {
       if (!result.ok) throw new Error("expected ok read");
       expect(result.views).toEqual([
         {
-          lecturerUserId: "user-lecturer-a",
           lecturerId: "lect-a",
           periods: [{ id: "av-1", day: "MON", start: "13:00", end: "14:00" }],
         },
@@ -419,6 +426,29 @@ describe("lecturer availability reads", () => {
     expect(expectFailure(await loadLecturerAvailability(store, actor, "user-lecturer-a")).kind).toBe("FORBIDDEN");
   });
 
+  it("denies a nonexistent subject for unauthorized roles without querying the store", async () => {
+    // Regression: the VIEW permission must be decided before the profile
+    // lookup, otherwise an empty success vs FORBIDDEN tells an attacker
+    // whether a user id belongs to a lecturer (existence oracle).
+    const store = storeWithTwoLecturers();
+    for (const actor of [lecturerB, deptRep, approver, student]) {
+      const result = await loadLecturerAvailability(store, actor, "user-does-not-exist");
+      expect(expectFailure(result).kind).toBe("FORBIDDEN");
+    }
+    expect(store.queryCount).toBe(0);
+  });
+
+  it("answers a lecturer's read of their own unknown subject identically to a known one", async () => {
+    // SELF holders pass the permission either way; the store then reports
+    // "no profile", never a leak, and never FORBIDDEN-by-existence.
+    const store = new FakeLecturerAvailabilityStore();
+    store.addProfile("user-lecturer-a", "lect-a");
+    const orphan = actorWith("user-lecturer-orphan", "LECTURER");
+    const missing = await loadLecturerAvailability(store, orphan, orphan.id);
+    if (!missing.ok) throw new Error("expected ok read");
+    expect(missing.views).toEqual([]);
+  });
+
   it("returns an empty view list for an unknown subject instead of leaking", async () => {
     const store = storeWithTwoLecturers();
     const result = await loadLecturerAvailability(store, officer, "user-not-a-lecturer");
@@ -433,7 +463,11 @@ describe("lecturer availability reads", () => {
     const result = await loadLecturerAvailability(store, lecturerA, "user-lecturer-a");
     if (!result.ok) throw new Error("expected ok read");
     expect(result.views[0]?.periods).toHaveLength(1);
-    expect(JSON.stringify(result.views)).not.toMatch(/email|password/i);
+    // The view is the minimal agreed shape: lecturerId + periods, no user ids,
+    // no emails, no password fields.
+    expect(Object.keys(result.views[0] ?? {})).toEqual(["lecturerId", "periods"]);
+    expect(Object.keys(result.views[0]?.periods[0] ?? {})).toEqual(["id", "day", "start", "end"]);
+    expect(JSON.stringify(result.views)).not.toMatch(/email|password|lecturerUserId/i);
   });
 
   it("gives M3 the lecturer-grouped shape from load-all", async () => {
@@ -447,7 +481,6 @@ describe("lecturer availability reads", () => {
       if (!result.ok) throw new Error("expected ok read");
       expect(result.views).toEqual([
         {
-          lecturerUserId: "user-lecturer-a",
           lecturerId: "lect-a",
           periods: [
             { id: a1, day: "MON", start: "13:00", end: "14:00" },
@@ -455,7 +488,6 @@ describe("lecturer availability reads", () => {
           ],
         },
         {
-          lecturerUserId: "user-lecturer-b",
           lecturerId: "lect-b",
           periods: [{ id: b1, day: "WED", start: "11:00", end: "12:00" }],
         },
