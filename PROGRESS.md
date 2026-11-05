@@ -4,7 +4,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 
 ## Status
 - Current milestone: M3
-- Last verified code commit: 4aeac4a (M3-T1, m3-validator branch) plus the M3-T1a commit recorded in the entry below, whose SHA is reported in that task's report
+- Last verified code commit: 4aeac4a (M3-T1, m3-validator branch) plus the M3-T1a and M3-T1b commits recorded in the entries below, whose SHAs are reported in each task's report
 - Demo-ready: no
 
 ## Log
@@ -351,4 +351,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Verify: PASS — `npm run verify`: typecheck 0 errors; lint "No ESLint warnings or errors" plus the known `next lint` deprecation notice; vitest 547 tests passed across 30 files (validator.test.ts 21 → 28); seed check 11 tests passed. `npm run build`: compiled successfully in 9.0s, 17/17 pages generated, exit 0.
 - Decisions: recorded in DECISIONS.md (M3-T1a a–e) — the outcome is a discriminated union rather than a thrown error (the validator must stay pure and total and M3-T2 needs every problem in a draft); missing context is its own channel rather than a ninth `ViolationType`, keeping data-integrity failures distinct from constraint breaches (this supersedes M3-T1 decision (g) only in that respect — the skip behaviour is retained); `entryIndex` is reported because the editor highlights rows by position; an empty entries list against an empty context is `ok` because no check was left unrun; context lookups use `Object.hasOwn` so a prototype-chain key is never counted as resolved data. M3-T1 decision (g) is marked superseded.
 - Known problems: `validateEntries()` still has no runtime consumer, so nothing in the app surfaces an "incomplete" result yet — M3-T2 must render `missingContext` (a data-integrity notice, not a violation row) and must not treat `status:"incomplete"` as clean. The M4-T1 acceptance wording "zero hard violations validated by M3-T1" now maps to `status === "ok" && violations.length === 0`; the M4 task prompt should be checked against this contract when it is picked up.
+- Next suggested task: M3-T2 (officer draft editor: view draft entries, move/add an entry, show violations inline)
+
+## 2026-11-05 M3-T1b Restore validator file-size compliance without changing behavior
+- Done: Extracted `checkSlot()` into `src/domain/slotValidation.ts` so `validator.ts` drops from 322 to 268 lines while preserving the accepted M3-T1a validation contract unchanged; `validateEntries()` remains the public entry point.
+- Files changed: src/domain/slotValidation.ts (new), src/domain/validator.ts, DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify`: typecheck 0 errors; lint "No ESLint warnings or errors" plus the known `next lint` deprecation notice; vitest 547 tests passed across 30 files (validator.test.ts 28/28 unchanged); seed check 11 tests passed. `npm run build`: compiled successfully in 5.9s, 17/17 pages generated, exit 0.
+- Decisions: `slotValidation.ts` imports `EntryInput` and `Violation` from `validator.ts` via `import type` (erased at compile time, no runtime circular dependency); `validator.ts` imports `checkSlot` as a runtime value, so the dependency graph runs one-way at runtime (validator → slotValidation). The `TIME_HHMM_REGEX` and `isStartBeforeEnd` imports from `./types` moved to `slotValidation.ts` and were removed from `validator.ts` (only `checkSlot` used them). Recorded in DECISIONS.md.
+- Known problems: none
 - Next suggested task: M3-T2 (officer draft editor: view draft entries, move/add an entry, show violations inline)
