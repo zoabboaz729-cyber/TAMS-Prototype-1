@@ -3,6 +3,7 @@ import {
   validateEntries,
   type EntryInput,
   type ValidationContext,
+  type ValidationOutcome,
   type VenueUnavailablePeriod,
 } from "../validator";
 import { DEFAULT_POLICY } from "../policy";
@@ -111,6 +112,14 @@ function makeEntry(id: string, overrides: Partial<EntryInput> = {}): EntryInput 
 const POLICY = DEFAULT_POLICY;
 const CTX = buildSeedContext();
 
+/** Assert the outcome is "ok" (complete context) and return its violations. */
+function okViolations(outcome: ValidationOutcome) {
+  if (outcome.status !== "ok") {
+    throw new Error(`expected ok outcome, got incomplete: ${JSON.stringify(outcome.missingContext)}`);
+  }
+  return outcome.violations;
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -121,7 +130,7 @@ describe("validateEntries", () => {
   it("returns no violations for the six clean seed entries", () => {
     const clean = seedEntries().filter((e) => e.id.startsWith("entry-clean-"));
     expect(clean).toHaveLength(6);
-    expect(validateEntries(clean, CTX, POLICY)).toEqual([]);
+    expect(okViolations(validateEntries(clean, CTX, POLICY))).toEqual([]);
   });
 
   // ---- VENUE_OVERLAP --------------------------------------------------------
@@ -132,7 +141,7 @@ describe("validateEntries", () => {
       // teach-SE-Y1-SE101: lecturer-B, group-SE-Y1 — different lecturer and group
       makeEntry("vo-2", { teachingId: "teach-SE-Y1-SE101", venueId: "venue-CR1", day: "MON", start: "08:00", end: "09:00" }),
     ];
-    const v = validateEntries(entries, CTX, POLICY);
+    const v = okViolations(validateEntries(entries, CTX, POLICY));
     expect(v).toHaveLength(1);
     expect(v[0].type).toBe("VENUE_OVERLAP");
     expect(v[0].entryId).toBe("vo-1");
@@ -145,7 +154,7 @@ describe("validateEntries", () => {
       makeEntry("vo-3", { venueId: "venue-CR1", day: "MON", start: "08:00", end: "09:00" }),
       makeEntry("vo-4", { teachingId: "teach-SE-Y1-SE101", venueId: "venue-CR1", day: "MON", start: "09:00", end: "10:00" }),
     ];
-    expect(validateEntries(entries, CTX, POLICY)).toEqual([]);
+    expect(okViolations(validateEntries(entries, CTX, POLICY))).toEqual([]);
   });
 
   // ---- LECTURER_OVERLAP -----------------------------------------------------
@@ -156,7 +165,7 @@ describe("validateEntries", () => {
       makeEntry("lo-1", { teachingId: "teach-SE-Y4-SOEN413", venueId: "venue-CR1", day: "WED", start: "09:00", end: "10:00" }),
       makeEntry("lo-2", { teachingId: "teach-CS-Y2-CS201", venueId: "venue-CR2", day: "WED", start: "09:00", end: "10:00" }),
     ];
-    const v = validateEntries(entries, CTX, POLICY);
+    const v = okViolations(validateEntries(entries, CTX, POLICY));
     expect(v).toHaveLength(1);
     expect(v[0].type).toBe("LECTURER_OVERLAP");
     expect(v[0].entryId).toBe("lo-1");
@@ -168,7 +177,7 @@ describe("validateEntries", () => {
       makeEntry("lo-3", { teachingId: "teach-SE-Y4-SOEN413", venueId: "venue-CR1", day: "WED", start: "09:00", end: "10:00" }),
       makeEntry("lo-4", { teachingId: "teach-CS-Y2-CS201", venueId: "venue-CR2", day: "THU", start: "09:00", end: "10:00" }),
     ];
-    expect(validateEntries(entries, CTX, POLICY)).toEqual([]);
+    expect(okViolations(validateEntries(entries, CTX, POLICY))).toEqual([]);
   });
 
   // ---- GROUP_OVERLAP --------------------------------------------------------
@@ -180,7 +189,7 @@ describe("validateEntries", () => {
       // teach-SE-Y4-SOEN415: lecturer-B, group-SE-Y4
       makeEntry("go-2", { teachingId: "teach-SE-Y4-SOEN415", venueId: "venue-CR2", day: "WED", start: "09:00", end: "10:00" }),
     ];
-    const v = validateEntries(entries, CTX, POLICY);
+    const v = okViolations(validateEntries(entries, CTX, POLICY));
     expect(v).toHaveLength(1);
     expect(v[0].type).toBe("GROUP_OVERLAP");
     expect(v[0].entryId).toBe("go-1");
@@ -192,7 +201,7 @@ describe("validateEntries", () => {
       makeEntry("go-3", { teachingId: "teach-SE-Y4-SOEN413", venueId: "venue-CR1", day: "WED", start: "09:00", end: "10:00" }),
       makeEntry("go-4", { teachingId: "teach-SE-Y4-SOEN415", venueId: "venue-CR2", day: "THU", start: "09:00", end: "10:00" }),
     ];
-    expect(validateEntries(entries, CTX, POLICY)).toEqual([]);
+    expect(okViolations(validateEntries(entries, CTX, POLICY))).toEqual([]);
   });
 
   // ---- CAPACITY -------------------------------------------------------------
@@ -200,7 +209,7 @@ describe("validateEntries", () => {
   it("CAPACITY: detects when venue capacity is less than expected size", () => {
     // CR3 capacity 40 < expectedSize 45
     const entries = [makeEntry("cap-1", { venueId: "venue-CR3", day: "WED", start: "09:00", end: "10:00" })];
-    const v = validateEntries(entries, CTX, POLICY);
+    const v = okViolations(validateEntries(entries, CTX, POLICY));
     expect(v).toHaveLength(1);
     expect(v[0].type).toBe("CAPACITY");
     expect(v[0].message).toContain("40");
@@ -210,7 +219,7 @@ describe("validateEntries", () => {
   it("CAPACITY: does not flag when venue capacity equals expected size", () => {
     // CR1 capacity 60 = teach-SE-Y1-SE101 expectedSize 60 (>= is allowed)
     const entries = [makeEntry("cap-2", { teachingId: "teach-SE-Y1-SE101", venueId: "venue-CR1", day: "WED", start: "09:00", end: "10:00" })];
-    expect(validateEntries(entries, CTX, POLICY)).toEqual([]);
+    expect(okViolations(validateEntries(entries, CTX, POLICY))).toEqual([]);
   });
 
   // ---- VENUE_TYPE -----------------------------------------------------------
@@ -218,7 +227,7 @@ describe("validateEntries", () => {
   it("VENUE_TYPE: detects when venue type does not match required type", () => {
     // SOEN 400 requires LAB, CR1 is ROOM
     const entries = [makeEntry("vt-1", { teachingId: "teach-SE-Y4-SOEN400", venueId: "venue-CR1", day: "WED", start: "09:00", end: "10:00" })];
-    const v = validateEntries(entries, CTX, POLICY);
+    const v = okViolations(validateEntries(entries, CTX, POLICY));
     expect(v).toHaveLength(1);
     expect(v[0].type).toBe("VENUE_TYPE");
     expect(v[0].message).toContain("ROOM");
@@ -228,7 +237,7 @@ describe("validateEntries", () => {
   it("VENUE_TYPE: does not flag when venue type matches required type", () => {
     // SOEN 413 requires ROOM, CR1 is ROOM
     const entries = [makeEntry("vt-2", { venueId: "venue-CR1", day: "WED", start: "09:00", end: "10:00" })];
-    expect(validateEntries(entries, CTX, POLICY)).toEqual([]);
+    expect(okViolations(validateEntries(entries, CTX, POLICY))).toEqual([]);
   });
 
   // ---- LECTURER_UNAVAILABLE -------------------------------------------------
@@ -236,7 +245,7 @@ describe("validateEntries", () => {
   it("LECTURER_UNAVAILABLE: detects an entry during a lecturer's unavailable period", () => {
     // Lecturer A is unavailable MON 15:00-17:00
     const entries = [makeEntry("lu-1", { day: "MON", start: "15:00", end: "16:00" })];
-    const v = validateEntries(entries, CTX, POLICY);
+    const v = okViolations(validateEntries(entries, CTX, POLICY));
     expect(v).toHaveLength(1);
     expect(v[0].type).toBe("LECTURER_UNAVAILABLE");
     expect(v[0].message).toContain("MON");
@@ -247,7 +256,7 @@ describe("validateEntries", () => {
   it("LECTURER_UNAVAILABLE: does not flag an entry adjacent to the unavailable period", () => {
     // Entry ends at 15:00, unavailability starts at 15:00 (half-open, no overlap)
     const entries = [makeEntry("lu-2", { day: "MON", start: "14:00", end: "15:00" })];
-    expect(validateEntries(entries, CTX, POLICY)).toEqual([]);
+    expect(okViolations(validateEntries(entries, CTX, POLICY))).toEqual([]);
   });
 
   // ---- VENUE_UNAVAILABLE ----------------------------------------------------
@@ -258,7 +267,7 @@ describe("validateEntries", () => {
     const ctx = buildSeedContext();
     ctx.venues["venue-LH1"] = { capacity: 150, type: "ROOM", code: "LH1" };
     const entries = [makeEntry("vu-1", { venueId: "venue-LH1", day: "FRI", start: "14:00", end: "15:00" })];
-    const v = validateEntries(entries, ctx, POLICY);
+    const v = okViolations(validateEntries(entries, ctx, POLICY));
     expect(v).toHaveLength(1);
     expect(v[0].type).toBe("VENUE_UNAVAILABLE");
     expect(v[0].message).toContain("LH1");
@@ -269,14 +278,14 @@ describe("validateEntries", () => {
     const ctx = buildSeedContext();
     ctx.venues["venue-LH1"] = { capacity: 150, type: "ROOM", code: "LH1" };
     const entries = [makeEntry("vu-2", { venueId: "venue-LH1", day: "FRI", start: "10:00", end: "11:00" })];
-    expect(validateEntries(entries, ctx, POLICY)).toEqual([]);
+    expect(okViolations(validateEntries(entries, ctx, POLICY))).toEqual([]);
   });
 
   // ---- OUT_OF_SLOT ----------------------------------------------------------
 
   it("OUT_OF_SLOT: detects an entry on a non-teaching day", () => {
     const entries = [makeEntry("os-1", { day: "SAT", start: "08:00", end: "09:00" })];
-    const v = validateEntries(entries, CTX, POLICY);
+    const v = okViolations(validateEntries(entries, CTX, POLICY));
     expect(v).toHaveLength(1);
     expect(v[0].type).toBe("OUT_OF_SLOT");
     expect(v[0].message).toContain("not a teaching day");
@@ -284,7 +293,7 @@ describe("validateEntries", () => {
 
   it("OUT_OF_SLOT: detects an entry starting before the slot window", () => {
     const entries = [makeEntry("os-2", { day: "WED", start: "07:00", end: "08:00" })];
-    const v = validateEntries(entries, CTX, POLICY);
+    const v = okViolations(validateEntries(entries, CTX, POLICY));
     expect(v).toHaveLength(1);
     expect(v[0].type).toBe("OUT_OF_SLOT");
     expect(v[0].message).toContain("earliest slot");
@@ -292,7 +301,7 @@ describe("validateEntries", () => {
 
   it("OUT_OF_SLOT: detects an entry overlapping the lunch break", () => {
     const entries = [makeEntry("os-3", { day: "WED", start: "12:00", end: "14:00" })];
-    const v = validateEntries(entries, CTX, POLICY);
+    const v = okViolations(validateEntries(entries, CTX, POLICY));
     expect(v).toHaveLength(1);
     expect(v[0].type).toBe("OUT_OF_SLOT");
     expect(v[0].message).toContain("lunch");
@@ -303,26 +312,117 @@ describe("validateEntries", () => {
   it("can report multiple violations for a single entry", () => {
     // SOEN 400 requires LAB, CR3 is ROOM (VENUE_TYPE), CR3 capacity 40 < 45 (CAPACITY)
     const entries = [makeEntry("multi-1", { teachingId: "teach-SE-Y4-SOEN400", venueId: "venue-CR3", day: "WED", start: "09:00", end: "10:00" })];
-    const v = validateEntries(entries, CTX, POLICY);
+    const v = okViolations(validateEntries(entries, CTX, POLICY));
     expect(v).toHaveLength(2);
     expect(v.map((x) => x.type).sort()).toEqual(["CAPACITY", "VENUE_TYPE"]);
   });
 
   // ---- Missing context data -------------------------------------------------
 
-  it("skips dependent checks when teaching or venue is not in context", () => {
+  it("MISSING_TEACHING: reports incomplete when the teaching is not in context", () => {
+    const entries = [
+      makeEntry("mc-t", { teachingId: "no-such-teaching", venueId: "venue-CR1", day: "WED", start: "09:00", end: "10:00" }),
+    ];
+    const outcome = validateEntries(entries, CTX, POLICY);
+    expect(outcome.status).toBe("incomplete");
+    if (outcome.status !== "incomplete") return;
+    expect(outcome.missingContext).toEqual([
+      {
+        kind: "MISSING_TEACHING",
+        entryIndex: 0,
+        entryId: "mc-t",
+        refId: "no-such-teaching",
+        message: 'Entry mc-t refers to teaching "no-such-teaching", which is missing from the validation context.',
+      },
+    ]);
+    // Dependent checks are skipped, and WED 09:00-10:00 is in-slot, so no
+    // scheduling violation is produced — but the outcome is not "ok".
+    expect(outcome.violations).toEqual([]);
+  });
+
+  it("MISSING_VENUE: reports incomplete when the venue is not in context", () => {
+    const entries = [
+      makeEntry("mc-v", { teachingId: "teach-SE-Y4-SOEN413", venueId: "no-such-venue", day: "WED", start: "09:00", end: "10:00" }),
+    ];
+    const outcome = validateEntries(entries, CTX, POLICY);
+    expect(outcome.status).toBe("incomplete");
+    if (outcome.status !== "incomplete") return;
+    expect(outcome.missingContext).toHaveLength(1);
+    expect(outcome.missingContext[0]?.kind).toBe("MISSING_VENUE");
+    expect(outcome.missingContext[0]?.entryId).toBe("mc-v");
+    expect(outcome.missingContext[0]?.refId).toBe("no-such-venue");
+    expect(outcome.violations).toEqual([]);
+  });
+
+  it("missing teaching AND venue reports both errors for the same entry", () => {
     const entries = [
       makeEntry("mc-1", { teachingId: "no-such-teaching", venueId: "no-such-venue", day: "WED", start: "09:00", end: "10:00" }),
     ];
-    // OUT_OF_SLOT still runs (WED 09:00-10:00 is valid); all other checks are
-    // skipped because teaching/venue lookups return undefined.
-    expect(validateEntries(entries, CTX, POLICY)).toEqual([]);
+    const outcome = validateEntries(entries, CTX, POLICY);
+    expect(outcome.status).toBe("incomplete");
+    if (outcome.status !== "incomplete") return;
+    expect(outcome.missingContext.map((e) => e.kind)).toEqual(["MISSING_TEACHING", "MISSING_VENUE"]);
+    expect(outcome.missingContext.every((e) => e.entryIndex === 0 && e.entryId === "mc-1")).toBe(true);
+  });
+
+  it("an empty entries list with an empty context is a complete (ok) validation", () => {
+    const emptyContext: ValidationContext = {
+      teachings: {},
+      venues: {},
+      lecturerUnavailable: {},
+      venueUnavailable: {},
+    };
+    const outcome = validateEntries([], emptyContext, POLICY);
+    expect(outcome).toEqual({ status: "ok", violations: [] });
+  });
+
+  it("zero violations with missing context is incomplete, never ok", () => {
+    const entries = [
+      makeEntry("mc-a", { teachingId: "no-such-teaching", venueId: "no-such-venue" }),
+      makeEntry("mc-b", { teachingId: "teach-SE-Y4-SOEN413", venueId: "venue-CR1" }),
+    ];
+    const outcome = validateEntries(entries, CTX, POLICY);
+    // The result the old contract returned as a misleading empty Violation[].
+    expect(outcome.violations).toEqual([]);
+    expect(outcome.status).toBe("incomplete");
+    if (outcome.status !== "incomplete") return;
+    expect(outcome.missingContext.map((e) => e.entryId)).toEqual(["mc-a", "mc-a"]);
+  });
+
+  it("missing context does not suppress violations that need no context", () => {
+    const entries = [
+      makeEntry("mc-os", { teachingId: "no-such-teaching", venueId: "no-such-venue", day: "SAT", start: "08:00", end: "09:00" }),
+    ];
+    const outcome = validateEntries(entries, CTX, POLICY);
+    expect(outcome.status).toBe("incomplete");
+    expect(outcome.violations.map((x) => x.type)).toEqual(["OUT_OF_SLOT"]);
+    if (outcome.status !== "incomplete") return;
+    expect(outcome.missingContext).toHaveLength(2);
+  });
+
+  it("a prototype key such as __proto__ is missing context, not resolved data", () => {
+    const entries = [
+      makeEntry("mc-proto", { teachingId: "__proto__", venueId: "__proto__", day: "WED", start: "09:00", end: "10:00" }),
+    ];
+    const outcome = validateEntries(entries, CTX, POLICY);
+    expect(outcome.status).toBe("incomplete");
+    if (outcome.status !== "incomplete") return;
+    expect(outcome.missingContext.map((e) => e.kind)).toEqual(["MISSING_TEACHING", "MISSING_VENUE"]);
+    expect(outcome.missingContext.map((e) => e.refId)).toEqual(["__proto__", "__proto__"]);
+  });
+
+  it("complete valid context produces an ok result with no violations", () => {
+    const entries = [
+      makeEntry("ok-1", { teachingId: "teach-SE-Y4-SOEN413", venueId: "venue-CR1", day: "WED", start: "09:00", end: "10:00" }),
+    ];
+    const outcome = validateEntries(entries, CTX, POLICY);
+    expect(outcome).toEqual({ status: "ok", violations: [] });
   });
 
   // ---- Seed planted conflicts -----------------------------------------------
 
   it("detects both planted conflicts in the seed timetable", () => {
-    const v = validateEntries(seedEntries(), CTX, POLICY);
+    const v = okViolations(validateEntries(seedEntries(), CTX, POLICY));
     expect(v).toHaveLength(2);
     expect(v.map((x) => x.type).sort()).toEqual(["LECTURER_OVERLAP", "VENUE_OVERLAP"]);
 

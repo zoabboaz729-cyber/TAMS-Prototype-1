@@ -25,6 +25,11 @@
  *
  * Facility matching is not checked — the domain model has no per-unit
  * required-facilities field (ASSUMPTION-18 maps to venueTypeRequired only).
+ *
+ * Missing teaching or venue context is a data-integrity failure, not a
+ * scheduling violation: validateEntries() returns an "incomplete" outcome
+ * naming every entry whose context is missing, so a caller can never read an
+ * empty violations list as "conflict-free" when the check could not finish.
  */
 
 import {
@@ -105,9 +110,44 @@ export type ValidationContext = {
   venueUnavailable: Record<string, VenueUnavailablePeriod[]>;
 };
 
+/**
+ * Data-integrity failure: an entry references a teaching or venue that the
+ * context does not carry, so the checks that need it could not run. Kept
+ * separate from Violation (a scheduling constraint breach) on purpose.
+ */
+export type MissingContextError = {
+  kind: "MISSING_TEACHING" | "MISSING_VENUE";
+  /** Position of the affected entry in the entries array. */
+  entryIndex: number;
+  /** The entry's id, for display. */
+  entryId: string;
+  /** The teachingId or venueId the context could not resolve. */
+  refId: string;
+  message: string;
+};
+
+/**
+ * Discriminated outcome of validateEntries(). A caller must switch on
+ * `status`: only "ok" means the entries are conflict-free when
+ * `violations.length === 0`; "incomplete" means the validation could not
+ * finish and its violations must be treated as provisional.
+ */
+export type ValidationOutcome =
+  | { status: "ok"; violations: Violation[] }
+  | { status: "incomplete"; violations: Violation[]; missingContext: MissingContextError[] };
+
 // ---------------------------------------------------------------------------
 // Implementation
 // ---------------------------------------------------------------------------
+
+/**
+ * Context lookups must see own keys only: an entry whose teachingId or venueId
+ * is e.g. "__proto__" would otherwise resolve through the Object prototype and
+ * be counted as having complete context.
+ */
+function resolve<T>(lookup: Record<string, T>, key: string): T | undefined {
+  return Object.hasOwn(lookup, key) ? lookup[key] : undefined;
+}
 
 /**
  * Check whether an entry falls inside the policy slot grid.
@@ -178,8 +218,9 @@ function checkSlot(
  * LECTURER_OVERLAP, GROUP_OVERLAP) run afterward, comparing each entry with
  * every later entry (i < j) so each conflict is reported once.
  *
- * Entries whose teachingId or venueId is not found in the context simply skip
- * the checks that need the missing data — they never crash.
+ * Entries whose teachingId or venueId is not found in the context skip the
+ * checks that need the missing data — they never crash — and are named in
+ * `missingContext`, which makes the outcome "incomplete" rather than "ok".
  *
  * The result is deterministic for the same input.
  */
@@ -187,14 +228,35 @@ export function validateEntries(
   entries: readonly EntryInput[],
   context: ValidationContext,
   policy: PolicyConfig,
-): Violation[] {
+): ValidationOutcome {
   const violations: Violation[] = [];
+  const missingContext: MissingContextError[] = [];
 
   // --- Per-entry checks -----------------------------------------------------
 
-  for (const entry of entries) {
-    const teaching = context.teachings[entry.teachingId];
-    const venue = context.venues[entry.venueId];
+  for (let index = 0; index < entries.length; index++) {
+    const entry = entries[index];
+    const teaching = resolve(context.teachings, entry.teachingId);
+    const venue = resolve(context.venues, entry.venueId);
+
+    if (!teaching) {
+      missingContext.push({
+        kind: "MISSING_TEACHING",
+        entryIndex: index,
+        entryId: entry.id,
+        refId: entry.teachingId,
+        message: `Entry ${entry.id} refers to teaching "${entry.teachingId}", which is missing from the validation context.`,
+      });
+    }
+    if (!venue) {
+      missingContext.push({
+        kind: "MISSING_VENUE",
+        entryIndex: index,
+        entryId: entry.id,
+        refId: entry.venueId,
+        message: `Entry ${entry.id} refers to venue "${entry.venueId}", which is missing from the validation context.`,
+      });
+    }
 
     const slot = checkSlot(entry, policy);
     if (slot) violations.push(slot);
@@ -218,7 +280,7 @@ export function validateEntries(
     }
 
     if (teaching) {
-      const periods = context.lecturerUnavailable[teaching.lecturerId] ?? [];
+      const periods = resolve(context.lecturerUnavailable, teaching.lecturerId) ?? [];
       const conflict = findUnavailableConflict(entry, periods);
       if (conflict) {
         violations.push({
@@ -230,7 +292,7 @@ export function validateEntries(
     }
 
     if (venue) {
-      const periods = context.venueUnavailable[entry.venueId] ?? [];
+      const periods = resolve(context.venueUnavailable, entry.venueId) ?? [];
       for (const period of periods) {
         if (
           period.day === entry.day &&
@@ -257,9 +319,9 @@ export function validateEntries(
       if (a.day !== b.day) continue;
       if (!timesOverlap(a.start, a.end, b.start, b.end)) continue;
 
-      const ta = context.teachings[a.teachingId];
-      const tb = context.teachings[b.teachingId];
-      const va = context.venues[a.venueId];
+      const ta = resolve(context.teachings, a.teachingId);
+      const tb = resolve(context.teachings, b.teachingId);
+      const va = resolve(context.venues, a.venueId);
 
       if (a.venueId === b.venueId) {
         violations.push({
@@ -290,5 +352,8 @@ export function validateEntries(
     }
   }
 
-  return violations;
+  if (missingContext.length > 0) {
+    return { status: "incomplete", violations, missingContext };
+  }
+  return { status: "ok", violations };
 }
