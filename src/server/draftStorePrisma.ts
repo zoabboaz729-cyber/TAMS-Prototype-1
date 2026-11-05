@@ -23,6 +23,7 @@ import type {
   MoveAuditDraft,
   MoveFields,
 } from "@/server/draftMove";
+import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/server/db";
 
 const versionSelect = {
@@ -111,12 +112,13 @@ const venueIdSelect = { id: true } as const;
 /**
  * Builds one object satisfying both the read (DraftValidationStore) and move
  * (DraftMoveStore) interfaces so the two factory exports share a single set
- * of Prisma queries. `findVersion` is shared by both contracts.
+ * of queries. `client` is injected so tests can point at an isolated database;
+ * the default singleton is used in production.
  */
-function buildDraftStore(): DraftValidationStore & DraftMoveStore {
+function buildDraftStore(client: PrismaClient): DraftValidationStore & DraftMoveStore {
   return {
     async findVersion(versionId) {
-      const row = await prisma.timetableVersion.findUnique({
+      const row = await client.timetableVersion.findUnique({
         where: { id: versionId },
         select: versionSelect,
       });
@@ -126,7 +128,7 @@ function buildDraftStore(): DraftValidationStore & DraftMoveStore {
     async listEntriesByVersion(versionId) {
       // Day, start, id keeps the query stable; the loader re-orders into the
       // policy day sequence that the editor's row index follows.
-      return prisma.timetableEntry.findMany({
+      return client.timetableEntry.findMany({
         where: { versionId },
         orderBy: [{ day: "asc" }, { start: "asc" }, { id: "asc" }],
         select: entrySelect,
@@ -134,7 +136,7 @@ function buildDraftStore(): DraftValidationStore & DraftMoveStore {
     },
 
     async listTeachingsByIds(teachingIds) {
-      const rows = await prisma.teaching.findMany({
+      const rows = await client.teaching.findMany({
         where: { id: { in: [...teachingIds] } },
         orderBy: { id: "asc" },
         select: teachingSelect,
@@ -143,7 +145,7 @@ function buildDraftStore(): DraftValidationStore & DraftMoveStore {
     },
 
     async listVenuesByIds(venueIds) {
-      return prisma.venue.findMany({
+      return client.venue.findMany({
         where: { id: { in: [...venueIds] } },
         orderBy: { id: "asc" },
         select: venueSelect,
@@ -151,7 +153,7 @@ function buildDraftStore(): DraftValidationStore & DraftMoveStore {
     },
 
     async listLecturerUnavailableByLecturerIds(lecturerIds) {
-      return prisma.lecturerAvailability.findMany({
+      return client.lecturerAvailability.findMany({
         where: { lecturerId: { in: [...lecturerIds] }, ...lecturerUnavailableWhere },
         orderBy: [{ lecturerId: "asc" }, { day: "asc" }, { start: "asc" }],
         select: lecturerUnavailableSelect,
@@ -159,7 +161,7 @@ function buildDraftStore(): DraftValidationStore & DraftMoveStore {
     },
 
     async listVenueUnavailableByVenueIds(venueIds) {
-      return prisma.venueUnavailable.findMany({
+      return client.venueUnavailable.findMany({
         where: { venueId: { in: [...venueIds] } },
         orderBy: [{ venueId: "asc" }, { day: "asc" }, { start: "asc" }],
         select: venueUnavailableSelect,
@@ -167,14 +169,14 @@ function buildDraftStore(): DraftValidationStore & DraftMoveStore {
     },
 
     async findEntry(entryId) {
-      return prisma.timetableEntry.findUnique({
+      return client.timetableEntry.findUnique({
         where: { id: entryId },
         select: entrySelect,
       });
     },
 
     async findVenueById(venueId) {
-      const row = await prisma.venue.findUnique({
+      const row = await client.venue.findUnique({
         where: { id: venueId },
         select: venueIdSelect,
       });
@@ -185,14 +187,15 @@ function buildDraftStore(): DraftValidationStore & DraftMoveStore {
      * Compare-and-set move inside one transaction:
      * 1. Re-read the version; if it is gone or no longer DRAFT, the pre-state
      *    changed under us → stale (a concurrent publish).
-     * 2. updateMany scoped by id + versionId + locked=false. If zero rows
-     *    match, the entry was locked, moved to another version, or deleted
-     *    during the operation → stale.
+     * 2. updateMany scoped by id + versionId + locked=false AND the expected
+     *    previous schedule (day, start, end, venueId). If zero rows match, the
+     *    entry was locked, moved to another version, had its schedule changed
+     *    by another officer, or was deleted during the operation → stale.
      * 3. Write the audit row only after the update succeeds.
      * A corrupt stored status is parsed and rejected rather than guessed.
      */
     async moveEntry(entryId, expectedVersionId, fields, audit) {
-      return prisma.$transaction(async (tx) => {
+      return client.$transaction(async (tx) => {
         const version = await tx.timetableVersion.findUnique({
           where: { id: expectedVersionId },
           select: versionSelect,
@@ -204,7 +207,15 @@ function buildDraftStore(): DraftValidationStore & DraftMoveStore {
         }
 
         const result = await tx.timetableEntry.updateMany({
-          where: { id: entryId, versionId: expectedVersionId, locked: false },
+          where: {
+            id: entryId,
+            versionId: expectedVersionId,
+            locked: false,
+            day: fields.expectedDay,
+            start: fields.expectedStart,
+            end: fields.expectedEnd,
+            venueId: fields.expectedVenueId,
+          },
           data: {
             day: fields.day,
             start: fields.start,
@@ -231,10 +242,11 @@ function buildDraftStore(): DraftValidationStore & DraftMoveStore {
 
 /** Read-only store for the M3-T2a draft validation loader. */
 export function createDraftValidationStore(): DraftValidationStore {
-  return buildDraftStore();
+  return buildDraftStore(prisma);
 }
 
-/** Read + write store for the M3-T2b1 draft entry move. */
-export function createDraftMoveStore(): DraftMoveStore {
-  return buildDraftStore();
+/** Read + write store for the M3-T2b1 draft entry move. Accepts an optional
+ *  Prisma client so tests can target an isolated database. */
+export function createDraftMoveStore(client: PrismaClient = prisma): DraftMoveStore {
+  return buildDraftStore(client);
 }

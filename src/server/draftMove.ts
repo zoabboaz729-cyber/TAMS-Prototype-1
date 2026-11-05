@@ -46,12 +46,17 @@ export type { DraftEntryRow, DraftVersionRow } from "@/server/draftValidation";
 // Store interface (injected; Prisma adapter in draftStorePrisma.ts)
 // ---------------------------------------------------------------------------
 
-/** Only the fields a move is allowed to change. */
+/** Only the fields a move is allowed to change, plus the expected previous
+ *  schedule used for the optimistic-concurrency compare-and-set. */
 export type MoveFields = {
   day: string;
   start: string;
   end: string;
   venueId: string;
+  expectedDay: string;
+  expectedStart: string;
+  expectedEnd: string;
+  expectedVenueId: string;
 };
 
 /** Audit row written in the same transaction as the entry update. */
@@ -66,8 +71,9 @@ export type MoveAuditDraft = {
  * {@link DraftEntryRow} from the read loader so the row shapes never drift.
  *
  * `moveEntry` applies a compare-and-set: it must re-verify the version is still
- * DRAFT and the entry still unlocked inside the write transaction, returning
- * `{ stale: true }` when either precondition changed. A store implementation
+ * DRAFT, the entry still unlocked, and the entry's day/start/end/venueId still
+ * match the expected previous schedule inside the write transaction, returning
+ * `{ stale: true }` when any precondition changed. A store implementation
  * must never persist when `stale`.
  */
 export interface DraftMoveStore {
@@ -93,6 +99,11 @@ export type DraftMoveRequest = {
   start: string;
   end: string;
   venueId: string;
+  /** Expected previous schedule (optimistic concurrency). */
+  expectedDay: string;
+  expectedStart: string;
+  expectedEnd: string;
+  expectedVenueId: string;
 };
 
 /**
@@ -104,7 +115,9 @@ export type DraftMoveRequest = {
  * - NOT_DRAFT — version exists but is PUBLISHED or ARCHIVED.
  * - ENTRY_WRONG_VERSION — entry exists but belongs to another version.
  * - ENTRY_LOCKED — entry is locked and must not move.
- * - STALE — version published or entry locked during the operation.
+ * - STALE — the entry changed since the caller loaded it (expected previous
+ *   schedule mismatch), or the version was published / entry locked during the
+ *   operation.
  * - INTERNAL_ERROR — store failure.
  */
 export type DraftMoveResult =
@@ -137,6 +150,10 @@ const DraftMoveInputSchema = z
     start: TimeHHMMSchema,
     end: TimeHHMMSchema,
     venueId: z.string().trim().min(1, "Venue id is required"),
+    expectedDay: DaySchema,
+    expectedStart: TimeHHMMSchema,
+    expectedEnd: TimeHHMMSchema,
+    expectedVenueId: z.string().trim().min(1, "Expected venue id is required"),
   })
   .refine((data) => isStartBeforeEnd(data.start, data.end), {
     message: "Start time must be before end time",
@@ -153,10 +170,15 @@ function moveInputMessage(error: z.ZodError): string {
   if (field === "end" && issue.code === z.ZodIssueCode.custom) {
     return "Start time must be before end time.";
   }
-  if (field === "start" || field === "end") {
+  if (
+    field === "start" ||
+    field === "end" ||
+    field === "expectedStart" ||
+    field === "expectedEnd"
+  ) {
     return "Time must be in HH:MM format (00:00-23:59).";
   }
-  if (field === "day") {
+  if (field === "day" || field === "expectedDay") {
     return "Day must be one of MON, TUE, WED, THU, FRI.";
   }
   // Missing/empty id fields carry their own message from the schema.
@@ -226,6 +248,21 @@ export async function performDraftMove(
       return { ok: false, kind: "ENTRY_LOCKED" };
     }
 
+    // 5b. Optimistic concurrency: the expected previous schedule must match
+    //     the stored entry. If another officer moved it since this caller
+    //     loaded it, the values differ and we refuse to overwrite the newer
+    //     change. The transactional compare-and-set in the store repeats this
+    //     check inside the write so a change between this pre-check and the
+    //     commit also fails as STALE.
+    if (
+      entry.day !== input.expectedDay ||
+      entry.start !== input.expectedStart ||
+      entry.end !== input.expectedEnd ||
+      entry.venueId !== input.expectedVenueId
+    ) {
+      return { ok: false, kind: "STALE" };
+    }
+
     // 6. Proposed venue exists.
     const venue = await store.findVenueById(input.venueId);
     if (venue === null) {
@@ -233,13 +270,18 @@ export async function performDraftMove(
     }
 
     // 7. Persist only the permitted fields. teachingId, versionId and locked
-    //    are never written. The store re-checks the version is still DRAFT and
-    //    the entry still unlocked inside the transaction (compare-and-set).
+    //    are never written. The store re-checks the version is still DRAFT, the
+    //    entry still unlocked, and the expected previous schedule still matches
+    //    inside the transaction (compare-and-set).
     const fields: MoveFields = {
       day: input.day,
       start: input.start,
       end: input.end,
       venueId: input.venueId,
+      expectedDay: input.expectedDay,
+      expectedStart: input.expectedStart,
+      expectedEnd: input.expectedEnd,
+      expectedVenueId: input.expectedVenueId,
     };
     const audit: MoveAuditDraft = {
       actorId: actor.id,
