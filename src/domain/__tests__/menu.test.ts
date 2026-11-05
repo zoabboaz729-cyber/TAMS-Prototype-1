@@ -47,7 +47,7 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
 };
 
 describe("MENU_ITEMS", () => {
-  it("exactly five items are built: venue register, the three submission pages, my availability", () => {
+  it("exactly six items are built: venue register, the three submission pages, draft editor, my availability", () => {
     expect(MENU_ITEMS).toHaveLength(17);
     const built = MENU_ITEMS.filter((item) => item.built).map((item) => item.key);
     expect(built).toEqual([
@@ -55,6 +55,7 @@ describe("MENU_ITEMS", () => {
       "submission-edit",
       "submission-review",
       "submission-overview",
+      "draft-editor",
       "lecturer-availability",
     ]);
     for (const item of MENU_ITEMS) {

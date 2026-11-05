@@ -40,7 +40,7 @@ export const MENU_ITEMS: readonly MenuItem[] = [
   { key: "submission-edit", label: "Department submission", href: "/department/submission", action: "EDIT_SUBMISSION", built: true },
   { key: "submission-review", label: "Review submissions", href: "/department/review", action: "REVIEW_SUBMISSION", built: true },
   { key: "submission-overview", label: "Department submissions", href: "/officer/submissions", action: "VIEW_SUBMISSIONS", built: true },
-  { key: "draft-editor", label: "Draft editor", href: "/officer/draft", action: "EDIT_DRAFT", built: false },
+  { key: "draft-editor", label: "Draft editor", href: "/officer/draft", action: "EDIT_DRAFT", built: true },
   { key: "generate", label: "Generate timetable", href: "/officer/generate", action: "GENERATE_TIMETABLE", built: false },
   { key: "reschedule-decide", label: "Reschedule requests", href: "/officer/reschedules", action: "DECIDE_RESCHEDULE", built: false },
   { key: "reschedule-request", label: "Request a reschedule", href: "/lecturer/reschedule", action: "REQUEST_RESCHEDULE", built: false },
