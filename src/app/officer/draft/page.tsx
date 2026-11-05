@@ -1,20 +1,25 @@
 /**
- * /officer/draft — officer draft editor (M3-T2b2, behaviour corrected in M3-T2b2a).
+ * /officer/draft — officer draft editor (M3-T2b2; behaviour corrected in
+ * M3-T2b2a; add-entry form integrated in M3-T2b3c).
  *
  * Server-rendered view of one DRAFT timetable version: every entry, its
  * resolved unit/venue codes, and the M3 validator's violations shown inline
  * with plain-language messages. Each unlocked row gets a move form whose
  * expected previous schedule comes from this server render, so a stale move
- * is refused by the accepted two-layer compare-and-set (M3-T2b1a).
+ * is refused by the accepted two-layer compare-and-set (M3-T2b1a). The add
+ * form below creates a new session through the accepted `addDraftEntryAction`
+ * (M3-T2b3a/b); the version id it submits is this page's server-side choice,
+ * never a browser-supplied field.
  *
  * Authorization: requireAction("EDIT_DRAFT") at page entry (ALL-scope for
  * the officer, NONE for every other role) and the loader re-decides EDIT_DRAFT
  * before any read — the layout is not a security boundary.
  *
  * The conflict-free statement is only ever made from a fresh server render:
- * after a successful move the client calls router.refresh(), this page re-runs
- * loadDraftForValidation(), and the outcome below decides what is shown. A
- * move result alone never says the draft is clean (requirement #9).
+ * after a successful move or add the client calls router.refresh(), this page
+ * re-runs loadDraftForValidation(), and the outcome below decides what is
+ * shown. A move or add result alone never says the draft is clean
+ * (requirement #9).
  */
 import { requireAction } from "@/server/guards";
 import { prisma } from "@/server/db";
@@ -22,6 +27,7 @@ import { createDraftValidationStore } from "@/server/draftStorePrisma";
 import { loadDraftForValidation } from "@/server/draftValidation";
 import { loadVenueRecords } from "@/server/venueData";
 import { DraftTable } from "./DraftTable";
+import { DraftAddForm, type DraftTeachingOption } from "./DraftAddForm";
 import { mapViolationsToRows, validationSummary } from "@/domain/draftViolations";
 import type { DraftSummaryTone } from "@/domain/draftViolations";
 
@@ -50,6 +56,34 @@ const SUMMARY_CLASSES: Record<DraftSummaryTone, string> = {
   danger: "border-red-200 bg-red-50 text-red-800",
   warning: "border-amber-200 bg-amber-50 text-amber-800",
 };
+
+/**
+ * Scheduled teaching assignments the officer can add a session for, in the
+ * semester of the selected draft (M3-T2b3c). A thin guarded read — the page
+ * has already passed requireAction("EDIT_DRAFT"), whose scope is ALL, so the
+ * officer sees every department's teachings. One unit can have several
+ * teachings (DEMO-MAT101 is taught to both CS-Y2 and SE-Y1), so the option
+ * value is the real Teaching.id and the label names the group, lecturer and
+ * expected size; a unit code alone could never identify the assignment.
+ */
+async function loadTeachingOptions(semester: number): Promise<DraftTeachingOption[]> {
+  const teachings = await prisma.teaching.findMany({
+    where: { unit: { is: { semester, scheduled: true } } },
+    select: {
+      id: true,
+      expectedSize: true,
+      unit: { select: { code: true } },
+      lecturer: { select: { user: { select: { name: true } } } },
+      group: { select: { name: true } },
+    },
+    orderBy: [{ unit: { code: "asc" } }, { group: { name: "asc" } }],
+  });
+
+  return teachings.map((teaching) => ({
+    id: teaching.id,
+    label: `${teaching.unit.code} · ${teaching.group.name} · ${teaching.lecturer.user.name} · ${teaching.expectedSize} students`,
+  }));
+}
 
 export default async function OfficerDraftPage({ searchParams }: PageProps) {
   // FIRST line of logic: page-entry authorisation.
@@ -101,6 +135,12 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
       type: venue.type,
       capacity: venue.capacity,
     }));
+  // Only a draft that actually loaded can receive an entry, so the teaching
+  // list is read from the version the loader confirmed — not from the
+  // browser's version parameter.
+  const teachingOptions = result.ok
+    ? await loadTeachingOptions(result.version.semester)
+    : [];
   const violationMap = result.ok
     ? mapViolationsToRows(result.validation.violations)
     : new Map<string, string[]>();
@@ -139,8 +179,9 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
       <div className="mx-auto max-w-6xl">
         <h1 className="text-xl font-bold text-slate-800">Draft editor</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Move an entry to a new day, time or venue. Conflicts are checked
-          against every hard rule as soon as the draft reloads.
+          Add a teaching session, or move an entry to a new day, time or venue.
+          Conflicts are checked against every hard rule as soon as the draft
+          reloads.
         </p>
         {versionPicker}
 
@@ -195,6 +236,12 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
                 {summary.text}
               </p>
             )}
+
+            <DraftAddForm
+              versionId={result.version.id}
+              teachings={teachingOptions}
+              venues={venueOptions}
+            />
 
             <DraftTable
               versionId={result.version.id}
