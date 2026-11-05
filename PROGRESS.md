@@ -3,8 +3,8 @@ Entries are listed newest-last; the Status block below is authoritative.
 (The agent appends entries here at the end of every task. This file is the agent's memory between sessions.)
 
 ## Status
-- Current milestone: M2
-- Last verified code commit: 99ef542 (later branch commits are documentation-only)
+- Current milestone: M3
+- Last verified code commit: a8d061f (M2-T3d, m2-rooms-submissions branch)
 - Demo-ready: no
 
 ## Log
@@ -336,3 +336,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: The page entry guard is `SET_LECTURER_AVAILABILITY` (SELF scope, lecturers only) rather than the VIEW action, because this page is a write workspace — officers/admins hold `VIEW_LECTURER_AVAILABILITY` with ALL scope for the future M3 validator but have no availability page of their own, so they are redirected instead of being shown a read-only copy; the read then re-checks VIEW with the session user's own id, and the removal action re-checks ownership against the stored record, so no browser-supplied id can reach the store. `redirect()` is called outside try/catch because it works by throwing. Navigation visibility is lecturer-only through a new `audienceRoles?: readonly UserRole[]` field on `MenuItem` that `menuForRole` filters on, with a comment stating that it narrows navigation only and that server guards remain the sole enforcement point — this avoided weakening the accepted T3b permission matrix (removing the officers' ALL scope would have broken the read contract T3c delivered). No `revalidatePath`: `router.refresh()` re-runs this page's own server component. The form reuses the T3c server actions and pure domain messages — no validation logic duplicated in the client.
 - Known problems: The form deliberately allows a period overlapping another lecturer's data — cross-lecturer conflicts are the M3 validator's job (`findUnavailableConflict` still has no runtime consumer). Nothing prevents a lecturer from marking the whole weekday unavailable, which would make them unschedulable; that is a data-quality rule the demo does not enforce. The new page components are covered by typecheck/build and the real browser pass, not by component tests (no React testing library in the prototype).
 - Next suggested task: M3-T1 (timetabling validator that consumes `loadAllLecturerAvailability` and `findUnavailableConflict`)
+
+## 2026-11-04 M3-T1 Conflict validator
+- Done: Added the pure `validateEntries(entries, context, policy)` function returning typed violations for all 8 hard constraints (VENUE_OVERLAP, LECTURER_OVERLAP, GROUP_OVERLAP, CAPACITY, VENUE_TYPE, LECTURER_UNAVAILABLE, VENUE_UNAVAILABLE, OUT_OF_SLOT), plus the `PolicyConfig` / `DEFAULT_POLICY` module, with 21 tests (≥ 2 per violation type, a clean case, multiple-violations-on-one-entry, missing-context, and seed planted-conflict detection).
+- Files changed: src/domain/policy.ts (new), src/domain/validator.ts (new), src/domain/__tests__/validator.test.ts (new), PROGRESS.md, DECISIONS.md
+- Verify: PASS — `npm run verify`: typecheck 0 errors; lint "No ESLint warnings or errors" plus the known `next lint` deprecation notice; vitest 540 tests passed across 30 files (21 new); seed check 11 tests passed. `npm run build`: compiled successfully, 17/17 pages generated, exit 0.
+- Decisions: PolicyConfig passed as a parameter — no globals or clock; ValidationContext uses pre-resolved lookups so the validator stays pure and the server layer (M3-T2) builds it from DB queries; reuses `timesOverlap` and `findUnavailableConflict` from lecturerAvailability.ts for shared half-open range semantics; OUT_OF_SLOT checks day → format → order → slot window → lunch in that order so the message names the most fundamental problem first; missing teaching/venue in context skips dependent checks rather than crashing; load limits (maxHoursPerLecturerPerDay, maxClassesPerGroupPerDay) are not checked — they are soft constraints for the M4 generator, not hard violations; facility matching not checked because the domain model has no per-unit required-facilities field (ASSUMPTION-18 maps to venueTypeRequired only).
+- Known problems: No runtime consumer yet — M3-T2 draft editor will build the ValidationContext from DB queries and call validateEntries. Messages use venue codes and unit codes from the context but not lecturer display names (M3-T2 can resolve lecturer IDs to names when rendering).
+- Next suggested task: M3-T2 (officer draft editor: view draft entries, move/add an entry, show violations inline)
