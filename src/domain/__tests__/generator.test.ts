@@ -336,7 +336,7 @@ describe("generateTimetable session expansion", () => {
     };
     const result = generateTimetable(input, DEFAULT_POLICY);
     expect(result.entries.map((entry) => entry.id)).toEqual(["entry-a", "entry-b"]);
-    expect(result.unplaced).toEqual([]);
+    expect(result.unplaced).toEqual([{ kind: "FIXED", entryId: "entry-b", teachingId: "t-one", reason: "FIXED_CONFLICT", message: expect.stringContaining("extra session") }]);
   });
 });
 

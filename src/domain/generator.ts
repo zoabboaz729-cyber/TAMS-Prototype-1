@@ -11,29 +11,36 @@
  * What a clash IS is never redefined here. The search applies the accepted M3
  * validator's own primitives (`checkSlot`, `timesOverlap`,
  * `findUnavailableConflict`, and the same capacity and venue-type
- * comparisons), and the finished timetable is handed back to
- * `validateEntries` before it is returned: any generated row the validator
- * flags is removed and reported, never left in the result looking clean.
+ * comparisons), and the finished board is handed back to `validateEntries`
+ * (through `generatorFinalize.reconcile`) before it is returned: any generated
+ * row the validator flags is removed and reported, never left in the result
+ * looking clean. Final reconciliation and soft scoring live in
+ * `generatorFinalize.ts` (M4-T1c).
  *
  * The M4-T2 caller keeps its locked rows by passing them as `fixedEntries`.
- * Those rows are put on the board before the search, are never moved, and
- * count towards the sessions their teaching already has, so an existing draft
- * row is never scheduled a second time.
+ * Those rows go on the board before the search and are never moved. A locked
+ * row counts towards the sessions its teaching already has only when its
+ * length equals `sessionLength`; a wrong-length row, and any row beyond the
+ * weekly requirement, stays unchanged on the board and is reported as a
+ * `FIXED_CONFLICT` instead of being silently counted — so an existing draft
+ * row is never scheduled a second time and never stands in for a session it
+ * cannot cover.
  */
 
-import {
-  validateEntries,
-  type EntryInput,
-  type MissingContextError,
-  type TeachingInfo,
-  type ValidationContext,
-  type VenueInfo,
-} from "./validator";
+import type { EntryInput } from "./validator";
 import {
   unavailablePeriodsFromRecords,
   type StoredUnavailablePeriod,
 } from "./lecturerAvailability";
 import type { PolicyConfig } from "./policy";
+import {
+  compareText,
+  reconcile,
+  rowDurationMinutes,
+  softScoreOf,
+  teachingIdOf,
+  validationContext,
+} from "./generatorFinalize";
 import {
   buildSlotGrid,
   orderActivities,
@@ -50,7 +57,6 @@ export const DEFAULT_STEP_LIMIT = 20_000;
 /** Guards against corrupt `sessionsPerWeek` / `sessionLength` values. */
 const MAX_SESSIONS_PER_WEEK = 12;
 const MAX_SESSION_HOURS = 6;
-const MAX_REPAIR_ROUNDS = 10;
 
 export type GeneratorTeaching = {
   id: string;
@@ -94,7 +100,14 @@ export type UnplacedActivity = {
   message: string;
 };
 
-/** An input row that could not be kept, reported instead of dropped. */
+/**
+ * An input row that could not be kept, or that was kept but needs the
+ * officer's attention, reported instead of dropped: `FIXED_UNRESOLVED` for a
+ * row whose teaching or venue is absent, and `FIXED_CONFLICT` for a row the
+ * accepted validator flags, for a wrong-length row that cannot count as a
+ * required session, or for an extra row beyond the weekly requirement
+ * (M4-T1c). A recognised row always stays in `entries` unchanged.
+ */
 export type UnplacedFixed = {
   kind: "FIXED";
   entryId: string;
@@ -178,46 +191,17 @@ function lecturerPeriodsByLecturer(
   return map;
 }
 
-/** The unavailability data the M3-T1 validator needs, built from the same maps the search used. */
-function validationContext(
-  teachings: Map<string, GeneratorTeaching>,
-  venues: Map<string, GeneratorVenue>,
-  lecturerPeriods: Map<string, StoredUnavailablePeriod[]>,
-  venuePeriods: Map<string, GeneratorPeriod[]>,
-): ValidationContext {
-  const teachingEntries: [string, TeachingInfo][] = [...teachings.values()].map((teaching) => [
-    teaching.id,
-    {
-      lecturerId: teaching.lecturerId,
-      groupId: teaching.groupId,
-      expectedSize: teaching.expectedSize,
-      venueTypeRequired: teaching.venueTypeRequired,
-      unitCode: teaching.unitCode,
-    },
-  ]);
-  const venueEntries: [string, VenueInfo][] = [...venues.values()].map((venue) => [
-    venue.id,
-    { capacity: venue.capacity, type: venue.type, code: venue.code },
-  ]);
-  return {
-    // Object.fromEntries creates own properties, so an id like "__proto__"
-    // cannot resolve through the Object prototype.
-    teachings: Object.fromEntries(teachingEntries),
-    venues: Object.fromEntries(venueEntries),
-    lecturerUnavailable: Object.fromEntries(lecturerPeriods),
-    venueUnavailable: Object.fromEntries(venuePeriods),
-  };
-}
-
 // ---------------------------------------------------------------------------
 // Activities
 // ---------------------------------------------------------------------------
 
 /**
  * Each teaching owes `sessionsPerWeek` sessions of `sessionLength` hours.
- * Fixed rows already on the board satisfy part of that debt, so only the
- * remainder becomes an activity — an existing draft row is never scheduled
- * twice. Extra fixed rows beyond the weekly requirement are kept, not removed.
+ * Only the correctly sized, non-excess fixed rows the caller counted into
+ * `fixedSessionsByTeaching` satisfy part of that debt, so only the remainder
+ * becomes an activity — an existing draft row is never scheduled a second
+ * time, and a locked row of the wrong length never stands in for a session it
+ * cannot cover. Fixed rows are kept, never removed.
  */
 function expandActivities(
   teachings: ReadonlyMap<string, GeneratorTeaching>,
@@ -246,214 +230,10 @@ function expandActivities(
   return activities;
 }
 
-// ---------------------------------------------------------------------------
-// Self-check against the accepted validator
-// ---------------------------------------------------------------------------
-
-type Reconciled = {
-  /** Generated rows the validator accepted, in board order. */
-  entries: EntryInput[];
-  /** Generated rows the validator rejected, with its own message. */
-  rejected: { entryId: string; message: string }[];
-  fixedConflicts: UnplacedFixed[];
-  unresolved: UnplacedFixed[];
-};
-
-/**
- * Validate the finished board with `validateEntries` and act on what it says.
- * A generated row it flags is taken back off the board and reported; a locked
- * row it flags stays put (the generator must not move it) and is reported as a
- * conflict the officer has to resolve. Normally nothing is flagged — this is
- * what guarantees the generator and the validator never disagree.
- */
-function reconcile(
-  entries: readonly EntryInput[],
-  fixedIds: ReadonlySet<string>,
-  context: ValidationContext,
-  policy: PolicyConfig,
-): Reconciled {
-  const rejected: { entryId: string; message: string }[] = [];
-  const unresolved: UnplacedFixed[] = [];
-  const conflicts = new Map<string, UnplacedFixed>();
-  let remaining = [...entries];
-
-  for (let round = 0; round < MAX_REPAIR_ROUNDS; round++) {
-    const outcome = validateEntries(remaining, context, policy);
-    const missing = new Map<string, MissingContextError>();
-    if (outcome.status === "incomplete") {
-      for (const error of outcome.missingContext) missing.set(error.entryId, error);
-    }
-
-    const rejectedNow = new Map<string, string>();
-    for (const violation of outcome.violations) {
-      if (fixedIds.has(violation.entryId)) {
-        const key = `${violation.type}|${violation.entryId}|${violation.conflictEntryId ?? ""}`;
-        if (!conflicts.has(key)) {
-          conflicts.set(key, {
-            kind: "FIXED",
-            entryId: violation.entryId,
-            teachingId: teachingIdOf(remaining, violation.entryId),
-            reason: "FIXED_CONFLICT",
-            message: `Locked entry ${violation.entryId} cannot move: ${violation.message}`,
-          });
-        }
-        continue;
-      }
-      if (!missing.has(violation.entryId) && !rejectedNow.has(violation.entryId)) {
-        rejectedNow.set(violation.entryId, violation.message);
-      }
-    }
-
-    if (missing.size === 0 && rejectedNow.size === 0) break;
-
-    const remove = new Set<string>([...missing.keys(), ...rejectedNow.keys()]);
-    for (const [entryId, message] of rejectedNow) rejected.push({ entryId, message });
-    for (const error of missing.values()) {
-      unresolved.push({
-        kind: "FIXED",
-        entryId: error.entryId,
-        teachingId: teachingIdOf(remaining, error.entryId),
-        reason: "FIXED_UNRESOLVED",
-        message: error.message,
-      });
-    }
-    remaining = remaining.filter((entry) => !remove.has(entry.id));
-  }
-
-  return {
-    entries: remaining.filter((entry) => !fixedIds.has(entry.id)),
-    rejected,
-    fixedConflicts: [...conflicts.values()],
-    unresolved,
-  };
-}
-
-function teachingIdOf(entries: readonly EntryInput[], entryId: string): string {
-  return entries.find((entry) => entry.id === entryId)?.teachingId ?? entryId;
-}
-
-// ---------------------------------------------------------------------------
-// Soft scoring
-// ---------------------------------------------------------------------------
-
-type TimetableRow = {
-  entryId: string;
-  lecturerId: string;
-  groupId: string;
-  venueId: string;
-  day: string;
-  start: string;
-  end: string;
-};
-
-function hourAnchor(time: string): number {
-  return Math.floor(minutesOf(time) / 60) * 60;
-}
-
-function minutesOf(time: string): number {
-  return Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
-}
-
-function minutesBetween(start: string, end: string): number {
-  return minutesOf(end) - minutesOf(start);
-}
-
-function toRows(entries: readonly EntryInput[], context: ValidationContext): TimetableRow[] {
-  const rows: TimetableRow[] = [];
-  for (const entry of entries) {
-    const teaching = Object.hasOwn(context.teachings, entry.teachingId)
-      ? context.teachings[entry.teachingId]
-      : undefined;
-    if (!teaching) continue;
-    rows.push({
-      entryId: entry.id,
-      lecturerId: teaching.lecturerId,
-      groupId: teaching.groupId,
-      venueId: entry.venueId,
-      day: entry.day,
-      start: entry.start,
-      end: entry.end,
-    });
-  }
-  return rows;
-}
-
-/**
- * Penalty points for the PROTOTYPE_SPEC §7 soft constraints — fewer gaps per
- * group, fewer venue changes, balanced days — plus every hour the draft had to
- * breach an ASSUMPTION-10 day limit. Locked rows are counted too: they are part
- * of the draft the officer reads. Lower is better; 0 means none of these
- * penalties apply. Preferred slots are not scored because the domain model has
- * no preferred-slot field for a unit to carry.
- */
-function softPenalty(rows: readonly TimetableRow[], policy: PolicyConfig): number {
-  let penalty = 0;
-
-  const lecturerDayMinutes = new Map<string, number>();
-  const groupDays = new Map<string, Map<string, TimetableRow[]>>();
-  for (const row of rows) {
-    const days = getOrSet(groupDays, row.groupId, () => new Map<string, TimetableRow[]>());
-    getOrSet(days, row.day, () => []).push(row);
-    const key = `${row.lecturerId}|${row.day}`;
-    lecturerDayMinutes.set(key, (lecturerDayMinutes.get(key) ?? 0) + minutesBetween(row.start, row.end));
-  }
-
-  for (const minutes of lecturerDayMinutes.values()) {
-    const over = minutes / 60 - policy.maxHoursPerLecturerPerDay;
-    if (over > 0) penalty += Math.ceil(over);
-  }
-
-  const lunchAnchors = new Set<number>();
-  for (let anchor = hourAnchor(policy.lunchStart); anchor < hourAnchor(policy.lunchEnd); anchor += 60) {
-    lunchAnchors.add(anchor);
-  }
-
-  for (const days of groupDays.values()) {
-    let totalClasses = 0;
-    for (const dayRows of days.values()) {
-      totalClasses += dayRows.length;
-      if (dayRows.length > policy.maxClassesPerGroupPerDay) {
-        penalty += dayRows.length - policy.maxClassesPerGroupPerDay;
-      }
-
-      const occupied = new Set<number>();
-      let first = Number.POSITIVE_INFINITY;
-      let last = Number.NEGATIVE_INFINITY;
-      for (const row of dayRows) {
-        const from = hourAnchor(row.start);
-        for (let anchor = from; anchor < hourAnchor(row.end); anchor += 60) occupied.add(anchor);
-        first = Math.min(first, from);
-        last = Math.max(last, hourAnchor(row.end) - 60);
-      }
-      for (let anchor = first; anchor <= last; anchor += 60) {
-        if (!occupied.has(anchor) && !lunchAnchors.has(anchor)) penalty += 2;
-      }
-
-      const ordered = [...dayRows].sort((a, b) => compareText(a.start, b.start));
-      for (let i = 1; i < ordered.length; i++) {
-        if (ordered[i].venueId !== ordered[i - 1].venueId) penalty += 1;
-      }
-    }
-
-    const target = Math.ceil(totalClasses / Math.max(1, policy.days.length));
-    for (const dayRows of days.values()) {
-      if (dayRows.length > target) penalty += dayRows.length - target;
-    }
-  }
-
-  return penalty;
-}
-
-function getOrSet<K, V>(map: Map<K, V>, key: K, build: () => V): V {
-  const existing = map.get(key);
-  if (existing !== undefined) return existing;
-  const created = build();
-  map.set(key, created);
-  return created;
-}
-
-function compareText(a: string, b: string): number {
-  return a < b ? -1 : a > b ? 1 : 0;
+function lengthLabel(minutes: number): string {
+  if (!Number.isFinite(minutes)) return "an invalid time range";
+  if (minutes % 60 === 0) return `${minutes / 60}h`;
+  return `${minutes}min`;
 }
 
 // ---------------------------------------------------------------------------
@@ -487,6 +267,10 @@ export function generateTimetable(input: GeneratorInput, policy: PolicyConfig): 
   const fixedIds = new Set<string>();
   const fixedSessions = new Map<string, number>();
   const unplaced: (UnplacedActivity | UnplacedFixed)[] = [];
+  // Correctly sized locked rows per teaching, awaiting the counted/excess split
+  // below. The split is by entry id, not input order, so reordering the draft
+  // reports exactly the same rows (M4-T1c).
+  const sizedRows = new Map<string, EntryInput[]>();
 
   for (const entry of input.fixedEntries ?? []) {
     const teaching = teachings.get(entry.teachingId);
@@ -503,16 +287,49 @@ export function generateTimetable(input: GeneratorInput, policy: PolicyConfig): 
       });
       continue;
     }
-    fixedRows.push({
+    const row: EntryInput = {
       id: entry.id,
       teachingId: entry.teachingId,
       venueId: entry.venueId,
       day: entry.day,
       start: entry.start,
       end: entry.end,
-    });
-    fixedIds.add(entry.id);
-    fixedSessions.set(entry.teachingId, (fixedSessions.get(entry.teachingId) ?? 0) + 1);
+    };
+    fixedRows.push(row);
+    fixedIds.add(row.id);
+    const requiredMinutes = intInRange(teaching.sessionLength, 1, MAX_SESSION_HOURS) * 60;
+    const actualMinutes = rowDurationMinutes(row.start, row.end);
+    if (actualMinutes === requiredMinutes) {
+      const list = sizedRows.get(teaching.id);
+      if (list) list.push(row);
+      else sizedRows.set(teaching.id, [row]);
+    } else {
+      unplaced.push({
+        kind: "FIXED",
+        entryId: row.id,
+        teachingId: teaching.id,
+        reason: "FIXED_CONFLICT",
+        message: `Locked entry ${row.id} runs ${lengthLabel(actualMinutes)} but ${teaching.unitCode} sessions are ${lengthLabel(requiredMinutes)}: locked rows cannot be moved or resized, so it was kept unchanged, did not count toward the weekly sessions, and the matching session was scheduled around it. Fix its length in the draft or unlock it.`,
+      });
+    }
+  }
+
+  for (const [teachingId, rows] of sizedRows) {
+    const teaching = teachings.get(teachingId);
+    if (!teaching) continue;
+    const sessionsPerWeek = intInRange(teaching.sessionsPerWeek, 0, MAX_SESSIONS_PER_WEEK);
+    const ordered = [...rows].sort((a, b) => compareText(a.id, b.id));
+    const counted = Math.min(sessionsPerWeek, ordered.length);
+    fixedSessions.set(teachingId, counted);
+    for (const extra of ordered.slice(counted)) {
+      unplaced.push({
+        kind: "FIXED",
+        entryId: extra.id,
+        teachingId,
+        reason: "FIXED_CONFLICT",
+        message: `Locked entry ${extra.id} is an extra session: ${teaching.unitCode} requires ${sessionsPerWeek} per week, already covered by the ${counted} locked ${counted === 1 ? "row" : "rows"} counted for it. It was kept on the board untouched and nothing was generated for it. Remove it or unlock it if it was not intended.`,
+      });
+    }
   }
 
   const activities = expandActivities(teachings, fixedSessions);
@@ -607,6 +424,6 @@ export function generateTimetable(input: GeneratorInput, policy: PolicyConfig): 
   return {
     entries,
     unplaced,
-    softScore: softPenalty(toRows(entries, context), policy),
+    softScore: softScoreOf(entries, context, policy),
   };
 }
