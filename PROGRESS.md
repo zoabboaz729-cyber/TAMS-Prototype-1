@@ -4,7 +4,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 
 ## Status
 - Current milestone: M3
-- Last verified code commit: 4aeac4a (M3-T1, m3-validator branch) plus the M3-T1a and M3-T1b commits recorded in the entries below, whose SHAs are reported in each task's report
+- Last verified code commit: the M3-T2a commit at the tip of `m3-validator` (SHA reported in its task report); M3-T1, M3-T1a and M3-T1b are the entries below it
 - Demo-ready: no
 
 ## Log
@@ -360,3 +360,10 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: `slotValidation.ts` imports `EntryInput` and `Violation` from `validator.ts` via `import type` (erased at compile time, no runtime circular dependency); `validator.ts` imports `checkSlot` as a runtime value, so the dependency graph runs one-way at runtime (validator → slotValidation). The `TIME_HHMM_REGEX` and `isStartBeforeEnd` imports from `./types` moved to `slotValidation.ts` and were removed from `validator.ts` (only `checkSlot` used them). Recorded in DECISIONS.md.
 - Known problems: none
 - Next suggested task: M3-T2 (officer draft editor: view draft entries, move/add an entry, show violations inline)
+## 2026-11-05 M3-T2a Server-side draft validation loader
+- Done: Added the read-only server service `loadDraftForValidation(store, actor, versionId, policy?)` — decides EDIT_DRAFT before any read, requires the stored version status to be DRAFT, loads only that version's entries, resolves teachings+units, venues, lecturer unavailable periods and venue unavailable periods from the existing Prisma models, builds the exact `EntryInput[]` and `ValidationContext`, and returns `{ version, entries, validation }` from the unchanged `validateEntries()`; plus `createDraftValidationStore()`, the Prisma read-only adapter. No UI, no writes, no schema change, no validator change.
+- Files changed: src/server/draftValidation.ts (new), src/server/draftStorePrisma.ts (new), src/server/__tests__/draftValidation.test.ts (new), DECISIONS.md, PROGRESS.md
+- Verify: PASS — `npm run verify`: typecheck 0 errors; lint "No ESLint warnings or errors" plus the known `next lint` deprecation notice; vitest 586 tests passed across 31 files (39 new); seed check 11 tests passed. `npm run build`: compiled successfully, 17/17 pages generated, exit 0. Real-database smoke check (temporary script, then deleted): officer loaded `ver-s1-planted` from `prisma/dev.db` — 10 entries, `status: "ok"`, the two planted conflicts; student got FORBIDDEN with zero reads; unknown id got NOT_FOUND.
+- Decisions: recorded in DECISIONS.md (M3-T2a a-j) — permission before any query; typed refusal codes that carry no draft data; NOT_DRAFT for PUBLISHED/ARCHIVED; store contract separate from the Prisma adapter (mirrors the venue/submission split); defensive re-filter of entries by version id; entries re-ordered into policy day order so `entryIndex` matches the week the officer reads; a store failure is INTERNAL_ERROR and never an empty availability list; corrupt version status throws instead of being guessed; DTO keeps unresolved rows visible with null codes; the service file is 376 lines and was left unsplit to respect the five-file cap.
+- Known problems: the Prisma adapter has no automated database-backed test (same as every earlier Prisma store) — it was exercised once manually as described above. A leftover non-seed row was found in `prisma/dev.db`: `LecturerAvailability` id `cmw1h5l7k0001uvkswii6fa4i` (lecturer-B, WED 07:00-09:00) appears to be a UI-test row from M2-T3d that was not removed; nothing was deleted. The service has no page or route consumer yet — that is M3-T2b.
+- Next suggested task: M3-T2b (officer draft editor UI consuming this loader; move/add entries with inline violations)
