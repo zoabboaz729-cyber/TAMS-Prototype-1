@@ -7,15 +7,18 @@ import { moveDraftEntryAction } from "@/app/officer/draft/actions";
 import type { DraftMoveResult } from "@/server/draftMove";
 
 /**
- * Draft editor table (M3-T2b2). Each unlocked row carries a move form; the
- * proposed values are local state, while the expected previous schedule comes
- * from the latest server render (props) — the optimistic-concurrency token is
- * therefore never stale client data the officer edited.
+ * Draft editor table (M3-T2b2; form re-sync corrected in M3-T2b2a). Each
+ * unlocked row carries a move form; the proposed values are local state, while
+ * the expected previous schedule comes from the latest server render (props) —
+ * the optimistic-concurrency token is therefore never stale client data the
+ * officer edited.
  *
  * After any accepted or stale outcome the client calls router.refresh(), which
  * re-runs the page's loadDraftForValidation(); the conflict summary and the
  * inline violation messages shown to the officer always come from that fresh
- * server validation, never from the move result (requirement #9).
+ * server validation, never from the move result (requirement #9). A row whose
+ * server schedule differs from the one it was rendered with resets its
+ * controls to the persisted values.
  */
 
 const DAY_LABELS: Record<Day, string> = {
@@ -35,7 +38,11 @@ export type DraftTableRow = {
   start: string;
   end: string;
   locked: boolean;
-  /** Plain-language violation messages for this entry from the server run. */
+  /**
+   * Plain-language violation messages from the server run. A pairwise clash
+   * appears on both affected rows with the validator's original message,
+   * deduped — so these strings are unique within one row and safe as keys.
+   */
   violations: string[];
 };
 
@@ -97,6 +104,7 @@ function MoveForm({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const serverSchedule = `${entry.day}|${entry.start}|${entry.end}|${entry.venueId}`;
   const [day, setDay] = useState(entry.day);
   const [start, setStart] = useState(entry.start);
   const [end, setEnd] = useState(entry.end);
@@ -104,6 +112,21 @@ function MoveForm({
   const [feedback, setFeedback] = useState<{ tone: "ok" | "error"; text: string } | null>(
     null,
   );
+
+  // Re-sync the proposed values when the persisted schedule changes (accepted
+  // move, or a STALE refusal followed by router.refresh()). Comparing the
+  // server schedule during render, rather than in an effect, means an unrelated
+  // refresh leaves the officer's in-flight edits untouched — only a real change
+  // to this entry's schedule rewrites the controls. The expected* concurrency
+  // values still come from props, never from this state.
+  const [syncedSchedule, setSyncedSchedule] = useState(serverSchedule);
+  if (syncedSchedule !== serverSchedule) {
+    setSyncedSchedule(serverSchedule);
+    setDay(entry.day);
+    setStart(entry.start);
+    setEnd(entry.end);
+    setVenueId(entry.venueId);
+  }
 
   function submit() {
     setFeedback(null);

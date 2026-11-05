@@ -1,5 +1,5 @@
 /**
- * /officer/draft — officer draft editor (M3-T2b2).
+ * /officer/draft — officer draft editor (M3-T2b2, behaviour corrected in M3-T2b2a).
  *
  * Server-rendered view of one DRAFT timetable version: every entry, its
  * resolved unit/venue codes, and the M3 validator's violations shown inline
@@ -22,7 +22,8 @@ import { createDraftValidationStore } from "@/server/draftStorePrisma";
 import { loadDraftForValidation } from "@/server/draftValidation";
 import { loadVenueRecords } from "@/server/venueData";
 import { DraftTable } from "./DraftTable";
-import type { Violation } from "@/domain/validator";
+import { mapViolationsToRows, validationSummary } from "@/domain/draftViolations";
+import type { DraftSummaryTone } from "@/domain/draftViolations";
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -43,18 +44,12 @@ const LOADER_REFUSAL_MESSAGES: Record<
     "The draft could not be loaded. Please try again — if it keeps failing, tell the demo operator.",
 };
 
-function violationsByEntry(violations: readonly Violation[]): Map<string, string[]> {
-  const byEntry = new Map<string, string[]>();
-  for (const violation of violations) {
-    const bucket = byEntry.get(violation.entryId);
-    if (bucket === undefined) {
-      byEntry.set(violation.entryId, [violation.message]);
-    } else {
-      bucket.push(violation.message);
-    }
-  }
-  return byEntry;
-}
+/** Summary banner classes per tone — the text comes from the pure domain rule. */
+const SUMMARY_CLASSES: Record<DraftSummaryTone, string> = {
+  success: "border-green-200 bg-green-50 text-green-800",
+  danger: "border-red-200 bg-red-50 text-red-800",
+  warning: "border-amber-200 bg-amber-50 text-amber-800",
+};
 
 export default async function OfficerDraftPage({ searchParams }: PageProps) {
   // FIRST line of logic: page-entry authorisation.
@@ -107,8 +102,9 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
       capacity: venue.capacity,
     }));
   const violationMap = result.ok
-    ? violationsByEntry(result.validation.violations)
+    ? mapViolationsToRows(result.validation.violations)
     : new Map<string, string[]>();
+  const summary = result.ok ? validationSummary(result.validation) : null;
 
   const versionPicker = (
     <form method="get" className="mt-4 flex flex-wrap items-end gap-3">
@@ -191,20 +187,14 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
               </section>
             )}
 
-            <p
-              className={`mt-4 rounded-md border p-3 text-sm font-semibold ${
-                result.validation.violations.length === 0
-                  ? "border-green-200 bg-green-50 text-green-800"
-                  : "border-red-200 bg-red-50 text-red-800"
-              }`}
-              role="status"
-            >
-              {result.validation.violations.length === 0
-                ? "No hard violations in this draft."
-                : `${result.validation.violations.length} hard violation${
-                    result.validation.violations.length === 1 ? "" : "s"
-                  } found — shown on the affected rows below.`}
-            </p>
+            {summary !== null && (
+              <p
+                className={`mt-4 rounded-md border p-3 text-sm font-semibold ${SUMMARY_CLASSES[summary.tone]}`}
+                role="status"
+              >
+                {summary.text}
+              </p>
+            )}
 
             <DraftTable
               versionId={result.version.id}
