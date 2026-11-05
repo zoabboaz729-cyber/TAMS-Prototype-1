@@ -1,9 +1,11 @@
 /**
- * Prisma implementation of the M3-T2a draft validation store.
+ * Prisma implementation of the M3-T2a draft validation store plus the
+ * M3-T2b1 move and M3-T2b3a add write stores.
  *
- * Read-only: every method is a find/select over the existing models
- * (TimetableVersion, TimetableEntry, Teaching + Unit, Venue,
- * LecturerAvailability, VenueUnavailable). No migration, no writes.
+ * Reads are find/select over the existing models (TimetableVersion,
+ * TimetableEntry, Teaching + Unit, Venue, LecturerAvailability,
+ * VenueUnavailable). The two write methods (moveEntry, createEntry) each run
+ * in one transaction. No migration, no new tables.
  *
  * A stored status that is not one of the values declared in
  * src/domain/types.ts makes `findVersion` throw rather than guess: a corrupt
@@ -23,6 +25,7 @@ import type {
   MoveAuditDraft,
   MoveFields,
 } from "@/server/draftMove";
+import type { AddAuditDraft, AddFields, DraftAddStore } from "@/server/draftAdd";
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/server/db";
 
@@ -109,13 +112,17 @@ const lecturerUnavailableWhere = { available: false } as const;
 
 const venueIdSelect = { id: true } as const;
 
+const teachingIdSelect = { id: true } as const;
+
 /**
- * Builds one object satisfying both the read (DraftValidationStore) and move
- * (DraftMoveStore) interfaces so the two factory exports share a single set
- * of queries. `client` is injected so tests can point at an isolated database;
- * the default singleton is used in production.
+ * Builds one object satisfying the read (DraftValidationStore), move
+ * (DraftMoveStore) and add (DraftAddStore) interfaces so the factory exports
+ * share a single set of queries. `client` is injected so tests can point at an
+ * isolated database; the default singleton is used in production.
  */
-function buildDraftStore(client: PrismaClient): DraftValidationStore & DraftMoveStore {
+function buildDraftStore(
+  client: PrismaClient,
+): DraftValidationStore & DraftMoveStore & DraftAddStore {
   return {
     async findVersion(versionId) {
       const row = await client.timetableVersion.findUnique({
@@ -183,6 +190,14 @@ function buildDraftStore(client: PrismaClient): DraftValidationStore & DraftMove
       return row === null ? null : { id: row.id };
     },
 
+    async findTeachingById(teachingId) {
+      const row = await client.teaching.findUnique({
+        where: { id: teachingId },
+        select: teachingIdSelect,
+      });
+      return row === null ? null : { id: row.id };
+    },
+
     /**
      * Compare-and-set move inside one transaction:
      * 1. Re-read the version; if it is gone or no longer DRAFT, the pre-state
@@ -237,6 +252,57 @@ function buildDraftStore(client: PrismaClient): DraftValidationStore & DraftMove
         return { ok: true } as const;
       });
     },
+
+    /**
+     * Transactional add (M3-T2b3a):
+     * 1. Re-read the version; if it is gone or no longer DRAFT, the state
+     *    changed under us → stale, and NOTHING is inserted (a concurrent
+     *    publish between the service pre-check and this transaction).
+     * 2. Insert the new entry — a fresh database id, `locked: false` always,
+     *    belonging only to the requested version. No existing row is touched.
+     * 3. Write the audit row in the same transaction, so an entry and its
+     *    audit record commit or roll back together.
+     * A missing teaching/venue that slipped past the pre-check fails the
+     * relation check and throws, rolling the transaction back; the service
+     * converts that to INTERNAL_ERROR.
+     */
+    async createEntry(fields, audit) {
+      return client.$transaction(async (tx) => {
+        const version = await tx.timetableVersion.findUnique({
+          where: { id: fields.versionId },
+          select: versionSelect,
+        });
+        if (version === null) return { stale: true } as const;
+        const parsed = TimetableVersionStatusSchema.safeParse(version.status);
+        if (!parsed.success || parsed.data !== "DRAFT") {
+          return { stale: true } as const;
+        }
+
+        const entry = await tx.timetableEntry.create({
+          data: {
+            versionId: fields.versionId,
+            teachingId: fields.teachingId,
+            venueId: fields.venueId,
+            day: fields.day,
+            start: fields.start,
+            end: fields.end,
+            locked: false,
+          },
+          select: { id: true },
+        });
+
+        await tx.auditLog.create({
+          data: {
+            actorId: audit.actorId,
+            action: audit.action,
+            entity: "TimetableEntry",
+            entityId: entry.id,
+            reason: audit.reason,
+          },
+        });
+        return { ok: true, entryId: entry.id } as const;
+      });
+    },
   };
 }
 
@@ -248,5 +314,11 @@ export function createDraftValidationStore(): DraftValidationStore {
 /** Read + write store for the M3-T2b1 draft entry move. Accepts an optional
  *  Prisma client so tests can target an isolated database. */
 export function createDraftMoveStore(client: PrismaClient = prisma): DraftMoveStore {
+  return buildDraftStore(client);
+}
+
+/** Read + write store for the M3-T2b3a draft entry add. Accepts an optional
+ *  Prisma client so tests can target an isolated database. */
+export function createDraftAddStore(client: PrismaClient = prisma): DraftAddStore {
   return buildDraftStore(client);
 }
