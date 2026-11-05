@@ -18,6 +18,11 @@ import type {
   DraftVersionRow,
   TeachingRow,
 } from "@/server/draftValidation";
+import type {
+  DraftMoveStore,
+  MoveAuditDraft,
+  MoveFields,
+} from "@/server/draftMove";
 import { prisma } from "@/server/db";
 
 const versionSelect = {
@@ -101,7 +106,14 @@ function toTeachingRow(row: TeachingDbRow): TeachingRow {
 /** Rows the validator must never see: `available: true` restricts nothing. */
 const lecturerUnavailableWhere = { available: false } as const;
 
-export function createDraftValidationStore(): DraftValidationStore {
+const venueIdSelect = { id: true } as const;
+
+/**
+ * Builds one object satisfying both the read (DraftValidationStore) and move
+ * (DraftMoveStore) interfaces so the two factory exports share a single set
+ * of Prisma queries. `findVersion` is shared by both contracts.
+ */
+function buildDraftStore(): DraftValidationStore & DraftMoveStore {
   return {
     async findVersion(versionId) {
       const row = await prisma.timetableVersion.findUnique({
@@ -153,5 +165,76 @@ export function createDraftValidationStore(): DraftValidationStore {
         select: venueUnavailableSelect,
       });
     },
+
+    async findEntry(entryId) {
+      return prisma.timetableEntry.findUnique({
+        where: { id: entryId },
+        select: entrySelect,
+      });
+    },
+
+    async findVenueById(venueId) {
+      const row = await prisma.venue.findUnique({
+        where: { id: venueId },
+        select: venueIdSelect,
+      });
+      return row === null ? null : { id: row.id };
+    },
+
+    /**
+     * Compare-and-set move inside one transaction:
+     * 1. Re-read the version; if it is gone or no longer DRAFT, the pre-state
+     *    changed under us → stale (a concurrent publish).
+     * 2. updateMany scoped by id + versionId + locked=false. If zero rows
+     *    match, the entry was locked, moved to another version, or deleted
+     *    during the operation → stale.
+     * 3. Write the audit row only after the update succeeds.
+     * A corrupt stored status is parsed and rejected rather than guessed.
+     */
+    async moveEntry(entryId, expectedVersionId, fields, audit) {
+      return prisma.$transaction(async (tx) => {
+        const version = await tx.timetableVersion.findUnique({
+          where: { id: expectedVersionId },
+          select: versionSelect,
+        });
+        if (version === null) return { stale: true } as const;
+        const parsed = TimetableVersionStatusSchema.safeParse(version.status);
+        if (!parsed.success || parsed.data !== "DRAFT") {
+          return { stale: true } as const;
+        }
+
+        const result = await tx.timetableEntry.updateMany({
+          where: { id: entryId, versionId: expectedVersionId, locked: false },
+          data: {
+            day: fields.day,
+            start: fields.start,
+            end: fields.end,
+            venueId: fields.venueId,
+          },
+        });
+        if (result.count === 0) return { stale: true } as const;
+
+        await tx.auditLog.create({
+          data: {
+            actorId: audit.actorId,
+            action: audit.action,
+            entity: "TimetableEntry",
+            entityId: entryId,
+            reason: audit.reason,
+          },
+        });
+        return { ok: true } as const;
+      });
+    },
   };
+}
+
+/** Read-only store for the M3-T2a draft validation loader. */
+export function createDraftValidationStore(): DraftValidationStore {
+  return buildDraftStore();
+}
+
+/** Read + write store for the M3-T2b1 draft entry move. */
+export function createDraftMoveStore(): DraftMoveStore {
+  return buildDraftStore();
 }
