@@ -4,9 +4,11 @@
  * "legacy" helpers below reimplement the M4-T3a delimiter joining purely to
  * prove, with deliberately constructed fixtures, that distinct snapshots used
  * to encode identically; nothing shipped still uses them. The service itself
- * stays tested in `draftPublish.test.ts`, whose 38 tests are unchanged.
+ * stays tested in `draftPublish.test.ts`, whose 38 tests are unchanged. The
+ * M4-T3b1 error-logging regression (nothing derived from a caught exception
+ * may reach `console.error`) lives in the last test below.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Actor } from "@/domain/permissions";
 import { DEFAULT_POLICY } from "@/domain/policy";
 import type { DraftEntryRow, LecturerUnavailableRow, TeachingRow, VenueRow, VenueUnavailableRow } from "@/server/draftValidation";
@@ -138,13 +140,28 @@ describe("the publication service on top of the corrected encoding", () => {
     expect(await publishWith((next) => { next.entries = [entryOf("e-1", { venueId: "v-2" }), base().entries[1]]; })).toEqual({ ok: false, kind: "STALE", reason: "SNAPSHOT_CHANGED" });
     expect(await publishWith((next) => { next.venueUnavailable = [venueClosed("vu-1", { reason: null }), base().venueUnavailable[1]]; })).toEqual({ ok: false, kind: "STALE", reason: "SNAPSHOT_CHANGED" });
   });
-  it("keeps the fingerprint and any database detail out of the client-facing result", async () => {
+  it("keeps the fingerprint and any database detail out of the client-facing result and the server log", async () => {
     const secret = "postgres://tams:hunter2@db.internal:5432/tams", printed = publishSnapshotFingerprint(base());
-    const result = await publishWith(() => { throw new Error(`update "TimetableVersion" set status='PUBLISHED' — ${printed} — ${secret}`); });
-    expect(result).toEqual({ ok: false, kind: "INTERNAL_ERROR" });
-    const wire = JSON.stringify(result);
-    expect(wire).not.toContain(printed); expect(wire).not.toContain("hunter2"); expect(wire).not.toContain("TimetableVersion");
-    const staleWire = JSON.stringify(await publishWith((next) => { next.venues = [venueOf("v-1", { code: "CR9" }), venueOf("v-2")]; }));
-    expect(staleWire).not.toContain(printed);
+    const sql = `update "TimetableVersion" set status='PUBLISHED'`;
+    // M4-T3b1: the injected failure carries recognizable fake credentials, SQL
+    // and the fingerprint; none of them may reach the log either, only the
+    // fixed operational line. The spy is restored in `finally` so a failed
+    // assertion cannot leak mocking into the tests after this one.
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const result = await publishWith(() => { throw new Error(`${sql} — ${printed} — ${secret}`); });
+      const logged = spy.mock.calls.map((call) => call.map(String).join(" ")).join("\n");
+      expect(result).toEqual({ ok: false, kind: "INTERNAL_ERROR" });
+      const wire = JSON.stringify(result);
+      expect(wire).not.toContain(printed); expect(wire).not.toContain("hunter2"); expect(wire).not.toContain("TimetableVersion");
+      expect(logged).not.toContain(printed); expect(logged).not.toContain("hunter2"); expect(logged).not.toContain(secret);
+      expect(logged).not.toContain(sql); expect(logged).not.toContain("TimetableVersion");
+      expect(logged).not.toContain("Error"); expect(logged).not.toContain("at ");
+      expect(logged).toBe("[draftPublish] publication failed; returning INTERNAL_ERROR");
+      const staleWire = JSON.stringify(await publishWith((next) => { next.venues = [venueOf("v-1", { code: "CR9" }), venueOf("v-2")]; }));
+      expect(staleWire).not.toContain(printed);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

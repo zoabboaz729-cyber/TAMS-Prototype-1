@@ -277,10 +277,13 @@ export async function performDraftPublish(
 
     // The ids and semester the store actually committed — never a claim.
     return { ok: true, versionId: version.id, semester: version.semester, archivedVersionIds: outcome.archivedVersionIds, publishedAt };
-  } catch (error) {
-    // Only the message reaches the log; the caller gets a code, never SQL or a
-    // connection detail, and never a claim that anything was published.
-    console.error("[draftPublish] publication failed:", error instanceof Error ? error.message : String(error));
+  } catch {
+    // M4-T3b1: a fixed, non-sensitive line only. An exception message here can
+    // carry SQL, a connection URL with credentials or the snapshot fingerprint,
+    // so nothing derived from the caught error may reach the log. The caller
+    // gets a code, never a detail, and never a claim that anything was
+    // published. Operational correlation can be added later without payloads.
+    console.error("[draftPublish] publication failed; returning INTERNAL_ERROR");
     return { ok: false, kind: "INTERNAL_ERROR" };
   }
 }
