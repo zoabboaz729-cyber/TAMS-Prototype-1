@@ -25,8 +25,9 @@
  * - The snapshot fingerprint covers exactly what the accepted validator reads
  *   (PROTOTYPE_SPEC §7): the version row, every entry, teaching and venue behind
  *   the validation, both unavailability sets and the policy values. It is an
- *   order-independent canonical encoding, not a digest, and is never persisted
- *   or logged.
+ *   order-independent canonical encoding of typed field arrays — not a digest,
+ *   and never persisted or logged — so no two snapshots it can distinguish
+ *   encode the same, and no stored text can imitate a field boundary (M4-T3a1).
  * - Limits (see DECISIONS.md M4-T3a): fields the M3 validator does not read —
  *   `Venue.status`, `Unit.scheduled`, `Unit.semester`,
  *   `Teaching.sessionsPerWeek` — cannot be protected by it, and neither can a
@@ -201,13 +202,30 @@ export type DraftPublishResult =
 // Validated-snapshot fingerprint
 // ---------------------------------------------------------------------------
 
-function tokenOf(parts: readonly (string | number | boolean)[]): string {
-  return parts.join("|");
+/**
+ * One stored value, kept as its own JSON type so `null`, `""` and `0` cannot be
+ * mistaken for one another. `readonly string[]` is only ever the policy's list
+ * of teaching days, which is a collection of values rather than one string.
+ */
+type FingerprintField = string | number | boolean | readonly string[] | null;
+
+/**
+ * One record: a fixed-order array of its typed field values. The order is the
+ * order written in `publishSnapshotFingerprint`, never an object's key order,
+ * and `JSON.stringify` escapes every quote, so a stored value that itself
+ * contains a delimiter cannot hand text to the field beside it.
+ */
+function recordOf(fields: readonly FingerprintField[]): string {
+  return JSON.stringify(fields);
 }
 
-/** The count is encoded too, so an empty section is never mistaken for "not read". */
-function sectionOf(name: string, tokens: readonly string[]): string {
-  return `${name}=${tokens.length}[${[...tokens].sort().join(";")}]`;
+/**
+ * One named section: its records, sorted as strings so the row order a query
+ * happened to return cannot change the encoding. An empty section still encodes
+ * as `["name",[]]`, which stays different from a section that was never read.
+ */
+function sectionOf(name: string, records: readonly string[]): readonly [string, readonly string[]] {
+  return [name, [...records].sort()];
 }
 
 /**
@@ -216,28 +234,39 @@ function sectionOf(name: string, tokens: readonly string[]): string {
  * inside its transaction; comparing the two is how a draft that changed — or an
  * academic or venue input that changed underneath a byte-identical draft — is
  * caught before anything is committed.
+ *
+ * The field order inside each record is the documented order below and is part
+ * of the contract: adding, removing or reordering a field changes every
+ * fingerprint and must be done together with the adapter (M4-T3b). The whole
+ * encoding is one `JSON.stringify` of named sections, so it is unambiguous
+ * without being a digest — a longer or differently grouped snapshot simply
+ * produces a longer string.
  */
 export function publishSnapshotFingerprint(snapshot: PublishSnapshot): string {
   const { version, policy } = snapshot;
-  const time = version.publishedAt === null ? "" : String(version.publishedAt.getTime());
-  return [
-    `version=${tokenOf([version.id, version.semester, version.status, time])}`,
-    sectionOf("entries", snapshot.entries.map((row) => tokenOf([
+  return JSON.stringify([
+    sectionOf("version", [recordOf([
+      version.id, version.semester, version.status,
+      version.publishedAt === null ? null : version.publishedAt.getTime(),
+    ])]),
+    sectionOf("entries", snapshot.entries.map((row) => recordOf([
       row.id, row.versionId, row.teachingId, row.venueId, row.day, row.start, row.end, row.locked,
     ]))),
-    sectionOf("teachings", snapshot.teachings.map((row) => tokenOf([
+    sectionOf("teachings", snapshot.teachings.map((row) => recordOf([
       row.id, row.lecturerId, row.groupId, row.expectedSize, row.unitCode, row.venueTypeRequired,
     ]))),
-    sectionOf("venues", snapshot.venues.map((row) => tokenOf([row.id, row.code, row.capacity, row.type]))),
-    sectionOf("lecturerUnavailable", snapshot.lecturerUnavailable.map((row) => tokenOf([
+    sectionOf("venues", snapshot.venues.map((row) => recordOf([row.id, row.code, row.capacity, row.type]))),
+    sectionOf("lecturerUnavailable", snapshot.lecturerUnavailable.map((row) => recordOf([
       row.id, row.lecturerId, row.day, row.start, row.end, row.available,
     ]))),
-    sectionOf("venueUnavailable", snapshot.venueUnavailable.map((row) => tokenOf([
-      row.id, row.venueId, row.day, row.start, row.end, row.reason ?? "",
+    // `reason` is stored `string | null` and is encoded as it is read: a null
+    // reason and an empty-text reason are different snapshots.
+    sectionOf("venueUnavailable", snapshot.venueUnavailable.map((row) => recordOf([
+      row.id, row.venueId, row.day, row.start, row.end, row.reason,
     ]))),
-    `policy=${tokenOf([
-      policy.days.join(","), policy.slotStart, policy.slotEnd, policy.lunchStart, policy.lunchEnd,
+    sectionOf("policy", [recordOf([
+      policy.days, policy.slotStart, policy.slotEnd, policy.lunchStart, policy.lunchEnd,
       policy.maxHoursPerLecturerPerDay, policy.maxClassesPerGroupPerDay,
-    ])}`,
-  ].join(" ");
+    ])]),
+  ]);
 }
