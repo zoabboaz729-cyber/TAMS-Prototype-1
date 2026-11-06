@@ -88,14 +88,29 @@ export function describeRequestState(pending: boolean, result: DraftPublishResul
 }
 
 /**
- * The readiness sentence. It always reports the M3 outcome the page loaded, and
- * when a refusal is on screen it says so, because that refusal is the server's
- * own later check disagreeing with this one.
+ * The readiness sentence (M4-T3c2a): the loaded M3 outcome plus only the clause the typed
+ * refusal's kind justifies — an access, input or transport refusal is never called a validation
+ * disagreement. The boolean form is the frozen M4-T3c2 contract; the component passes the result.
  */
-export function describeReadinessSentence(readiness: PublishReadiness, refusalShown: boolean): string {
+export function describeReadinessSentence(readiness: PublishReadiness, refusal: DraftPublishResult | boolean | null): string {
   if (readiness.state === "blocked") return `Publication is blocked: ${readiness.reason}`;
-  if (!refusalShown) return `${readiness.reason} ${PUBLISH_ELIGIBILITY_NOTE}`;
-  return `At your last reload of this draft the checks found no hard violation, and the server's own check when you confirmed reached a different conclusion — see the refusal below. ${PUBLISH_ELIGIBILITY_NOTE}`;
+  const eligible = `${readiness.reason} ${PUBLISH_ELIGIBILITY_NOTE}`;
+  if (refusal === null || refusal === false) return eligible;
+  if (refusal === true) return `${readiness.reason} A publication request was refused; it may or may not mean the server's own check when you confirmed reached a different conclusion — see the refusal below. ${PUBLISH_ELIGIBILITY_NOTE}`;
+  if (refusal.ok) return eligible;
+  return `${readiness.reason} ${refusalClause(refusal)} ${PUBLISH_ELIGIBILITY_NOTE}`;
+}
+
+/** One short clause per refusal kind; the refusal panel below carries the detail. */
+function refusalClause(refusal: Exclude<DraftPublishResult, { ok: true }>): string {
+  switch (refusal.kind) {
+    case "HARD_VIOLATIONS": return "The final publication check found hard violations that this eligible state did not reflect, so the server's own check when you confirmed reached a different conclusion — see the refusal below.";
+    case "INCOMPLETE_VALIDATION": return "The final publication check could not finish because data the checks need was missing — see the refusal below.";
+    case "STALE": return "The draft or the data behind it changed while publication ran — reload this page and review the draft before publishing again.";
+    case "NOT_DRAFT": case "VERSION_NOT_FOUND": return "This version is no longer available for publication — see the refusal below.";
+    case "FORBIDDEN": case "UNAUTHENTICATED": return "The request was refused on access grounds — see the refusal below.";
+    case "INVALID_INPUT": case "EMPTY_DRAFT": case "INVALID_VERSION_DATA": case "INTERNAL_ERROR": return "The request was refused without reporting a validation verdict — see the refusal below for why.";
+  }
 }
 
 export type PublishGate = { readiness: PublishReadiness; confirming: boolean; pending: boolean };
@@ -237,7 +252,7 @@ export function DraftPublishForm({ versionId, semester, entryCount, validation }
       {readiness.state === "blocked" ? (
         <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3">
           <p role="alert" aria-live="assertive" className="text-xs font-semibold text-amber-900">
-            {describeReadinessSentence(readiness, refusalShown)}
+            {describeReadinessSentence(readiness, result)}
           </p>
           {readiness.details.length > 0 && (
             <ul className="mt-2 max-h-48 list-disc space-y-1 overflow-y-auto pl-5 text-xs text-amber-900">
@@ -248,7 +263,7 @@ export function DraftPublishForm({ versionId, semester, entryCount, validation }
           )}
         </div>
       ) : (
-        <p className="mt-3 text-xs text-slate-600">{describeReadinessSentence(readiness, refusalShown)}</p>
+        <p className="mt-3 text-xs text-slate-600">{describeReadinessSentence(readiness, result)}</p>
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
