@@ -23,6 +23,17 @@
  * and an explanation, because generating is the only way to create the first
  * draft; the entry editor appears once one exists.
  *
+ * Publication controls (M4-T3c2) appear below the validated draft only when
+ * `decideAccess(user, "PUBLISH_TIMETABLE")` allows the session user on this
+ * server render, and only for a DRAFT this page actually loaded. They confirm
+ * before calling the accepted `publishDraftAction`, which decides the
+ * permission again and re-validates the draft itself. After a committed
+ * publication the browser asks for `/officer/draft?published=<versionId>`:
+ * `?published` is untrusted, so the row is re-read here and only a version the
+ * database still stores as PUBLISHED is shown as published — an absent or
+ * re-archived id gets a neutral explanation instead. The published version is
+ * gone from the picker above because this page queries DRAFT versions only.
+ *
  * The conflict-free statement is only ever made from a fresh server render:
  * after a successful move or add the client calls router.refresh(), this page
  * re-runs loadDraftForValidation(), and the outcome below decides what is
@@ -37,7 +48,10 @@ import { loadVenueRecords } from "@/server/venueData";
 import { DraftTable } from "./DraftTable";
 import { DraftAddForm, type DraftTeachingOption } from "./DraftAddForm";
 import { decideAccess } from "@/domain/access";
+import { TimetableVersionStatusSchema } from "@/domain/types";
 import { DraftGenerateForm } from "./DraftGenerateForm";
+import { DraftPublishForm } from "./DraftPublishForm";
+import { PublishedVersionPanel, type PublishedPanelState } from "./DraftPublishOutcome";
 import { mapViolationsToRows, validationSummary } from "@/domain/draftViolations";
 import type { DraftSummaryTone } from "@/domain/draftViolations";
 
@@ -95,6 +109,34 @@ async function loadTeachingOptions(semester: number): Promise<DraftTeachingOptio
   }));
 }
 
+/**
+ * The `?published=` check behind the post-publication page state (M4-T3c2). The
+ * id came from the address bar, so nothing is claimed about it until this read
+ * says what the stored row is: only a version the database still stores as
+ * PUBLISHED, with a publication time, produces the confirmation wording. The
+ * archived ids the action returned are never rebuilt from a query parameter.
+ */
+async function loadPublishedPanel(versionId: string): Promise<PublishedPanelState> {
+  const version = await prisma.timetableVersion.findUnique({
+    where: { id: versionId },
+    select: {
+      id: true, semester: true, status: true, publishedAt: true,
+      _count: { select: { entries: true } },
+    },
+  });
+  if (version === null) return { kind: "absent", versionId };
+  // A stored status outside the declared values, or a PUBLISHED row with no
+  // publication time, is reported as inconsistent rather than interpreted.
+  const storedStatus = TimetableVersionStatusSchema.safeParse(version.status);
+  if (!storedStatus.success) return { kind: "inconsistent", versionId: version.id, reason: "UNREADABLE_STATUS" };
+  if (storedStatus.data !== "PUBLISHED") return { kind: "other-status", versionId: version.id, storedStatus: storedStatus.data };
+  if (version.publishedAt === null) return { kind: "inconsistent", versionId: version.id, reason: "NO_PUBLISHED_AT" };
+  return {
+    kind: "verified", versionId: version.id, semester: version.semester,
+    publishedAt: version.publishedAt, entryCount: version._count.entries,
+  };
+}
+
 export default async function OfficerDraftPage({ searchParams }: PageProps) {
   // FIRST line of logic: page-entry authorisation.
   const user = await requireAction("EDIT_DRAFT");
@@ -104,6 +146,21 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const requestedVersion =
     typeof params.version === "string" ? params.version.trim() : "";
+  const requestedPublished =
+    typeof params.published === "string" ? params.published.trim() : "";
+
+  // A version that was just published is no longer a draft, so this address
+  // renders only the publication state — and only what the stored row supports.
+  if (requestedPublished !== "") {
+    return (
+      <main className="min-h-[calc(100vh-8rem)] p-4 sm:p-6">
+        <div className="mx-auto max-w-6xl">
+          <h1 className="text-xl font-bold text-slate-800">Draft editor</h1>
+          <PublishedVersionPanel state={await loadPublishedPanel(requestedPublished)} />
+        </div>
+      </main>
+    );
+  }
 
   // The thin read behind the page guard: which versions can be edited at all.
   const drafts = await prisma.timetableVersion.findMany({
@@ -125,6 +182,11 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
   // not call a function exported from a "use client" module, and Next.js also
   // refuses extra named exports from a page file.
   const canGenerate = decideAccess(user, "GENERATE_TIMETABLE").status === "ALLOW";
+
+  // Publication controls need `PUBLISH_TIMETABLE`, also decided on the server:
+  // the accepted action decides it again for every request, so hiding these
+  // controls is a convenience and never the boundary (requirement 1).
+  const canPublish = decideAccess(user, "PUBLISH_TIMETABLE").status === "ALLOW";
 
   if (drafts.length === 0) {
     // Generating is the only way to create a first draft, so the form must
@@ -214,7 +276,8 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
         <p className="mt-1 text-sm text-slate-600">
           Generate a new draft, add a teaching session, or move an entry to a
           new day, time or venue. Conflicts are checked against every hard rule
-          as soon as the draft reloads.
+          as soon as the draft reloads, and a draft with no hard violations can
+          be published as the current timetable for its semester.
         </p>
         {versionPicker}
 
@@ -275,6 +338,15 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
               >
                 {summary.text}
               </p>
+            )}
+
+            {canPublish && (
+              <DraftPublishForm
+                versionId={result.version.id}
+                semester={result.version.semester}
+                entryCount={result.entries.length}
+                validation={result.validation}
+              />
             )}
 
             <DraftAddForm
