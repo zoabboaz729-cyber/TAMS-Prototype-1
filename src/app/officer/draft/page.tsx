@@ -1,6 +1,7 @@
 /**
  * /officer/draft — officer draft editor (M3-T2b2; behaviour corrected in
- * M3-T2b2a; add-entry form integrated in M3-T2b3c).
+ * M3-T2b2a; add-entry form integrated in M3-T2b3c; generate-draft controls and
+ * the no-drafts state added in M4-T2c2).
  *
  * Server-rendered view of one DRAFT timetable version: every entry, its
  * resolved unit/venue codes, and the M3 validator's violations shown inline
@@ -13,12 +14,19 @@
  *
  * Authorization: requireAction("EDIT_DRAFT") at page entry (ALL-scope for
  * the officer, NONE for every other role) and the loader re-decides EDIT_DRAFT
- * before any read — the layout is not a security boundary.
+ * before any read — the layout is not a security boundary. The generate form
+ * is shown only when `GENERATE_TIMETABLE` allows the session user, which
+ * narrows this page's content, not the action: `generateDraftAction` decides
+ * the permission again before it creates a store.
+ *
+ * With no DRAFT version at all the page still renders the generation controls
+ * and an explanation, because generating is the only way to create the first
+ * draft; the entry editor appears once one exists.
  *
  * The conflict-free statement is only ever made from a fresh server render:
  * after a successful move or add the client calls router.refresh(), this page
  * re-runs loadDraftForValidation(), and the outcome below decides what is
- * shown. A move or add result alone never says the draft is clean
+ * shown. A move, add or generate result alone never says the draft is clean
  * (requirement #9).
  */
 import { requireAction } from "@/server/guards";
@@ -28,6 +36,8 @@ import { loadDraftForValidation } from "@/server/draftValidation";
 import { loadVenueRecords } from "@/server/venueData";
 import { DraftTable } from "./DraftTable";
 import { DraftAddForm, type DraftTeachingOption } from "./DraftAddForm";
+import { decideAccess } from "@/domain/access";
+import { DraftGenerateForm } from "./DraftGenerateForm";
 import { mapViolationsToRows, validationSummary } from "@/domain/draftViolations";
 import type { DraftSummaryTone } from "@/domain/draftViolations";
 
@@ -109,15 +119,33 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
   const requestedMissing =
     requestedVersion !== "" && !drafts.some((draft) => draft.id === requestedVersion);
 
+  // Only a session `GENERATE_TIMETABLE` allows sees these controls; the
+  // accepted action decides the same permission again on every call. The
+  // decision is the pure domain function, run here on the server — a page may
+  // not call a function exported from a "use client" module, and Next.js also
+  // refuses extra named exports from a page file.
+  const canGenerate = decideAccess(user, "GENERATE_TIMETABLE").status === "ALLOW";
+
   if (drafts.length === 0) {
+    // Generating is the only way to create a first draft, so the form must
+    // render here — but there is nothing to edit until one exists.
     return (
       <main className="min-h-[calc(100vh-8rem)] p-4 sm:p-6">
         <div className="mx-auto max-w-6xl">
           <h1 className="text-xl font-bold text-slate-800">Draft editor</h1>
-          <p className="mt-6 rounded-md border border-slate-200 bg-white p-5 text-sm text-slate-600">
-            No draft version exists yet. Drafts are created by the timetable
-            generator — Not implemented in prototype (M4-T2).
+          <p className="mt-1 text-sm text-slate-600">
+            No draft version exists yet, so there is nothing to edit. Generate
+            one below: pick a semester and whether to carry locked rows over
+            from an existing draft.
           </p>
+          {canGenerate ? (
+            <DraftGenerateForm sources={[]} defaultSemester={1} />
+          ) : (
+            <p className="mt-6 rounded-md border border-slate-200 bg-white p-5 text-sm text-slate-600">
+              A timetabling officer creates the first draft. Your account can
+              open this page but cannot generate, so no draft appears yet.
+            </p>
+          )}
         </div>
       </main>
     );
@@ -152,7 +180,12 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
         <label htmlFor="draft-version" className="text-sm font-medium text-slate-700">
           Draft version
         </label>
+        {/* `key` remounts the uncontrolled select: after a client-side
+            navigation to the version just generated, React would otherwise
+            leave the visible choice on the previously rendered version while
+            the editor below already shows the new one. */}
         <select
+          key={selectedId}
           id="draft-version"
           name="version"
           defaultValue={selectedId}
@@ -179,9 +212,9 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
       <div className="mx-auto max-w-6xl">
         <h1 className="text-xl font-bold text-slate-800">Draft editor</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Add a teaching session, or move an entry to a new day, time or venue.
-          Conflicts are checked against every hard rule as soon as the draft
-          reloads.
+          Generate a new draft, add a teaching session, or move an entry to a
+          new day, time or venue. Conflicts are checked against every hard rule
+          as soon as the draft reloads.
         </p>
         {versionPicker}
 
@@ -193,6 +226,13 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
           >
             {LOADER_REFUSAL_MESSAGES.NOT_DRAFT} Showing “{drafts[0]?.id}” instead.
           </p>
+        )}
+
+        {canGenerate && (
+          <DraftGenerateForm
+            sources={drafts}
+            defaultSemester={result.ok ? result.version.semester : (drafts[0]?.semester ?? 1)}
+          />
         )}
 
         {!result.ok && (
