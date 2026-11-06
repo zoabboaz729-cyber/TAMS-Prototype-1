@@ -305,9 +305,26 @@ describe("draftGenerateStorePrisma reads and atomic persist", () => {
   });
 
   it("refuses a source whose locked set grew after the token was taken", async () => {
-    const emptyToken = (await tokenFor("ver-arch")).token;
+    // M4-T2c1 correction: the source stays a real DRAFT for the whole test, so
+    // the grown locked set — not an ARCHIVED status — is the only reason the
+    // write can be refused. The previous version took the token from ver-arch,
+    // which the transaction rejects on status alone.
+    const { locked, token } = await tokenFor("ver-draft");
+    expect((await store.findVersion("ver-draft"))?.status).toBe("DRAFT");
+    // e-d2 belongs to this same source and was unlocked when the token was
+    // taken; locking it adds a row to the fingerprint the write recomputes.
     await db.timetableEntry.update({ where: { id: "e-d2" }, data: { locked: true } });
-    await expectStale(persistInput(1, [], emptyToken));
+    const grown = persistInput(1, [copiedEntry(locked[0].id)], token);
+    await expectStale(grown);
+    expect((await db.timetableEntry.findUnique({ where: { id: "e-d2" } }))!.locked).toBe(true);
+    // Isolation proof: the byte-identical payload commits once the token is
+    // recomputed, so the source's status and semester were never the obstacle.
+    const { token: recomputed } = await tokenFor("ver-draft");
+    const control = await store.persistGeneratedDraft(
+      persistInput(1, [copiedEntry(locked[0].id)], recomputed).payload,
+      grown.audit,
+    );
+    expect("ok" in control && control.ok).toBe(true);
   });
 
   it("refuses PUBLISHED, ARCHIVED and deleted sources as stale, writing nothing", async () => {
