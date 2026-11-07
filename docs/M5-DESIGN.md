@@ -1,10 +1,14 @@
 # TAMS Prototype 1 — M5 Venue Status & Demo Clock
 ## Design baseline, contracts, task breakdown, tests, and acceptance gates
 
-**Design revision:** 1.0 — 8 November 2026  
-**Status:** proposed implementation design; no M5 code has been changed by this review.  
-**Target branch:** `m5-development`  
-**Verified remote starting SHA:** `078fd71dfe10dd3e22a5da58ea15613299a5dc7f`  
+**Design revision:** 1.0 — 8 November 2026
+
+**Status:** proposed implementation design; no M5 code has been changed by this review.
+
+**Target branch:** `m5-development`
+
+**Verified remote starting SHA:** `078fd71dfe10dd3e22a5da58ea15613299a5dc7f`
+
 **Repository:** https://github.com/zoabboaz729-cyber/TAMS-Prototype-1/tree/m5-development
 
 ## 0. Evidence and authority
@@ -331,3 +335,77 @@ Africa/Nairobi reference clock, explicit semester, read-only snapshot. These are
 prototype design decisions, not validated university policy. A dedicated typed
 M5 policy reuses DEFAULT_POLICY teaching days/hours without altering PolicyConfig.
 All roles receive generic same-day timing only; integrity counts are privileged.
+
+## M5-T2f implementation and automated acceptance record — 8 November 2026
+
+**Current status: IMPLEMENTED LOCALLY; AUTOMATED CHECKS PASS; MANUAL ACCEPTANCE
+PENDING. M5 IS NOT ACCEPTED/CLOSED. No M6 code has been started.** This supersedes
+the original design-only status for this implementation delivery. GitHub remains
+unchanged by this task; apply-ready commits are delivered in a ZIP.
+
+### Implemented contract
+- `src/domain/venueStatus.ts` owns a dedicated M5 policy and pure validated engine.
+  Recorded interval union, operational precedence, half-open boundaries and
+  configurable upcoming window implement section 4. Same-day timing always carries
+  day and HH:MM; no next-day booking is inferred. Weekends and end-of-block times
+  outside assumed hours are visibly qualified.
+- The server service accepts only string query fields: semester 1/2 (default 1),
+  mode live/demo, and day/time only for demo. Duplicate arrays and extra keys fail
+  closed. Current publication is selected solely from the trusted read snapshot.
+- All six roles may read live statuses. OFFICER/ADMIN alone can choose arbitrary
+  simulated times and see generic integrity counts. No identity, class details,
+  teaching/group references, closure reasons or raw entries reach the controls.
+- One Prisma read transaction resolves the unique current publication and reads
+  venue/closure fields plus current entry times. Parameterized LEFT joins expose
+  missing teaching/unit links as null for typed failure instead of dropping rows.
+  Relevant entries must link to registered venues and the selected unit semester.
+  The store has one read method and no writes, including no audit writes.
+- `/venues/status` guards itself, uses dynamic server reads, displays explicit
+  publication/semester/clock and safe errors, and has labelled GET forms. The live
+  control requests a fresh server render every 60 seconds while visible and on
+  visibility return; timer/listener cleanup and demo-no-polling are tested with a
+  mocked environment. Status calculation never runs over client-supplied schedules.
+- `venue-status` alone is newly built in navigation. Existing venue-register,
+  timetable detail and scheduling mutation permissions are unchanged.
+
+### Evidence and limits
+- Domain: 54 focused tests; request/service: 56; real disposable SQLite: 22;
+  page/control integration: 40; menu: 26 total (six new role cases).
+- Final code verification: `RUST_LOG=info npm run verify` passes 1531 tests across
+  60 files, typecheck, lint and seed integrity 11/11. Production build passes.
+  Full actual per-slice and final output is delivered under `evidence/` in the ZIP.
+- Initial verify without the override failed in inherited SQLite fixture setup;
+  the existing documented Prisma/RUST_LOG issue was reproduced. Subsequent checks
+  use `RUST_LOG=info`; application/schema/dependencies are not changed to mask it.
+- Dev startup passes with explicit `--hostname 127.0.0.1`; without hostname this
+  sandbox denies OS network-interface enumeration. A real unauthenticated HTTP
+  GET to `/venues/status` returns 307 with Location `/login`. This is a server
+  smoke check, not a browser test. Its server was stopped before final build.
+- Integration output records actual full-board durations for nine synthetic
+  venues and one current entry; no production load/SLA or simultaneous-writer
+  guarantee is asserted. Publication replacement is sequentially verified.
+- Exact remote base `078fd71dfe10dd3e22a5da58ea15613299a5dc7f` was reconstructed
+  through GitHub read access because direct cloning was unavailable. All 179 blob
+  hashes, source tree `e32dbb1ebbe820d1fd0f6e6dcdca4a5c73cd0d19` and base commit
+  hash match remote. The original parent is outside this shallow checkout.
+- The ZIP includes separate-commit metadata, exact manifests, full output,
+  review/acceptance matrix, VS Code application instructions, manual checklist,
+  and an independent fresh-base patch-application/tree-comparison transcript.
+  This transcript is packaging evidence, not university/browser acceptance.
+- Protected prisma/dev.db, walkthrough.db and their journal/WAL/SHM companions
+  were absent before and after this task, never opened or created. Historical
+  hashes in M4 records are not claimed for this fresh checkout. Existing `.env`,
+  seed meaning, migrations, schema and dependency files are unchanged.
+- Cleanup removes only newly created integration mkdtemp directories and the
+  task-created dependency directory when reusing matching installed dependencies.
+  No tracked source or pre-existing user file/directory was deleted.
+
+### Closure handoff
+Gates B/C/D/F have automated evidence within the described prototype scope.
+Gate A is local-only with no remote update. Gate E has static structure and timer
+checks; desktop/mobile CSS, keyboard and zoom require user observations. Gate G
+is pending user manual verification; therefore Gate H remains OPEN. Follow the
+ZIP's MANUAL-CHECKLIST.md and record observations before accepting/closing M5.
+Retained limitations in section 13 still apply: schedule-derived weekly synthetic
+data, no physical occupancy or reservation guarantee, unverified institution
+policies/calendar/privacy, and no production/deployment/concurrency certification.

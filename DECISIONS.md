@@ -813,3 +813,8 @@
 ## 2026-11-08 M5-T2e Activate venue status navigation and complete role regression
 - Only venue-status built flag changes. Planned menu expectations now assert the built link for all six roles while preserving all other built flags, visibility and register permissions. Added forged query, closure precedence, restricted integrity projection and valid-empty-publication regressions. Manual browser acceptance remains pending; no M6.
 - Evidence: PASS: focused menu/page 66/66; RUST_LOG=info verify 1531 tests/60 files, seed 11/11; build PASS; diff check PASS. Existing M4 suites included unchanged except planned menu expectations. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T2f Record final verification and pending manual acceptance
+- M5 implemented locally but NOT ACCEPTED/CLOSED until user manual checklist is reported. No browser run requested/performed; static/effect/SQLite/HTTP checks are identified separately. Eight authorized slices stay within individual ceilings and 15 total changed files. Remote remains original base; no remote writes. No M6. Source schema, seed, dependencies, M4 runtime behavior and protected-file absence preserved.
+- Evidence: PASS: final RUST_LOG=info npm run verify 1531 tests/60 files, seed 11/11; production build PASS; real HTTP signed-out /venues/status returns 307 /login; diff check and preservation PASS. Full actual outputs in delivery evidence. Patch replay/tree comparison follows this documentation commit and is recorded separately in ZIP. Local patch delivery; manual acceptance remains pending.
+- Final documentation-only cleanup normalizes copied Markdown hard-break trailing spaces; all runtime bytes and automated results remain unchanged.
