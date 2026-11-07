@@ -1,7 +1,30 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import * as React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { MENU_ITEMS, menuForRole, type MenuItem } from "../menu";
-import { ACTIONS, type Action } from "../permissions";
-import { type UserRole } from "../types";
+import { ACTIONS, permissionScope, type Action } from "../permissions";
+import { decideAccess, decideAnyAccess } from "../access";
+import { USER_ROLES, type UserRole } from "../types";
+import type { SafeUser } from "@/server/auth";
+
+// M4-T4e: the homepage confirmation renders the real, unchanged src/app/page.tsx
+// through react-dom/server (the same preserved-JSX/global-React pattern as the
+// accepted page suite). Only the session boundary is mocked, so no database,
+// cookie or auth module loads; menuForRole, roleLabel and the homepage's
+// item.built link/"Coming soon" branch all run for real.
+(globalThis as { React?: typeof React }).React = React;
+
+const h = vi.hoisted(() => ({
+  user: null as SafeUser | null,
+}));
+
+vi.mock("@/server/auth", () => ({
+  getCurrentUser: async () => h.user,
+}));
+
+const { default: HomePage } = await import("@/app/page");
 
 /** Literal expected key lists per role — not computed from the implementation. */
 const EXPECTED_KEYS: Record<UserRole, string[]> = {
@@ -47,10 +70,11 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
 };
 
 describe("MENU_ITEMS", () => {
-  it("exactly six items are built: venue register, the three submission pages, draft editor, my availability", () => {
+  it("exactly seven items are built: timetable, venue register, the three submission pages, draft editor, my availability", () => {
     expect(MENU_ITEMS).toHaveLength(17);
     const built = MENU_ITEMS.filter((item) => item.built).map((item) => item.key);
     expect(built).toEqual([
+      "timetable",
       "venue-register",
       "submission-edit",
       "submission-review",
@@ -113,5 +137,116 @@ describe("menuForRole", () => {
     expect(menuForRole("OFFICER").map((item) => item.key)).not.toContain("lecturer-availability");
     expect(menuForRole("ADMIN").map((item) => item.key)).not.toContain("lecturer-availability");
     expect(menuForRole("LECTURER").map((item) => item.key)).toContain("lecturer-availability");
+  });
+});
+
+// --- M4-T4e: published-timetable navigation activation ---------------------
+
+describe("Timetable navigation activation (M4-T4e)", () => {
+  it("1-3. exactly one Timetable entry exists: built, href /timetable, action VIEW_TIMETABLE", () => {
+    const matches = MENU_ITEMS.filter((item) => item.key === "timetable");
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toEqual({
+      key: "timetable",
+      label: "Timetable",
+      href: "/timetable",
+      action: "VIEW_TIMETABLE",
+      built: true,
+    });
+  });
+
+  it("4-5. all six authorized roles receive exactly one built Timetable item in the original first position", () => {
+    expect(MENU_ITEMS[0].key).toBe("timetable");
+    for (const role of USER_ROLES) {
+      const items = menuForRole(role);
+      const matches = items.filter((item) => item.key === "timetable");
+      expect(matches).toHaveLength(1);
+      expect(matches[0].built).toBe(true);
+      expect(items[0].key).toBe("timetable");
+      expect(permissionScope(role, "VIEW_TIMETABLE")).not.toBe("NONE");
+    }
+  });
+
+  it("6. every other built flag is unchanged: the ten unfinished features stay unbuilt, the six prior built features stay built", () => {
+    const unbuilt = [
+      "venue-status",
+      "generate",
+      "reschedule-decide",
+      "reschedule-request",
+      "issues-new",
+      "issues-list",
+      "attendance-open",
+      "attendance-scan",
+      "attendance-report",
+      "users",
+    ];
+    for (const key of unbuilt) {
+      expect(MENU_ITEMS.find((item) => item.key === key)?.built).toBe(false);
+    }
+    const stillBuilt = [
+      "venue-register",
+      "submission-edit",
+      "submission-review",
+      "submission-overview",
+      "draft-editor",
+      "lecturer-availability",
+    ];
+    for (const key of stillBuilt) {
+      expect(MENU_ITEMS.find((item) => item.key === key)?.built).toBe(true);
+    }
+  });
+
+  it("7. an unknown runtime role still receives no menu items, Timetable included", () => {
+    expect(menuForRole("NOT_A_ROLE" as UserRole)).toEqual([]);
+  });
+
+  it("8. audience restrictions are unchanged: My availability stays lecturer-only and Timetable has no audience override", () => {
+    expect(MENU_ITEMS.find((item) => item.key === "lecturer-availability")?.audienceRoles).toEqual(["LECTURER"]);
+    expect(MENU_ITEMS.find((item) => item.key === "timetable")?.audienceRoles).toBeUndefined();
+    expect(permissionScope("OFFICER", "VIEW_LECTURER_AVAILABILITY")).not.toBe("NONE");
+    expect(permissionScope("ADMIN", "VIEW_LECTURER_AVAILABILITY")).not.toBe("NONE");
+    expect(menuForRole("OFFICER").map((item) => item.key)).not.toContain("lecturer-availability");
+    expect(menuForRole("ADMIN").map((item) => item.key)).not.toContain("lecturer-availability");
+    expect(menuForRole("LECTURER").map((item) => item.key)).toContain("lecturer-availability");
+  });
+
+  it("9. the menu grants no authority: every shown item matches the guard layer's decisions and menu.ts imports only the pure matrix", () => {
+    for (const role of USER_ROLES) {
+      const actor = { id: `user-${role}`, role, departmentId: null, studentGroupId: null };
+      for (const item of menuForRole(role)) {
+        expect(decideAnyAccess(actor, item.action).status).toBe("ALLOW");
+      }
+      // The exact decision /timetable's requireAction("VIEW_TIMETABLE") makes.
+      expect(decideAccess(actor, "VIEW_TIMETABLE").status).toBe("ALLOW");
+    }
+    expect(decideAnyAccess(null, "VIEW_TIMETABLE").status).toBe("UNAUTHENTICATED");
+    const source = readFileSync(join(process.cwd(), "src/domain/menu.ts"), "utf8");
+    const importLines = source.split(/\r?\n/).filter((line) => line.startsWith("import "));
+    expect(importLines.length).toBeGreaterThan(0);
+    for (const line of importLines) {
+      expect(line).toMatch(/from "\.\/(types|permissions)"/);
+    }
+    expect(source).not.toContain("@/server");
+    expect(source).not.toContain("requireAction");
+  });
+
+  it("10. the unchanged homepage renders Timetable as a link for every role and keeps unbuilt features as Coming soon", async () => {
+    for (const role of USER_ROLES) {
+      h.user = { id: `user-${role.toLowerCase()}`, name: "Demo User", email: "demo@example.ac.ke", role, departmentId: null, studentGroupId: null };
+      const markup = renderToStaticMarkup(await HomePage());
+      expect(markup).toContain('href="/timetable"');
+      expect((markup.match(/href="\/timetable"/g) ?? []).length).toBe(1);
+      expect(markup).toContain(">Timetable</a>");
+      expect(markup).not.toContain("Timetable — Coming soon");
+    }
+    h.user = { id: "user-student", name: "Student A", email: "student@example.ac.ke", role: "STUDENT", departmentId: null, studentGroupId: "group-1" };
+    const studentMarkup = renderToStaticMarkup(await HomePage());
+    expect(studentMarkup).toContain("Venue status — Coming soon");
+    expect(studentMarkup).toContain("Scan attendance — Coming soon");
+    expect(studentMarkup).toContain("Attendance reports — Coming soon");
+    h.user = null;
+    const signedOut = renderToStaticMarkup(await HomePage());
+    expect(signedOut).not.toContain('href="/timetable"');
+    expect(signedOut).toContain("Sign in");
   });
 });
