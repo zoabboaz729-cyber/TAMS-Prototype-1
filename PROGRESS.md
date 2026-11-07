@@ -727,3 +727,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Single read-only transaction resolves all publications then reads venue/closure fields and current time-only entries. Parameterized LEFT joins preserve missing teaching/unit links as invalid data. Disposable fixtures compare every persisted table, preserve archives, exercise all roles and remove only their own mkdtemp directory. No protected DB files present or accessed.
 - Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
 - Next suggested task: M5-T2c.
+
+## 2026-11-08 M5-T2c Add authenticated venue status board page
+- Done: Add authenticated venue status board page. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: src/app/venues/status/page.tsx; src/server/__tests__/venueStatusPage.test.tsx; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: static page/service integration 22/22; RUST_LOG=info verify 1507 tests/60 files, seed 11/11; production build PASS; diff check PASS.
+- Decisions: Page calls requireAnyAction itself before store access and preserves all query keys/arrays for service validation. Responsive status cards and accessible text distinguish no publication, empty register, errors, operational closure and outside hours. Menu remains Coming soon until clock controls and final regression. Static render is not browser acceptance.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T2d.
