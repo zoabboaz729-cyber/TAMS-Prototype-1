@@ -805,3 +805,7 @@
 ## 2026-11-08 M5-T2c Add authenticated venue status board page
 - Page calls requireAnyAction itself before store access and preserves all query keys/arrays for service validation. Responsive status cards and accessible text distinguish no publication, empty register, errors, operational closure and outside hours. Menu remains Coming soon until clock controls and final regression. Static render is not browser acceptance.
 - Evidence: PASS: static page/service integration 22/22; RUST_LOG=info verify 1507 tests/60 files, seed 11/11; production build PASS; diff check PASS. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T2d Add live refresh and simulated venue clock controls
+- Native GET forms send only strict clock fields. Officers/admins get Apply simulated time; live semester form discards demo fields. Client receives clock/semester/capability only. Live refresh every 60000 ms while visible and on tab return; cleanup removes timer/listener; demo never polls. Tests execute effect with mocked environment, not a browser.
+- Evidence: PASS: page/control tests 36/36 including fake-timer effect lifecycle and static form labels; RUST_LOG=info verify 1521 tests/60 files, seed 11/11; production build PASS; diff check PASS. Local patch delivery; manual acceptance remains pending.

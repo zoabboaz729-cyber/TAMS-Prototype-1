@@ -1,7 +1,8 @@
 import { requireAnyAction } from "@/server/guards";
 import { prisma } from "@/server/db";
 import { createVenueStatusStore } from "@/server/venueStatusStorePrisma";
-import { readVenueStatus } from "@/server/venueStatus";
+import VenueStatusControls from "./VenueStatusControls";
+import { canUseVenueDemoClock, readVenueStatus } from "@/server/venueStatus";
 import type { VenueStatusRow } from "@/server/venueStatusContract";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +42,7 @@ export default async function VenueStatusPage({ searchParams }: {
         <p role="status" aria-live="polite">{result.mode === "demo" ? "Simulated time — not live" : "Live schedule clock"}: {result.asOf.day} {result.asOf.time} EAT (Africa/Nairobi).</p>
         {result.outsideHours && <p>Outside assumed Mon–Fri 08:00–17:00 teaching hours. This weekly prototype is not an academic calendar.</p>}
       </section>
+      <VenueStatusControls semester={result.semester} mode={result.mode} asOf={result.asOf} canDemo={canUseVenueDemoClock(actor)} />
       {result.integrityCount !== undefined && result.integrityCount > 0 &&
         <p role="alert">Published-data integrity warning: {result.integrityCount} overlapping booking/closure pairs on this day. Ask an officer to review the published timetable.</p>}
       {result.rows.length === 0 ? <p>No venues registered. Ask an officer to review the venue register.</p> :
