@@ -655,3 +655,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: existing lifecycle perspective assertions now use OFFICER for globally visible selections; added explicit denial assertions for restricted actors rather than weakening publication or read-only checks. Existing invalid-identity, publication, stale and archived-preservation assertions remain.
 - Known problems: page selectors and permission matrix are updated together in h3; browser validation and real multi-department security suite follow.
 - Next suggested task: M4-T4h3.
+
+## 2026-11-08 M4-T4h3 Role-aware page controls and permission matrix
+- Done: changed VIEW_TIMETABLE scopes to OWN_GROUP / OWN_CLASSES / OWN_DEPARTMENT; switched page entry to requireAnyAction with resource authorization retained in the service. Shared relationship policy restricts server-rendered options. Students receive semester-only controls; lecturer and department venue selectors are absent; officer/admin full read views remain.
+- Files changed: permissions.ts; permissions.test.ts; menu.test.ts; timetable/page.tsx; PublishedTimetableControls.tsx; publishedTimetablePage.test.tsx; PROGRESS.md.
+- Verify: PASS RUST_LOG=info npm run verify: typecheck/lint pass; 1333 tests in 55 files; seed integrity 11/11. Ten page regressions added, including forged URLs and indirect session disclosure.
+- Decisions: matrix fixtures explicitly track the approved policy amendment, and menu assertions now match the page-level guard rather than claiming a resource-free scoped authorization. Old student selector expectation replaced by an explicit assertion that the selector is absent, while keeping identity and timetable assertions.
+- Known problems: live browser retest and multi-department real-database test remain in the authorized bundle.
+- Next suggested task: M4-T4h4.

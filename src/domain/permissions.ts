@@ -49,7 +49,8 @@ export type Scope = (typeof SCOPES)[number];
  * One explicit lookup table covering every role and every action.
  * Typed as Record<UserRole, Record<Action, Scope>>, so a missing or
  * extra cell is a compile-time error: no defaults, no fall-through.
- * Values taken from PROTOTYPE_SPEC §8 (SEE_ISSUES added per task M1-T3c-1). Both
+ * M4-T4h amends VIEW_TIMETABLE scopes with the user-approved least-privilege policy.
+ * Other values are taken from PROTOTYPE_SPEC §8 (SEE_ISSUES added per task M1-T3c-1). Both
  * lecturer-availability actions are keyed on the resource's subjectUserId, so SELF means
  * "the lecturer whose own availability this is" and a record can only be written by its owner.
  */
@@ -113,7 +114,7 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     SEE_ISSUES: "OWN_DEPARTMENT",
     OPEN_ATTENDANCE: "NONE",
     SCAN_ATTENDANCE: "NONE",
-    VIEW_TIMETABLE: "ALL",
+    VIEW_TIMETABLE: "OWN_DEPARTMENT",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_DEPARTMENT",
     VIEW_SUBMISSIONS: "NONE",
@@ -135,7 +136,7 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     SEE_ISSUES: "OWN_DEPARTMENT",
     OPEN_ATTENDANCE: "NONE",
     SCAN_ATTENDANCE: "NONE",
-    VIEW_TIMETABLE: "ALL",
+    VIEW_TIMETABLE: "OWN_DEPARTMENT",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_DEPARTMENT",
     VIEW_SUBMISSIONS: "NONE",
@@ -157,7 +158,7 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     SEE_ISSUES: "NONE",
     OPEN_ATTENDANCE: "OWN_CLASSES",
     SCAN_ATTENDANCE: "NONE",
-    VIEW_TIMETABLE: "ALL",
+    VIEW_TIMETABLE: "OWN_CLASSES",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "OWN_CLASSES",
     VIEW_SUBMISSIONS: "NONE",
@@ -179,7 +180,7 @@ export const PERMISSION_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     SEE_ISSUES: "NONE",
     OPEN_ATTENDANCE: "NONE",
     SCAN_ATTENDANCE: "OWN_GROUP",
-    VIEW_TIMETABLE: "ALL",
+    VIEW_TIMETABLE: "OWN_GROUP",
     VIEW_VENUE_STATUS: "ALL",
     VIEW_ATTENDANCE_REPORT: "SELF",
     VIEW_SUBMISSIONS: "NONE",

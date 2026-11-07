@@ -1,30 +1,18 @@
-/**
- * /timetable — authenticated, read-only published weekly timetable (M4-T4d2).
- * Connects the accepted requireAction guard, readPublishedTimetable() service,
- * createPublishedTimetableStore() adapter, buildPublishedWeekGrid() engine and
- * PublishedWeekTable renderer without duplicating their logic. The page owns only
- * URL parsing, selector loading, typed-result presentation and publication metadata.
- * Invariants: VIEW_TIMETABLE is decided before any store read (the guard's redirect()
- * throws and stays outside every try/catch, so a denied or signed-out caller never
- * reaches the adapter). The actor is the server session user, never a query parameter.
- * URL input is untrusted and validated here first. A selector-read failure renders one
- * fixed operational error and no invented options; no raw exception, SQL, connection
- * string or session detail is logged or shown. A grid failure shows no partial timetable
- * and discards nothing. Nothing here writes, edits, generates, publishes or exports.
- */
-import { requireAction } from "@/server/guards";
+/** Authenticated published timetable page. Page entry grants no record access;
+ * the service authorizes every selection and returned session. Selector options
+ * use the same trusted relationship policy and never include unrelated records. */
+import { requireAnyAction } from "@/server/guards";
 import { createPublishedTimetableStore } from "@/server/publishedTimetableStorePrisma";
+import { loadTimetableOptions, type TimetableOptions } from "@/server/publishedTimetableOptions";
+import type { Actor } from "@/domain/permissions";
 import { readPublishedTimetable } from "@/server/publishedTimetable";
 import { buildPublishedWeekGrid, type PublishedWeekGridResult } from "@/domain/publishedWeekGrid";
 import { DEFAULT_POLICY } from "@/domain/policy";
 import {
   DEFAULT_SEMESTER,
-  type LecturerChoice,
   type PublishedTimetableRequest,
   type PublishedTimetableResult,
   type PublishedTimetableStore,
-  type StudentGroupChoice,
-  type VenueChoice,
   type ViewingPerspective,
 } from "@/server/publishedTimetableContract";
 import { PublishedWeekTable } from "./PublishedWeekTable";
@@ -36,11 +24,7 @@ interface PageProps {
 
 type Failure = Exclude<PublishedTimetableResult, { ok: true }>;
 type AlertTone = "error" | "warning" | "info";
-type SelectorData = {
-  groups: StudentGroupChoice[];
-  lecturers: LecturerChoice[];
-  venues: VenueChoice[];
-};
+type SelectorData = TimetableOptions;
 
 const PERSPECTIVE_LABELS: Record<ViewingPerspective, string> = {
   group: "Student group",
@@ -57,7 +41,7 @@ const FAILURE_COPY: Record<Failure["kind"], { heading: string; next: string; ton
   },
   FORBIDDEN: {
     heading: "Not permitted",
-    next: "Your account cannot view timetables. Contact the timetabling department if you need access.",
+    next: "This timetable is outside your permitted scope. Return to your default view or contact the timetabling department.",
     tone: "error",
   },
   INVALID_INPUT: {
@@ -87,7 +71,7 @@ const FAILURE_COPY: Record<Failure["kind"], { heading: string; next: string; ton
   },
   IDENTITY_UNRESOLVED: {
     heading: "Your timetable identity is not set up",
-    next: "Your account is not linked to a student group or lecturer record. Ask the timetabling department to link it, or choose a view explicitly above.",
+    next: "Ask the timetabling department to check your student group, lecturer profile or department link. Choosing another identity cannot grant access.",
     tone: "warning",
   },
   INVALID_PUBLISHED_DATA: {
@@ -209,14 +193,11 @@ function parseSelection(params: { [key: string]: string | string[] | undefined }
 /** Selector options come only from the read-only store; a failure is never an empty list. */
 async function loadSelectors(
   store: PublishedTimetableStore,
+  actor: Actor,
+  semester: number,
 ): Promise<{ ok: true; data: SelectorData } | { ok: false }> {
   try {
-    const [groups, lecturers, venues] = await Promise.all([
-      store.listStudentGroups(),
-      store.listLecturers(),
-      store.listVenues(),
-    ]);
-    return { ok: true, data: { groups, lecturers, venues } };
+    return { ok: true, data: await loadTimetableOptions(store, actor, semester) };
   } catch {
     // One fixed, non-sensitive line: the cause stays on the server, never the client.
     console.error("[timetable] selector options unavailable; rendering operational error");
@@ -312,7 +293,7 @@ function PageShell({ children }: { children: React.ReactNode }) {
       <div className="mx-auto max-w-6xl">
         <h1 className="text-xl font-bold text-slate-800">Published timetable</h1>
         <p className="mt-1 text-sm text-slate-600">
-          View the current published weekly timetable by student group, lecturer or venue.
+          View the current published weekly timetable within your permitted group, teaching or department scope.
           This page is read-only: it never edits, generates or publishes a timetable.
         </p>
         {children}
@@ -324,12 +305,13 @@ function PageShell({ children }: { children: React.ReactNode }) {
 export default async function TimetablePage({ searchParams }: PageProps) {
   // FIRST action: page-entry authorization. redirect() throws and must stay
   // outside any try/catch, so a denied or signed-out caller never reaches a read.
-  const user = await requireAction("VIEW_TIMETABLE");
+  const user = await requireAnyAction("VIEW_TIMETABLE");
   const params = await searchParams;
   const parsed = parseSelection(params);
 
   const store = createPublishedTimetableStore();
-  const selectors = await loadSelectors(store);
+  const semester = parsed.ok ? (parsed.request.semester ?? DEFAULT_SEMESTER) : DEFAULT_SEMESTER;
+  const selectors = await loadSelectors(store, user, semester);
   if (!selectors.ok) {
     return (
       <PageShell>
@@ -344,7 +326,6 @@ export default async function TimetablePage({ searchParams }: PageProps) {
     );
   }
 
-  const semester = parsed.ok ? (parsed.request.semester ?? DEFAULT_SEMESTER) : DEFAULT_SEMESTER;
   let activeView: ViewingPerspective | null = null;
   let activeId: string | null = null;
   let body: React.ReactNode;
@@ -392,6 +373,7 @@ export default async function TimetablePage({ searchParams }: PageProps) {
         groups={selectors.data.groups}
         lecturers={selectors.data.lecturers}
         venues={selectors.data.venues}
+        perspectives={user.role === "STUDENT" ? [] : selectors.data.access.perspectives}
       />
       <div className="mt-6">{body}</div>
     </PageShell>

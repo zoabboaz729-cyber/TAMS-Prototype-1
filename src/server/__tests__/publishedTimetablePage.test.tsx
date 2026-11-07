@@ -112,7 +112,7 @@ const h = vi.hoisted(() => {
 });
 
 vi.mock("@/server/guards", () => ({
-  requireAction: async () => {
+  requireAnyAction: async () => {
     h.guardCalls += 1;
     h.order.push("guard");
     if (h.guardMode === "login") throw new h.RedirectError("/login");
@@ -219,7 +219,7 @@ describe("role-aware defaults", () => {
     const markup = await renderPage({});
     expect(markup).toContain('data-entry-id="e-1"');
     expect(markup).toContain("SE-Y4");
-    expect(markup).toContain("(selected)");
+    expect(markup).not.toContain('aria-label="Student group timetable selector"');
     expect(markup).toContain("Selected perspective:");
   });
 });
@@ -459,5 +459,70 @@ describe("accepted module integrity", () => {
     const renderer = read("src/app/timetable/PublishedWeekTable.tsx");
     expect(renderer).toContain("export function PublishedWeekTable(");
     expect(renderer).toContain("Prototype — sample data. Not official university records.");
+  });
+});
+
+describe("M4-T4h role-aware page controls and forged URLs", () => {
+  it("student receives semester control, no perspective selectors or unrelated options", async () => {
+    h.user = studentUser();
+    const markup = await renderPage();
+    expect(markup).toContain('aria-label="Semester selector"');
+    expect(markup).not.toContain('aria-label="Student group timetable selector"');
+    expect(markup).not.toContain('aria-label="Lecturer timetable selector"');
+    expect(markup).not.toContain('aria-label="Venue timetable selector"');
+    expect(markup).not.toContain('value="group-2"');
+    expect(markup).not.toContain('value="lect-B"');
+    expect(markup).not.toContain('value="v-2"');
+  });
+  it.each([
+    { view: "group", id: "group-2" },
+    { view: "lecturer", id: "lect-B" },
+    { view: "venue", id: "v-2" },
+  ])("student forged $view URL returns a refusal with no entries", async request => {
+    h.user = studentUser();
+    const markup = await renderPage(request);
+    expect(markup).toContain("Not permitted");
+    expect(markup).not.toContain("data-entry-id");
+    expect(markup).not.toContain("CS-Y2");
+    expect(markup).not.toContain("Lecturer B");
+  });
+  it("lecturer receives own lecturer option and taught groups without venue options", async () => {
+    h.user = lecturerUser();
+    const markup = await renderPage();
+    expect(markup).toContain('value="lect-A"');
+    expect(markup).not.toContain('value="lect-B"');
+    expect(markup).toContain('value="group-1"');
+    expect(markup).toContain('value="group-2"');
+    expect(markup).not.toContain('aria-label="Venue timetable selector"');
+  });
+  it("lecturer group page omits colleagues' sessions and refuses another lecturer", async () => {
+    h.user = lecturerUser();
+    const group = await renderPage({ view: "group", id: "group-1" });
+    expect(group).toContain('data-entry-id="e-1"');
+    expect(group).not.toContain('data-entry-id="e-3"');
+    const forbidden = await renderPage({ view: "lecturer", id: "lect-B" });
+    expect(forbidden).toContain("Not permitted");
+    expect(forbidden).not.toContain("data-entry-id");
+  });
+  it.each(["DEPT_REP", "APPROVER"] as const)("%s only receives own department choices and sessions", async role => {
+    h.user = { ...officerUser(), role, departmentId: "dept-1" };
+    const markup = await renderPage({ view: "lecturer", id: "lect-B" });
+    expect(markup).toContain('value="group-1"');
+    expect(markup).not.toContain('value="group-2"');
+    expect(markup).not.toContain('aria-label="Venue timetable selector"');
+    expect(markup).toContain('data-entry-id="e-3"');
+    expect(markup).not.toContain('data-entry-id="e-2"');
+  });
+  it("missing identity renders recovery guidance without offering another person's view", async () => {
+    h.user = studentUser(null);
+    const markup = await renderPage();
+    expect(markup).toContain("Your timetable identity is not set up");
+    expect(markup).not.toContain("or choose a view explicitly");
+    expect(markup).not.toContain('name="view"');
+  });
+  it("page uses page-entry authorization while the service enforces resources", () => {
+    const source = readFileSync(join(process.cwd(), "src/app/timetable/page.tsx"), "utf8");
+    expect(source).toContain('requireAnyAction("VIEW_TIMETABLE")');
+    expect(source).not.toContain('requireAction("VIEW_TIMETABLE")');
   });
 });

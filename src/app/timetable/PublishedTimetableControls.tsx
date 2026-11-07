@@ -22,6 +22,7 @@ import type {
 } from "@/server/publishedTimetableContract";
 
 export type PublishedTimetableControlsProps = {
+  perspectives: readonly ViewingPerspective[];
   semester: number;
   activeView: ViewingPerspective | null;
   activeId: string | null;
@@ -99,6 +100,7 @@ function PerspectiveForm({
 }
 
 export function PublishedTimetableControls({
+  perspectives,
   semester,
   activeView,
   activeId,
@@ -136,30 +138,30 @@ export function PublishedTimetableControls({
         </p>
       </form>
       <div className="grid gap-4 lg:grid-cols-3">
-        <PerspectiveForm
+        {perspectives.includes("group") && groups.length > 0 && <PerspectiveForm
           view="group"
           semester={semester}
           activeView={activeView}
           activeId={activeId}
           options={groupOptions}
           submitLabel="Show group timetable"
-        />
-        <PerspectiveForm
+        />}
+        {perspectives.includes("lecturer") && lecturers.length > 0 && <PerspectiveForm
           view="lecturer"
           semester={semester}
           activeView={activeView}
           activeId={activeId}
           options={lecturerOptions}
           submitLabel="Show lecturer timetable"
-        />
-        <PerspectiveForm
+        />}
+        {perspectives.includes("venue") && venues.length > 0 && <PerspectiveForm
           view="venue"
           semester={semester}
           activeView={activeView}
           activeId={activeId}
           options={venueOptions}
           submitLabel="Show venue timetable"
-        />
+        />}
       </div>
       <p className="text-sm text-slate-700" role="status">
         Selected semester: <span className="font-semibold">Semester {semester}</span>.

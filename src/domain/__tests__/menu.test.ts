@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { MENU_ITEMS, menuForRole, type MenuItem } from "../menu";
 import { ACTIONS, permissionScope, type Action } from "../permissions";
-import { decideAccess, decideAnyAccess } from "../access";
+import { decideAnyAccess } from "../access";
 import { USER_ROLES, type UserRole } from "../types";
 import type { SafeUser } from "@/server/auth";
 
@@ -216,8 +216,8 @@ describe("Timetable navigation activation (M4-T4e)", () => {
       for (const item of menuForRole(role)) {
         expect(decideAnyAccess(actor, item.action).status).toBe("ALLOW");
       }
-      // The exact decision /timetable's requireAction("VIEW_TIMETABLE") makes.
-      expect(decideAccess(actor, "VIEW_TIMETABLE").status).toBe("ALLOW");
+      // The exact decision /timetable's requireAnyAction("VIEW_TIMETABLE") makes.
+      expect(decideAnyAccess(actor, "VIEW_TIMETABLE").status).toBe("ALLOW");
     }
     expect(decideAnyAccess(null, "VIEW_TIMETABLE").status).toBe("UNAUTHENTICATED");
     const source = readFileSync(join(process.cwd(), "src/domain/menu.ts"), "utf8");
