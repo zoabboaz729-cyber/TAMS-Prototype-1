@@ -797,3 +797,7 @@
 ## 2026-11-08 M5-T2a Add authorized sanitized venue status service
 - Requests allow semester string 1/2 and live/demo fields only; arrays/forged keys fail before reads. All six roles may read live generic status; only OFFICER/ADMIN can simulate and see integrity counts. Server-injected Nairobi clock; fixed non-logging failures. One unknown-return read method forces validation of persisted snapshot before projection.
 - Evidence: PASS: focused 56/56; RUST_LOG=info verify 1463 tests/58 files, seed 11/11; build PASS; diff check PASS. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T2b Read coherent published venue snapshot from SQLite
+- Single read-only transaction resolves all publications then reads venue/closure fields and current time-only entries. Parameterized LEFT joins preserve missing teaching/unit links as invalid data. Disposable fixtures compare every persisted table, preserve archives, exercise all roles and remove only their own mkdtemp directory. No protected DB files present or accessed.
+- Evidence: PASS: real SQLite focused 22/22; RUST_LOG=info verify 1485 tests/59 files, seed 11/11; build PASS; diff check PASS. Measurement in full output: 9 venues, 1 current entry, 20 reads; no SLA. Local patch delivery; manual acceptance remains pending.

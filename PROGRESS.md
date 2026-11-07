@@ -719,3 +719,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Requests allow semester string 1/2 and live/demo fields only; arrays/forged keys fail before reads. All six roles may read live generic status; only OFFICER/ADMIN can simulate and see integrity counts. Server-injected Nairobi clock; fixed non-logging failures. One unknown-return read method forces validation of persisted snapshot before projection.
 - Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
 - Next suggested task: M5-T2b.
+
+## 2026-11-08 M5-T2b Read coherent published venue snapshot from SQLite
+- Done: Read coherent published venue snapshot from SQLite. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: src/server/venueStatusStorePrisma.ts; src/server/__tests__/venueStatusStorePrisma.test.ts; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: real SQLite focused 22/22; RUST_LOG=info verify 1485 tests/59 files, seed 11/11; build PASS; diff check PASS. Measurement in full output: 9 venues, 1 current entry, 20 reads; no SLA.
+- Decisions: Single read-only transaction resolves all publications then reads venue/closure fields and current time-only entries. Parameterized LEFT joins preserve missing teaching/unit links as invalid data. Disposable fixtures compare every persisted table, preserve archives, exercise all roles and remove only their own mkdtemp directory. No protected DB files present or accessed.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T2c.
