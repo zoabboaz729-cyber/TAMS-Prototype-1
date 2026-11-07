@@ -703,3 +703,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Adopt blueprint sections 4–7 prototype decisions. User explicitly authorizes all listed slices with separate commits, superseding one-slice session default; preserve each file ceiling and manual acceptance hold. Exact remote snapshot reconstructed and all 179 blob hashes/tree verified; no dependency changes.
 - Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
 - Next suggested task: M5-T1b.
+
+## 2026-11-08 M5-T1b Implement pure venue status logic
+- Done: Implement pure venue status logic. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: src/domain/venueStatus.ts; src/domain/__tests__/venueStatus.test.ts; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: focused 54/54; RUST_LOG=info verify 1407 tests/57 files, seed 11/11; production build PASS; diff check PASS.
+- Decisions: Dedicated M5 policy reuses existing days/hours and configurable 30-minute window without changing PolicyConfig. Half-open precedence, union next-free, same-day generic nextScheduledAt, explicit outside-hours flags, malformed inputs fail closed, overlap/closure conflict count retained internally.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T2a.

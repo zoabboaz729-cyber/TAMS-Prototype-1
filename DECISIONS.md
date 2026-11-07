@@ -789,3 +789,7 @@
 ## 2026-11-08 M5-T1a Lock venue status design and policy
 - Adopt blueprint sections 4–7 prototype decisions. User explicitly authorizes all listed slices with separate commits, superseding one-slice session default; preserve each file ceiling and manual acceptance hold. Exact remote snapshot reconstructed and all 179 blob hashes/tree verified; no dependency changes.
 - Evidence: PASS: RUST_LOG=info npm run verify (1353 tests/56 files; seed 11/11); build PASS; initial inherited-RUST_LOG run failed in existing SQLite fixtures. Full logs in delivery evidence. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T1b Implement pure venue status logic
+- Dedicated M5 policy reuses existing days/hours and configurable 30-minute window without changing PolicyConfig. Half-open precedence, union next-free, same-day generic nextScheduledAt, explicit outside-hours flags, malformed inputs fail closed, overlap/closure conflict count retained internally.
+- Evidence: PASS: focused 54/54; RUST_LOG=info verify 1407 tests/57 files, seed 11/11; production build PASS; diff check PASS. Local patch delivery; manual acceptance remains pending.
