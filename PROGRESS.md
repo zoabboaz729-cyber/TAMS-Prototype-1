@@ -743,3 +743,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Native GET forms send only strict clock fields. Officers/admins get Apply simulated time; live semester form discards demo fields. Client receives clock/semester/capability only. Live refresh every 60000 ms while visible and on tab return; cleanup removes timer/listener; demo never polls. Tests execute effect with mocked environment, not a browser.
 - Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
 - Next suggested task: M5-T2e.
+
+## 2026-11-08 M5-T2e Activate venue status navigation and complete role regression
+- Done: Activate venue status navigation and complete role regression. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: src/domain/menu.ts; src/domain/__tests__/menu.test.ts; src/server/__tests__/venueStatusPage.test.tsx; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: focused menu/page 66/66; RUST_LOG=info verify 1531 tests/60 files, seed 11/11; build PASS; diff check PASS. Existing M4 suites included unchanged except planned menu expectations.
+- Decisions: Only venue-status built flag changes. Planned menu expectations now assert the built link for all six roles while preserving all other built flags, visibility and register permissions. Added forged query, closure precedence, restricted integrity projection and valid-empty-publication regressions. Manual browser acceptance remains pending; no M6.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T2f.

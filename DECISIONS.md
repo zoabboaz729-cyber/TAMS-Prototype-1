@@ -809,3 +809,7 @@
 ## 2026-11-08 M5-T2d Add live refresh and simulated venue clock controls
 - Native GET forms send only strict clock fields. Officers/admins get Apply simulated time; live semester form discards demo fields. Client receives clock/semester/capability only. Live refresh every 60000 ms while visible and on tab return; cleanup removes timer/listener; demo never polls. Tests execute effect with mocked environment, not a browser.
 - Evidence: PASS: page/control tests 36/36 including fake-timer effect lifecycle and static form labels; RUST_LOG=info verify 1521 tests/60 files, seed 11/11; production build PASS; diff check PASS. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T2e Activate venue status navigation and complete role regression
+- Only venue-status built flag changes. Planned menu expectations now assert the built link for all six roles while preserving all other built flags, visibility and register permissions. Added forged query, closure precedence, restricted integrity projection and valid-empty-publication regressions. Manual browser acceptance remains pending; no M6.
+- Evidence: PASS: focused menu/page 66/66; RUST_LOG=info verify 1531 tests/60 files, seed 11/11; build PASS; diff check PASS. Existing M4 suites included unchanged except planned menu expectations. Local patch delivery; manual acceptance remains pending.

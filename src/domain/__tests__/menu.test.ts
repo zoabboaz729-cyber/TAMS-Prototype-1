@@ -70,11 +70,12 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
 };
 
 describe("MENU_ITEMS", () => {
-  it("exactly seven items are built: timetable, venue register, the three submission pages, draft editor, my availability", () => {
+  it("exactly eight items are built: timetable, venue status, venue register, the three submission pages, draft editor, my availability", () => {
     expect(MENU_ITEMS).toHaveLength(17);
     const built = MENU_ITEMS.filter((item) => item.built).map((item) => item.key);
     expect(built).toEqual([
       "timetable",
+      "venue-status",
       "venue-register",
       "submission-edit",
       "submission-review",
@@ -167,9 +168,8 @@ describe("Timetable navigation activation (M4-T4e)", () => {
     }
   });
 
-  it("6. every other built flag is unchanged: the ten unfinished features stay unbuilt, the six prior built features stay built", () => {
+  it("6. every other built flag is unchanged: the nine unfinished features stay unbuilt, the six pre-M4 features stay built and venue status is now built", () => {
     const unbuilt = [
-      "venue-status",
       "generate",
       "reschedule-decide",
       "reschedule-request",
@@ -184,6 +184,7 @@ describe("Timetable navigation activation (M4-T4e)", () => {
       expect(MENU_ITEMS.find((item) => item.key === key)?.built).toBe(false);
     }
     const stillBuilt = [
+      "venue-status",
       "venue-register",
       "submission-edit",
       "submission-review",
@@ -241,12 +242,26 @@ describe("Timetable navigation activation (M4-T4e)", () => {
     }
     h.user = { id: "user-student", name: "Student A", email: "student@example.ac.ke", role: "STUDENT", departmentId: null, studentGroupId: "group-1" };
     const studentMarkup = renderToStaticMarkup(await HomePage());
-    expect(studentMarkup).toContain("Venue status — Coming soon");
+    expect(studentMarkup).toContain('href="/venues/status"');
+    expect(studentMarkup).not.toContain("Venue status — Coming soon");
     expect(studentMarkup).toContain("Scan attendance — Coming soon");
     expect(studentMarkup).toContain("Attendance reports — Coming soon");
     h.user = null;
     const signedOut = renderToStaticMarkup(await HomePage());
     expect(signedOut).not.toContain('href="/timetable"');
     expect(signedOut).toContain("Sign in");
+  });
+});
+
+
+describe("M5-T2e venue status navigation", () => {
+  it.each(USER_ROLES)("%s gets exactly one built status link without register permission changes", async (role) => {
+    const links = menuForRole(role).filter((item) => item.key === "venue-status");
+    expect(links).toEqual([{ key: "venue-status", label: "Venue status", href: "/venues/status", action: "VIEW_VENUE_STATUS", built: true }]);
+    h.user = { id: "sample-user", name: "Synthetic", email: "sample@example.test", role, departmentId: null, studentGroupId: null };
+    const markup = renderToStaticMarkup(await HomePage());
+    expect((markup.match(/href="\/venues\/status"/g) ?? [])).toHaveLength(1);
+    expect(markup).not.toContain("Venue status — Coming soon");
+    expect(menuForRole(role).some((item) => item.key === "venue-register")).toBe(permissionScope(role, "DECLARE_VENUE") !== "NONE");
   });
 });

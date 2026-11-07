@@ -118,3 +118,24 @@ describe("M5-T2d clock control markup and effect lifecycle", () => {
     const live = await render({ mode: "live", semester: "1" }); expect(live).toContain("Live schedule clock"); expect(live).toContain("MON 08:30 EAT"); expect(live).not.toContain("SUN 23:59 EAT");
   });
 });
+
+
+describe("M5-T2e final page boundary regression", () => {
+  it("unknown query key on demo cannot become an actor or publication override", async () => {
+    const html = await render({ mode: "demo", day: "MON", time: "08:00", actor: "officer", versionId: "draft" });
+    expect(html).toContain("Invalid venue status request"); expect(state.read).not.toHaveBeenCalled();
+  });
+  it("recorded closure at a booking boundary wins with a readable block end", async () => {
+    const d = fixture(); Object.assign(d.venues[0], { unavailabilities: [{ venueId: "v", day: "MON", start: "08:00", end: "10:00", reason: "PRIVATE_REASON" }] });
+    state.read.mockResolvedValue(d); const html = await render({ mode: "demo", day: "MON", time: "08:00" });
+    expect(html).toContain("Unavailable"); expect(html).toContain("Recorded closure"); expect(html).toContain("MON 10:00 EAT"); expect(html).not.toContain("PRIVATE_REASON");
+  });
+  it("student never gets privileged integrity counts from real service projection", async () => {
+    state.guard.mockResolvedValue(user("STUDENT")); const d = fixture(); d.entries.push({ ...d.entries[0] }); state.read.mockResolvedValue(d);
+    const html = await render(); expect(html).not.toContain("integrity warning"); expect(html).not.toContain("PRIVATE_TEACHER");
+  });
+  it("valid empty publication shows schedule-free venues distinctly", async () => {
+    state.read.mockResolvedValue({ ...fixture(), entries: [] }); const html = await render({ mode: "demo", day: "MON", time: "08:00" });
+    expect(html).toContain("Free (schedule-derived)"); expect(html).not.toContain("No published timetable"); expect(html).not.toContain("No venues registered");
+  });
+});
