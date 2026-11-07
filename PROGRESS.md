@@ -663,3 +663,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: matrix fixtures explicitly track the approved policy amendment, and menu assertions now match the page-level guard rather than claiming a resource-free scoped authorization. Old student selector expectation replaced by an explicit assertion that the selector is absent, while keeping identity and timetable assertions.
 - Known problems: live browser retest and multi-department real-database test remain in the authorized bundle.
 - Next suggested task: M4-T4h4.
+
+## 2026-11-08 M4-T4h4 Integrated security regression
+- Done: added an exclusive disposable SQLite suite with two departments, three groups, cross-department lecturers, semester-specific teaching, two current publications, a draft and an archive. Eighteen tests exercise real relationships, strict request validation, permitted and forged selections, scoped options, per-session filtering, missing links, admin/officer oversight and write-free reads. Existing lifecycle suite still proves real publish/archive/current-version transitions and default student/lecturer reads after publication.
+- Files changed: src/server/__tests__/publishedTimetableSecurity.test.ts; PROGRESS.md.
+- Verify: PASS RUST_LOG=info npm run verify: typecheck/lint pass; 1351 tests in 56 files; seed integrity 11/11.
+- Decisions: cross-department relevance is determined by the student group department, so visiting/service lecturers appear only with the relevant sessions. All test data are synthetic.
+- Known problems: live browser security retest cannot run because the browser URL policy blocks the local app. No browser claim is made from static rendering or database tests.
+- Next suggested task: M4-T4h5 copy correction, final checks, documentation and browser handoff.
