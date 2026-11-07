@@ -695,3 +695,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: recorded in DECISIONS.md (M4-T4i a-g): scoped closure and M5 hold; exclusive user attribution of browser acceptance; unchanged least-privilege role policy; precise server/option/entry enforcement wording; current GitHub state versus the historical push incident; preserved future work and concurrency limitations; and the byte-preserving documentation-only manifest.
 - Known problems: academic teaching-data entry/management, approved departmental submission prerequisites where required, venue occupancy/status with data minimization, other Coming soon features, validation of actual university procedures, and additional security/concurrency/deployment verification remain unfinished. Ownership metadata and publication entries are separate snapshots; no simultaneous ownership-change atomicity, load result or simultaneous-writer race result is claimed. The user-reported browser acceptance is not a formal security audit.
 - Next suggested task: M5 planning or implementation only after separate user authorization; M5 remains NOT STARTED and this task stops after the documentation commit and normal push.
+
+## 2026-11-08 M5-T1a Lock venue status design and policy
+- Done: Lock venue status design and policy. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: docs/M5-DESIGN.md; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: RUST_LOG=info npm run verify (1353 tests/56 files; seed 11/11); build PASS; initial inherited-RUST_LOG run failed in existing SQLite fixtures. Full logs in delivery evidence.
+- Decisions: Adopt blueprint sections 4–7 prototype decisions. User explicitly authorizes all listed slices with separate commits, superseding one-slice session default; preserve each file ceiling and manual acceptance hold. Exact remote snapshot reconstructed and all 179 blob hashes/tree verified; no dependency changes.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T1b.
