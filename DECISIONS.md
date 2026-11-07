@@ -793,3 +793,7 @@
 ## 2026-11-08 M5-T1b Implement pure venue status logic
 - Dedicated M5 policy reuses existing days/hours and configurable 30-minute window without changing PolicyConfig. Half-open precedence, union next-free, same-day generic nextScheduledAt, explicit outside-hours flags, malformed inputs fail closed, overlap/closure conflict count retained internally.
 - Evidence: PASS: focused 54/54; RUST_LOG=info verify 1407 tests/57 files, seed 11/11; production build PASS; diff check PASS. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T2a Add authorized sanitized venue status service
+- Requests allow semester string 1/2 and live/demo fields only; arrays/forged keys fail before reads. All six roles may read live generic status; only OFFICER/ADMIN can simulate and see integrity counts. Server-injected Nairobi clock; fixed non-logging failures. One unknown-return read method forces validation of persisted snapshot before projection.
+- Evidence: PASS: focused 56/56; RUST_LOG=info verify 1463 tests/58 files, seed 11/11; build PASS; diff check PASS. Local patch delivery; manual acceptance remains pending.

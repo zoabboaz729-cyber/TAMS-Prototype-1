@@ -711,3 +711,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Dedicated M5 policy reuses existing days/hours and configurable 30-minute window without changing PolicyConfig. Half-open precedence, union next-free, same-day generic nextScheduledAt, explicit outside-hours flags, malformed inputs fail closed, overlap/closure conflict count retained internally.
 - Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
 - Next suggested task: M5-T2a.
+
+## 2026-11-08 M5-T2a Add authorized sanitized venue status service
+- Done: Add authorized sanitized venue status service. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: src/server/venueStatusContract.ts; src/server/venueStatus.ts; src/server/__tests__/venueStatus.test.ts; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: focused 56/56; RUST_LOG=info verify 1463 tests/58 files, seed 11/11; build PASS; diff check PASS.
+- Decisions: Requests allow semester string 1/2 and live/demo fields only; arrays/forged keys fail before reads. All six roles may read live generic status; only OFFICER/ADMIN can simulate and see integrity counts. Server-injected Nairobi clock; fixed non-logging failures. One unknown-return read method forces validation of persisted snapshot before projection.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T2b.
