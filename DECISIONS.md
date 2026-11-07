@@ -756,3 +756,8 @@
   - Reason: this is a verification-first task; protected data and accepted components must remain untouched while the browser evidence is reviewed.
 - **Decision: stop for supervisor review rather than close M4-T4 or begin M5.** If full browser acceptance is required, authorize M4-T4g1 to re-run layout/zoom checks with viewport-capable tooling and correct only confirmed D1/D2 defects within a bounded manifest.
   - Reason: the remaining gap is browser evidence/tooling and a possible renderer defect, not permission to refactor accepted code. The documentation commit records the pending decision; it does not claim milestone closure.
+
+## M4-T4h1 Published timetable security contract
+- User-authorized amendment supersedes the original all-perspectives reading policy. Students: own linked group. Lecturers: own lecturer identity and only own teaching within taught groups. Department representatives and approvers: groups belonging to their stored department and relevant lecturers, with returned sessions restricted to those groups, including service teaching by external staff. No venue perspective for these four roles.
+- ADMIN explicitly retains existing read-only scheduling oversight; OFFICER retains all perspectives. No mutation grants change. Group department, not a lecturer home department, determines departmental session relevance. Teaching relationships are semester scoped. Missing identity or relationships fail closed.
+- The user authorized the complete M4-T4h bundle, more than 20 files if necessary, and separate subtask commits on m4-generator-versions. Academic-data entry, approval gating, and venue occupancy remain deferred.

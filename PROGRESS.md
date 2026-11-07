@@ -639,3 +639,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: recorded in DECISIONS.md — keep M4-T4 open; do not claim desktop/mobile acceptance from narrow-viewport evidence; propose bounded M4-T4g1 only if the supervisor authorizes viewport-capable re-verification and any confirmed renderer/copy correction.
 - Known problems: required desktop/mobile rendering and increased-zoom readability remain unverified; D1 stale copy; D2 desktop alignment risk; missing-identity and manual stale browser states were not exercised; the Next.js dev-tools overlay appears in development screenshots.
 - Next suggested task: supervisor review of M4-T4g evidence; if the limitation is not acceptable, authorize M4-T4g1 viewport-capable re-verification and narrowly bounded corrections. Do not begin M5.
+
+## 2026-11-08 M4-T4h1 Security contract
+- Done: added pure least-privilege selection and per-entry policies with eight positive, boundary and negative tests; production service remains unchanged in this commit.
+- Files changed: src/domain/publishedTimetableAccess.ts; src/domain/__tests__/publishedTimetableAccess.test.ts; DECISIONS.md; PROGRESS.md.
+- Verify: PASS with RUST_LOG=info npm run verify: 1311 tests in 55 files; seed integrity 11/11; typecheck and lint pass. The inherited RUST_LOG=warn,codex_exec_server::remote=info causes the Prisma schema engine to exit during fixture creation. A controlled same-command probe confirmed RUST_LOG=info resolves this environment issue; no code workaround or dependency change.
+- Decisions: restrictive views require stored relationships; lecturer group view includes only own sessions; department lecturer view includes only own department groups.
+- Known problems: enforcement, page controls, integration and copy correction follow in authorized subtasks. Protected dev.db and walkthrough.db are absent in this fresh checkout; neither was created or opened.
+- Next suggested task: M4-T4h2.
