@@ -1,37 +1,10 @@
-/**
- * Read-only orchestration for the current published timetable (M4-T4a) by group,
- * lecturer or venue. The injected store, request shape and typed result live in
- * `publishedTimetableContract.ts`; the Prisma adapter is M4-T4b. Nothing here
- * touches a database, imports Prisma or the db singleton, or reads a clock.
- *
- * Rules enforced here, never in the UI:
- * - VIEW_TIMETABLE is decided BEFORE any store call, so an unauthenticated or
- *   forbidden caller triggers zero reads. The actor comes from the trusted
- *   server-side caller only; the request schema is `.strict()`, so a forged
- *   versionId, role, department or privilege is refused as INVALID_INPUT first.
- * - The service resolves the current version itself from the semester's PUBLISHED
- *   set: zero -> NO_PUBLISHED_VERSION, more than one -> AMBIGUOUS_PUBLISHED_VERSION
- *   (never broken by createdAt, publishedAt or lexical id order). Rows outside the
- *   requested semester or with a status other than PUBLISHED fail closed.
- * - Role-aware defaults: a student gets their session group, a lecturer their own
- *   Lecturer record, and every all-scope role a deterministic available group. A
- *   missing identity refuses (IDENTITY_UNRESOLVED); no available group refuses
- *   (SELECTION_REQUIRED). An explicit view must carry an id and exist; a named
- *   view without an id asks for a selection and never substitutes another view.
- * - Currency is claimed only from `readPublishedEntries`, the store's one atomic
- *   read transaction that re-checks the version is still current before returning
- *   its entries. A publication between the resolution and that read is STALE,
- *   never a mixed or outdated "current" timetable.
- * - Entries are re-filtered to the chosen version even though the read is
- *   version-scoped, so a broken store cannot leak another version's rows. Every
- *   entry must carry real unit, group, lecturer and venue data; a missing relation
- *   is INVALID_PUBLISHED_DATA, never a synthesized name or a silently dropped row.
- *   The selection filter is enforced here regardless of any adapter-side filtering.
- * - A store failure throws and becomes INTERNAL_ERROR with one fixed, non-sensitive
- *   log line; no exception text, SQL or connection detail reaches the log or client.
- */
-import { decideAccess } from "@/domain/access";
+/** Current published timetable service. M4-T4h enforces the trusted actor
+ * scope before publication reads and again on every returned session. Currency
+ * remains checked by the existing atomic adapter read transaction. */
+import { decideAnyAccess } from "@/domain/access";
 import type { Actor } from "@/domain/permissions";
+import { canSelectTimetable, canReadTimetableEntry } from "@/domain/publishedTimetableAccess";
+import { loadTimetableOptions, type TimetableOptions } from "@/server/publishedTimetableOptions";
 import { DAYS } from "@/domain/types";
 import {
   DEFAULT_SEMESTER,
@@ -61,67 +34,37 @@ function firstGroupId(groups: readonly { id: string }[]): string {
   return [...groups].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))[0].id;
 }
 
-async function selectionExists(
-  store: PublishedTimetableStore,
-  view: ViewingPerspective,
-  id: string,
-): Promise<boolean> {
-  if (view === "group") return (await store.listStudentGroups()).some((row) => row.id === id);
-  if (view === "lecturer") return (await store.listLecturers()).some((row) => row.id === id);
-  return (await store.listVenues()).some((row) => row.id === id);
-}
-
-/** Both selection fields omitted: derive the perspective from the actor's role. */
-async function roleDefault(
-  store: PublishedTimetableStore,
-  actor: Actor,
-): Promise<SelectionOutcome> {
-  if (actor.role === "STUDENT") {
-    const groupId = actor.studentGroupId;
-    if (groupId === null) {
-      return { ok: false, kind: "IDENTITY_UNRESOLVED", message: "Your account is not linked to a student group. Ask the timetabling office to set your group." };
-    }
-    if (!(await selectionExists(store, "group", groupId))) {
-      return { ok: false, kind: "IDENTITY_UNRESOLVED", message: "Your linked student group could not be found. Ask the timetabling office to check your enrolment." };
-    }
-    return { ok: true, view: "group", selectionId: groupId };
-  }
-  if (actor.role === "LECTURER") {
-    const lecturer = await store.findLecturerByUserId(actor.id);
-    if (lecturer === null) {
-      return { ok: false, kind: "IDENTITY_UNRESOLVED", message: "Your account is not linked to a lecturer record. Ask the timetabling office to set up your lecturer profile." };
-    }
-    return { ok: true, view: "lecturer", selectionId: lecturer.id };
-  }
-  // OFFICER, ADMIN, DEPT_REP, APPROVER all hold ALL scope: a deterministic group.
-  const groups = await store.listStudentGroups();
-  if (groups.length === 0) {
-    return { ok: false, kind: "SELECTION_REQUIRED", message: "No student group is available to display. Ask the timetabling office to add groups, then choose a view." };
-  }
-  return { ok: true, view: "group", selectionId: firstGroupId(groups) };
-}
-
-/**
- * View and id must be provided together. Both omitted -> role default; a named
- * view without an id -> SELECTION_REQUIRED (never a different perspective); an id
- * without a view -> INVALID_INPUT; both present -> a verified explicit selection.
- */
-async function resolveSelection(
-  store: PublishedTimetableStore,
+/** Select only within the trusted options, never fall back to another identity. */
+function resolveSelection(
+  options: TimetableOptions,
   actor: Actor,
   view: ViewingPerspective | undefined,
   id: string | undefined,
-): Promise<SelectionOutcome> {
-  if (view === undefined) {
-    if (id === undefined) return roleDefault(store, actor);
+): SelectionOutcome | { ok: false; kind: "FORBIDDEN" } {
+  if (view === undefined && id !== undefined) {
     return { ok: false, kind: "INVALID_INPUT", message: "A selection id requires a perspective; choose a group, lecturer or venue view." };
   }
-  if (id === undefined) {
-    return { ok: false, kind: "SELECTION_REQUIRED", message: `Choose a specific ${view} to display its published timetable.` };
+  if (actor.role === "STUDENT" && options.groups.length === 0) {
+    return { ok: false, kind: "IDENTITY_UNRESOLVED", message: actor.studentGroupId === null
+      ? "Your account is not linked to a student group. Ask the timetabling office to set your group."
+      : "Your linked student group could not be found. Ask the timetabling office to check your enrolment." };
   }
-  if (!(await selectionExists(store, view, id))) {
-    return { ok: false, kind: "SELECTION_NOT_FOUND", view, selectionId: id };
+  if (actor.role === "LECTURER" && options.lecturers.length === 0) {
+    return { ok: false, kind: "IDENTITY_UNRESOLVED", message: "Your account is not linked to a lecturer record. Ask the timetabling office to set up your lecturer profile." };
   }
+  if ((actor.role === "DEPT_REP" || actor.role === "APPROVER") && !actor.departmentId) {
+    return { ok: false, kind: "IDENTITY_UNRESOLVED", message: "Your account is not linked to a department. Ask the timetabling office to set your department." };
+  }
+  if (view === undefined) {
+    if (actor.role === "LECTURER") return { ok: true, view: "lecturer", selectionId: options.lecturers[0].id };
+    if (options.groups.length === 0) return { ok: false, kind: "SELECTION_REQUIRED", message: "No student group is available to display. Ask the timetabling office to add authorized groups, then choose a view." };
+    return { ok: true, view: "group", selectionId: firstGroupId(options.groups) };
+  }
+  if (!options.access.perspectives.includes(view)) return { ok: false, kind: "FORBIDDEN" };
+  if (id === undefined) return { ok: false, kind: "SELECTION_REQUIRED", message: `Choose a specific ${view} to display its published timetable.` };
+  if (!canSelectTimetable(options.access, view, id)) return { ok: false, kind: "FORBIDDEN" };
+  const choices = view === "group" ? options.groups : view === "lecturer" ? options.lecturers : options.venues;
+  if (!choices.some(row => row.id === id)) return { ok: false, kind: "SELECTION_NOT_FOUND", view, selectionId: id };
   return { ok: true, view, selectionId: id };
 }
 
@@ -191,7 +134,7 @@ export async function readPublishedTimetable(
 ): Promise<PublishedTimetableResult> {
   // Authorization before anything else: a denied caller provably causes zero reads.
   if (actor === null) return { ok: false, kind: "UNAUTHENTICATED" };
-  if (decideAccess(actor, "VIEW_TIMETABLE").status !== "ALLOW") {
+  if (decideAnyAccess(actor, "VIEW_TIMETABLE").status !== "ALLOW") {
     return { ok: false, kind: "FORBIDDEN" };
   }
 
@@ -200,9 +143,13 @@ export async function readPublishedTimetable(
     return { ok: false, kind: "INVALID_INPUT", message: publishedTimetableInputMessage(parsed.error) };
   }
   const semester = parsed.data.semester ?? DEFAULT_SEMESTER;
+  if (actor.role === "STUDENT" && actor.studentGroupId === null) {
+    return { ok: false, kind: "IDENTITY_UNRESOLVED", message: "Your account is not linked to a student group. Ask the timetabling office to set your group." };
+  }
 
   try {
-    const selection = await resolveSelection(store, actor, parsed.data.view, parsed.data.id);
+    const options = await loadTimetableOptions(store, actor, semester);
+    const selection = resolveSelection(options, actor, parsed.data.view, parsed.data.id);
     if (!selection.ok) return selection;
 
     // Resolve the current version. The query is PUBLISHED-and-semester scoped, so
@@ -237,6 +184,7 @@ export async function readPublishedTimetable(
     const own = read.entries.filter((entry) => entry.versionId === version.id);
     const projected: DisplayableEntry[] = [];
     for (const entry of own) {
+      if (!canReadTimetableEntry(options.access, actor, { groupId: entry.groupId ?? "", lecturerId: entry.lecturerId ?? "" })) continue;
       const item = projectEntry(entry);
       if (item === null) {
         return { ok: false, kind: "INVALID_PUBLISHED_DATA", message: `Published entry ${entry.id} is missing required unit, group, lecturer or venue details. Ask the timetabling office to correct and republish it.` };

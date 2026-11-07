@@ -62,7 +62,7 @@ const baseData = (): FakeData => ({
     entryOf("e-3", { day: "WED", start: "10:00", end: "11:00", unitCode: "SOEN 415", unitTitle: "Interactive Design", lecturerId: "lect-B", lecturerName: "Lecturer B" }),
     entryOf("e-4", { venueId: "v-2", day: "MON", start: "10:00", end: "11:00", unitCode: "CS 202", unitTitle: "Algorithms", groupId: "group-2", groupName: "CS-Y2", venueCode: "CR2" }),
   ],
-  groups: [{ id: "group-1", name: "SE-Y4" }, { id: "group-2", name: "CS-Y2" }],
+  groups: [{ id: "group-1", name: "SE-Y4", departmentId: "dept-1" }, { id: "group-2", name: "CS-Y2", departmentId: "dept-2" }],
   lecturers: [{ id: "lect-A", userId: "user-lect-A", displayName: "Lecturer A" }, { id: "lect-B", userId: "user-lect-B", displayName: "Lecturer B" }],
   venues: [{ id: "v-1", code: "CR1" }, { id: "v-2", code: "CR2" }],
 });
@@ -83,6 +83,7 @@ function makeStore(build?: (data: FakeData) => void, options: FakeOptions = {}):
       if (current.length !== 1 || current[0].id !== versionId) return { status: "stale" };
       return { status: "current", version: current[0], entries: data.entries.filter((e) => e.versionId === versionId) };
     },
+    listTeachingAccess: async () => data.entries.filter(e => e.groupId !== null && e.lecturerId !== null).map(e => ({ groupId: e.groupId!, lecturerId: e.lecturerId! })),
     listStudentGroups: async () => { gate("listStudentGroups"); return data.groups; },
     listLecturers: async () => { gate("listLecturers"); return data.lecturers; },
     findLecturerByUserId: async (userId) => { gate("findLecturerByUserId"); return data.lecturers.find((l) => l.userId === userId) ?? null; },
@@ -198,7 +199,7 @@ describe("role-aware defaults", () => {
     expect(markup).toContain("Lecturer view");
   });
   it("6. gives an officer the deterministic first group regardless of store order", async () => {
-    h.store = makeStore((d) => { d.groups = [{ id: "group-2", name: "CS-Y2" }, { id: "group-1", name: "SE-Y4" }]; });
+    h.store = makeStore((d) => { d.groups = [{ id: "group-2", name: "CS-Y2", departmentId: "dept-2" }, { id: "group-1", name: "SE-Y4", departmentId: "dept-1" }]; });
     const markup = await renderPage({});
     expect(markup).toContain('data-entry-id="e-1"');
     expect(markup).toContain('data-entry-id="e-3"');
@@ -206,7 +207,7 @@ describe("role-aware defaults", () => {
   });
   it("7. authorizes admin, dept-rep and approver defaults", async () => {
     for (const role of ["ADMIN", "DEPT_REP", "APPROVER"] as const) {
-      h.user = { ...officerUser(), role };
+      h.user = { ...officerUser(), role, departmentId: "dept-1" };
       h.store = makeStore();
       const markup = await renderPage({});
       expect(markup).toContain("Publication details");

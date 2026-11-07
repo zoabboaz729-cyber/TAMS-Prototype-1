@@ -164,7 +164,7 @@ describe("publishedTimetableStorePrisma reads and atomic currency re-check", () 
 
   // --- 7-12: selector lookups ---------------------------------------------
   it("7,12: lists stored group ids and names in deterministic id order", async () => {
-    expect(await store.listStudentGroups()).toEqual([{ id: "grp-1", name: "G1" }, { id: "grp-2", name: "G2" }]);
+    expect(await store.listStudentGroups()).toEqual([{ id: "grp-1", name: "G1", departmentId: "dept-f" }, { id: "grp-2", name: "G2", departmentId: "dept-f" }]);
     expect(await store.listStudentGroups()).toEqual(await store.listStudentGroups());
   });
   it("8,12: joins lecturer display names from the linked User, ordered by lecturer id", async () => {

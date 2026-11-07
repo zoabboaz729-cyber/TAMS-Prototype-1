@@ -10,8 +10,8 @@
  *   key fails as INVALID_INPUT before a single read. The current version is
  *   resolved by the service, never chosen by a request field.
  * - VIEW_TIMETABLE is decided before any store method. The actor comes from the
- *   trusted server-side caller only. All six roles hold ALL scope (permissions.ts),
- *   so any published group/lecturer/venue view may be selected explicitly.
+ *   trusted server-side caller only. M4-T4h restricts resources using stored group ownership and semester teaching
+ *   relationships. Page entry alone grants no per-record authority.
  * - Reads are separate from any write — there is no write method on this store.
  *   A read that cannot be answered must throw so the service reports INTERNAL_ERROR
  *   instead of presenting an empty timetable it never really read.
@@ -86,7 +86,8 @@ export type PublishedVersionRow = {
   publishedAt: Date | null;
 };
 
-export type StudentGroupChoice = { id: string; name: string };
+/** Missing department metadata grants no departmental access (fail closed). */
+export type StudentGroupChoice = { id: string; name: string; departmentId?: string };
 /** `displayName` is the linked User.name; `userId` ties a lecturer to a session. */
 export type LecturerChoice = { id: string; userId: string; displayName: string };
 export type VenueChoice = { id: string; code: string };
@@ -141,6 +142,8 @@ export interface PublishedTimetableStore {
   listLecturers(): Promise<LecturerChoice[]>;
   findLecturerByUserId(userId: string): Promise<LecturerChoice | null>;
   listVenues(): Promise<VenueChoice[]>;
+  /** Stored teaching relationships for the selected semester, never URL claims. */
+  listTeachingAccess(semester: number): Promise<{ groupId: string; lecturerId: string }[]>;
 }
 
 // ---------------------------------------------------------------------------

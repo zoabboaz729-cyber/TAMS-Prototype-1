@@ -204,6 +204,7 @@ function countedReadStore(store: PublishedTimetableStore): { store: PublishedTim
   return { calls, store: {
     listPublishedVersionsBySemester: track("versions", store.listPublishedVersionsBySemester),
     readPublishedEntries: track("entries", store.readPublishedEntries),
+    listTeachingAccess: track("teachingAccess", store.listTeachingAccess),
     listStudentGroups: track("groups", store.listStudentGroups), listLecturers: track("lecturers", store.listLecturers),
     findLecturerByUserId: track("lecturer", store.findLecturerByUserId), listVenues: track("venues", store.listVenues),
   } };
@@ -361,13 +362,13 @@ describe("published timetable lifecycle on one disposable SQLite database", () =
 
   it("S17,S18,S19,S20 explicit views filter the new version with no archived or cross-perspective leakage", async () => {
     okPublish(await performDraftPublish(publishStore, OFFICER, { versionId: DRAFT_S1 }, DEFAULT_POLICY, clock));
-    const group = okRead(await readPublishedTimetable(readStore, STUDENT, { semester: 1, view: "group", id: GRP_B }));
+    const group = okRead(await readPublishedTimetable(readStore, OFFICER, { semester: 1, view: "group", id: GRP_B }));
     expect(ids(group.entries)).toEqual(["e-new-2"]);
     expect(group.entries[0]).toMatchObject({ groupName: "BETA-Y2 (sample)", lecturerName: "Lecturer Beta (sample)", venueCode: "LCH1" });
-    const lecturer = okRead(await readPublishedTimetable(readStore, STUDENT, { semester: 1, view: "lecturer", id: LECT_B }));
+    const lecturer = okRead(await readPublishedTimetable(readStore, OFFICER, { semester: 1, view: "lecturer", id: LECT_B }));
     expect(ids(lecturer.entries)).toEqual(["e-new-2", "e-new-3"]);
     expect(lecturer.entries.every((entry) => entry.lecturerId === LECT_B)).toBe(true);
-    const venue = okRead(await readPublishedTimetable(readStore, LECTURER, { semester: 1, view: "venue", id: HALL }));
+    const venue = okRead(await readPublishedTimetable(readStore, OFFICER, { semester: 1, view: "venue", id: HALL }));
     expect(ids(venue.entries)).toEqual(["e-new-2", "e-new-3"]);
     expect(venue.entries.every((entry) => entry.venueId === HALL)).toBe(true);
     const archivedIds = ["e-old-1", "e-old-2", "e-old-3", "e-hist-1", "e-hist-2"];
@@ -533,8 +534,8 @@ describe("published timetable lifecycle on one disposable SQLite database", () =
     for (const actor of [STUDENT, LECTURER, OFFICER]) {
       expect(await readPublishedTimetable(readStore, actor, { semester: 1 })).toEqual({ ok: false, kind: "AMBIGUOUS_PUBLISHED_VERSION", semester: 1 });
     }
-    expect(await readPublishedTimetable(readStore, STUDENT, { semester: 1, view: "venue", id: ROOM })).toEqual({ ok: false, kind: "AMBIGUOUS_PUBLISHED_VERSION", semester: 1 });
-    const semester2 = okRead(await readPublishedTimetable(readStore, STUDENT, { semester: 2, view: "venue", id: ROOM }));
+    expect(await readPublishedTimetable(readStore, OFFICER, { semester: 1, view: "venue", id: ROOM })).toEqual({ ok: false, kind: "AMBIGUOUS_PUBLISHED_VERSION", semester: 1 });
+    const semester2 = okRead(await readPublishedTimetable(readStore, OFFICER, { semester: 2, view: "venue", id: ROOM }));
     expect(semester2.version.id).toBe(PUB_S2);
     expect(ids(semester2.entries)).toEqual(["e-s2-1", "e-s2-2"]);
     expect(await client.auditLog.count()).toBe(0);
@@ -603,15 +604,19 @@ describe("published timetable lifecycle on one disposable SQLite database", () =
 
   it("S37 the read service performs no write of any kind", async () => {
     expect(Object.keys(readStore).sort()).toEqual([
-      "findLecturerByUserId", "listLecturers", "listPublishedVersionsBySemester", "listStudentGroups", "listVenues", "readPublishedEntries",
+      "findLecturerByUserId", "listLecturers", "listPublishedVersionsBySemester", "listStudentGroups", "listTeachingAccess", "listVenues", "readPublishedEntries",
     ]);
     const before = await stateSnapshot(client);
     for (const actor of [STUDENT, LECTURER, OFFICER]) {
       okRead(await readPublishedTimetable(readStore, actor, { semester: 1 }));
-      okRead(await readPublishedTimetable(readStore, actor, { semester: 1, view: "venue", id: HALL }));
-      okRead(await readPublishedTimetable(readStore, actor, { semester: 2, view: "group", id: GRP_A }));
+      const venue = await readPublishedTimetable(readStore, actor, { semester: 1, view: "venue", id: HALL });
+      if (actor.role === "OFFICER") okRead(venue);
+      else expect(venue).toEqual({ ok: false, kind: "FORBIDDEN" });
+      const group = await readPublishedTimetable(readStore, actor, { semester: 2, view: "group", id: GRP_A });
+      if (actor.role === "LECTURER") expect(group).toEqual({ ok: false, kind: "FORBIDDEN" });
+      else okRead(group);
     }
-    expect(await readPublishedTimetable(readStore, STUDENT, { semester: 1, view: "group", id: "grp-missing" })).toMatchObject({ ok: false, kind: "SELECTION_NOT_FOUND" });
+    expect(await readPublishedTimetable(readStore, OFFICER, { semester: 1, view: "group", id: "grp-missing" })).toMatchObject({ ok: false, kind: "SELECTION_NOT_FOUND" });
     expect(await stateSnapshot(client)).toEqual(before);
     expect(await client.auditLog.count()).toBe(0);
   });

@@ -50,7 +50,7 @@ const baseData = (): FakeData => ({
     entryOf("e-3", { venueId: "v-1", day: "WED", start: "10:00", end: "11:00", unitCode: "SOEN 415", unitTitle: "Interactive Design", lecturerId: "lect-B", lecturerName: "Lecturer B" }),
     entryOf("e-4", { venueId: "v-2", day: "MON", start: "10:00", end: "11:00", unitCode: "CS 202", unitTitle: "Algorithms", groupId: "group-2", groupName: "CS-Y2", venueCode: "CR2" }),
   ],
-  groups: [{ id: "group-1", name: "SE-Y4" }, { id: "group-2", name: "CS-Y2" }],
+  groups: [{ id: "group-1", name: "SE-Y4", departmentId: "dept-1" }, { id: "group-2", name: "CS-Y2", departmentId: "dept-2" }],
   lecturers: [{ id: "lect-A", userId: "user-lect-A", displayName: "Lecturer A" }, { id: "lect-B", userId: "user-lect-B", displayName: "Lecturer B" }],
   venues: [{ id: "v-1", code: "CR1" }, { id: "v-2", code: "CR2" }],
 });
@@ -59,7 +59,7 @@ const baseData = (): FakeData => ({
 
 type FakeOptions = { race?: (data: FakeData) => void; throwOn?: keyof PublishedTimetableStore; leakEntry?: PublishedEntryRow };
 type FakeStore = PublishedTimetableStore & { calls: string[]; data: FakeData };
-const READ_METHODS: (keyof PublishedTimetableStore)[] = ["listPublishedVersionsBySemester", "readPublishedEntries", "listStudentGroups", "listLecturers", "findLecturerByUserId", "listVenues"];
+const READ_METHODS: (keyof PublishedTimetableStore)[] = ["listPublishedVersionsBySemester", "readPublishedEntries", "listStudentGroups", "listLecturers", "findLecturerByUserId", "listVenues", "listTeachingAccess"];
 
 function fakeStore(build?: (data: FakeData) => void, options: FakeOptions = {}): FakeStore {
   const data = baseData();
@@ -75,6 +75,7 @@ function fakeStore(build?: (data: FakeData) => void, options: FakeOptions = {}):
       const entries = data.entries.filter((e) => e.versionId === versionId);
       return { status: "current", version: current[0], entries: options.leakEntry ? [...entries, options.leakEntry] : entries };
     },
+    listTeachingAccess: async () => data.entries.filter(e => e.groupId !== null && e.lecturerId !== null).map(e => ({ groupId: e.groupId!, lecturerId: e.lecturerId! })),
     listStudentGroups: async () => { gate("listStudentGroups"); return data.groups; },
     listLecturers: async () => { gate("listLecturers"); return data.lecturers; },
     findLecturerByUserId: async (userId) => { gate("findLecturerByUserId"); return data.lecturers.find((l) => l.userId === userId) ?? null; },
@@ -173,11 +174,11 @@ describe("role-aware defaults", () => {
   it("refuses a lecturer with no matching Lecturer record", async () => {
     const store = fakeStore();
     expect(await read(store, lecturer("user-nobody"), {})).toEqual({ ok: false, kind: "IDENTITY_UNRESOLVED", message: text("not linked to a lecturer record") });
-    expect(store.calls).toEqual(["findLecturerByUserId"]);
+    expect(store.calls).toEqual(["listStudentGroups", "findLecturerByUserId"]);
   });
   it("gives an all-scope role a deterministic available group", async () => {
     const forward = ok(await read(fakeStore(), officer, {}));
-    const reversed = ok(await read(fakeStore((d) => { d.groups = [{ id: "group-2", name: "CS-Y2" }, { id: "group-1", name: "SE-Y4" }]; }), officer, {}));
+    const reversed = ok(await read(fakeStore((d) => { d.groups = [{ id: "group-2", name: "CS-Y2", departmentId: "dept-2" }, { id: "group-1", name: "SE-Y4", departmentId: "dept-1" }]; }), officer, {}));
     expect([forward.view, forward.selectionId]).toEqual(["group", "group-1"]);
     expect(reversed.selectionId).toBe("group-1");
   });
@@ -332,5 +333,41 @@ describe("consistency, failures and read-only guarantee", () => {
     expect(functions).toEqual([...READ_METHODS].sort());
     expect((await read(store, officer, {})).ok).toBe(true);
     expect(JSON.stringify(store.data)).toBe(before);
+  });
+});
+
+describe("M4-T4h forged selection and indirect disclosure regression", () => {
+  it.each([
+    { view: "group", id: "group-2" },
+    { view: "lecturer", id: "lect-A" },
+    { view: "lecturer", id: "lect-B" },
+    { view: "venue", id: "v-1" },
+    { view: "group", id: "nonexistent" },
+  ])("student refuses forged $view/$id before publication reads", async request => {
+    const store = fakeStore();
+    expect(await read(store, student(), request)).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(store.calls).not.toContain("listPublishedVersionsBySemester");
+    expect(store.calls).not.toContain("readPublishedEntries");
+  });
+  it("student explicit own group remains usable", async () => {
+    expect(entryIds(await read(fakeStore(), student(), { view: "group", id: "group-1" }))).toEqual(["e-1", "e-3"]);
+  });
+  it.each([{ view: "lecturer", id: "lect-B" }, { view: "venue", id: "v-1" }])("lecturer refuses $view/$id", async request => {
+    expect(await read(fakeStore(), lecturer(), request)).toEqual({ ok: false, kind: "FORBIDDEN" });
+  });
+  it("lecturer group view excludes colleagues teaching the same group", async () => {
+    expect(entryIds(await read(fakeStore(), lecturer(), { view: "group", id: "group-1" }))).toEqual(["e-1"]);
+    expect(entryIds(await read(fakeStore(), lecturer(), { view: "group", id: "group-2" }))).toEqual(["e-4"]);
+  });
+  it("missing lecturer link cannot be bypassed by an explicit id", async () => {
+    expect(await read(fakeStore(), lecturer("nobody"), { view: "lecturer", id: "lect-A" })).toMatchObject({ ok: false, kind: "IDENTITY_UNRESOLVED" });
+  });
+  it.each(["DEPT_REP", "APPROVER"] as const)("%s limits group and cross-department lecturer projections", async role => {
+    const a: Actor = { id: "rep", role, departmentId: "dept-1", studentGroupId: null };
+    expect(entryIds(await read(fakeStore(), a, {}))).toEqual(["e-1", "e-3"]);
+    expect(entryIds(await read(fakeStore(), a, { view: "lecturer", id: "lect-B" }))).toEqual(["e-3"]);
+    expect(await read(fakeStore(), a, { view: "group", id: "group-2" })).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(await read(fakeStore(), a, { view: "venue", id: "v-1" })).toEqual({ ok: false, kind: "FORBIDDEN" });
+    expect(await read(fakeStore(), { ...a, departmentId: null }, { view: "group", id: "group-1" })).toMatchObject({ ok: false, kind: "IDENTITY_UNRESOLVED" });
   });
 });

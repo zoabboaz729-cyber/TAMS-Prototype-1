@@ -214,7 +214,7 @@ export function createPublishedTimetableStore(client: PrismaClient = prisma): Pu
     },
 
     async listStudentGroups(): Promise<StudentGroupChoice[]> {
-      return client.studentGroup.findMany({ orderBy: { id: "asc" }, select: { id: true, name: true } });
+      return client.studentGroup.findMany({ orderBy: { id: "asc" }, select: { id: true, name: true, departmentId: true } });
     },
 
     async listLecturers(): Promise<LecturerChoice[]> {
@@ -229,6 +229,14 @@ export function createPublishedTimetableStore(client: PrismaClient = prisma): Pu
 
     /** Id-scoped only: a venue's operational status is not this adapter's filter
      *  to apply, so a published entry's venue is never hidden by a status change. */
+    async listTeachingAccess(semester) {
+      return client.teaching.findMany({
+        where: { unit: { semester } },
+        orderBy: { id: "asc" },
+        select: { groupId: true, lecturerId: true },
+      });
+    },
+
     async listVenues(): Promise<VenueChoice[]> {
       return client.venue.findMany({ orderBy: { id: "asc" }, select: { id: true, code: true } });
     },

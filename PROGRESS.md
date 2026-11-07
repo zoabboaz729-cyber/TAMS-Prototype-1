@@ -647,3 +647,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: restrictive views require stored relationships; lecturer group view includes only own sessions; department lecturer view includes only own department groups.
 - Known problems: enforcement, page controls, integration and copy correction follow in authorized subtasks. Protected dev.db and walkthrough.db are absent in this fresh checkout; neither was created or opened.
 - Next suggested task: M4-T4h2.
+
+## 2026-11-08 M4-T4h2 Server read authorization
+- Done: enforced trusted selection and per-entry scopes before returning published sessions; added semester-scoped teaching relationship reads and shared authorized-option loading. Forged selections are FORBIDDEN before publication reads. Missing identities cannot be bypassed through explicit IDs.
+- Files changed: publishedTimetable.ts; publishedTimetableContract.ts; publishedTimetableStorePrisma.ts; publishedTimetableOptions.ts; their service, adapter, lifecycle and page fixture tests; PROGRESS.md.
+- Verify: PASS RUST_LOG=info npm run verify: typecheck/lint pass, 1323 tests across 55 files, seed integrity 11/11.
+- Decisions: existing lifecycle perspective assertions now use OFFICER for globally visible selections; added explicit denial assertions for restricted actors rather than weakening publication or read-only checks. Existing invalid-identity, publication, stale and archived-preservation assertions remain.
+- Known problems: page selectors and permission matrix are updated together in h3; browser validation and real multi-department security suite follow.
+- Next suggested task: M4-T4h3.
