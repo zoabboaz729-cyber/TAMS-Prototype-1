@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { TimetableVersionStatus } from "@/domain/types";
 import type { DraftPublishResult, PublishStaleReason } from "@/server/draftPublishContract";
 
@@ -114,7 +115,7 @@ export function describePublishResult(result: DraftPublishResult): PublishOutcom
         `Version ${result.versionId} is stored as ${STATUS_WORDS.PUBLISHED}, so it is no longer an editable DRAFT and leaves the draft picker.`,
       ],
       groups: [],
-      nextStep: "This page has reloaded to the server-verified published state. The published timetable view itself is a later task.",
+      nextStep: "This page has reloaded to the server-verified published state. Open the published timetable to review the current version for this semester.",
     };
   }
   return {
@@ -169,6 +170,7 @@ export function PublishResultPanel({ result }: { result: DraftPublishResult | nu
       )}
       <DetailGroups groups={view.groups} />
       <p className="mt-2 text-xs font-medium">{view.nextStep}</p>
+      {result.ok && <Link href={`/timetable?semester=${result.semester}`} className="mt-3 inline-block font-semibold underline focus:outline-none focus:ring-2 focus:ring-indigo-500">View current published timetable</Link>}
     </section>
   );
 }
@@ -207,7 +209,7 @@ export function describePublishedPanel(state: PublishedPanelState): PublishedPan
         `${pluralEntries(state.entryCount)} ${isAre(state.entryCount)} stored under this version and ${state.entryCount === 1 ? "was" : "were"} left unchanged.`,
         "It is no longer a DRAFT, so it does not appear in the draft editor's version picker.",
       ],
-      nextStep: "Open the draft editor to work on another draft. The published timetable view itself is a later task.",
+      nextStep: "Open the published timetable to review the current version for this semester, or return to the draft editor to work on another draft.",
     };
   }
   if (state.kind === "absent") {
@@ -242,6 +244,7 @@ export function PublishedVersionPanel({ state }: { state: PublishedPanelState })
       <h2 id="published-state-heading" className="text-sm font-semibold">{view.heading}</h2>
       <ul className="mt-2 list-disc space-y-1 pl-5">{view.facts.map((fact) => (<li key={fact}>{fact}</li>))}</ul>
       <p className="mt-2 text-xs font-medium">{view.nextStep}</p>
+      {state.kind === "verified" && <Link href={`/timetable?semester=${state.semester}`} className="mt-3 inline-block font-semibold underline focus:outline-none focus:ring-2 focus:ring-indigo-500">View current published timetable</Link>}
       <p className="mt-3 text-xs">
         <a href="/officer/draft" className="text-indigo-700 underline hover:text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">Back to the draft editor</a>
       </p>

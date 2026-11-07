@@ -4,7 +4,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 
 ## Status
 - Current milestone: M4
-- Last verified code commit: M4-T2b at the tip of `m4-generator-versions`; M4-T2a, M4-T1c, M4-T1, M3-T2b3c, M3-T2b3b, M3-T2b3a, M3-T2b2a, M3-T2b2, M3-T2c1, M3-T2b1a, M3-T2b1, M3-T2a, M3-T1b, M3-T1a and M3-T1 are the entries below it
+- Last verified code task: M4-T4h5 on `m4-generator-versions`; automated verification and build pass; live browser security acceptance pending (see docs/M4-T4h.md).
 - Demo-ready: no
 
 ## Log
@@ -640,7 +640,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Known problems: required desktop/mobile rendering and increased-zoom readability remain unverified; D1 stale copy; D2 desktop alignment risk; missing-identity and manual stale browser states were not exercised; the Next.js dev-tools overlay appears in development screenshots.
 - Next suggested task: supervisor review of M4-T4g evidence; if the limitation is not acceptable, authorize M4-T4g1 viewport-capable re-verification and narrowly bounded corrections. Do not begin M5.
 
-## 2026-11-08 M4-T4h1 Security contract
+## 2026-11-07 M4-T4h1 Security contract
 - Done: added pure least-privilege selection and per-entry policies with eight positive, boundary and negative tests; production service remains unchanged in this commit.
 - Files changed: src/domain/publishedTimetableAccess.ts; src/domain/__tests__/publishedTimetableAccess.test.ts; DECISIONS.md; PROGRESS.md.
 - Verify: PASS with RUST_LOG=info npm run verify: 1311 tests in 55 files; seed integrity 11/11; typecheck and lint pass. The inherited RUST_LOG=warn,codex_exec_server::remote=info causes the Prisma schema engine to exit during fixture creation. A controlled same-command probe confirmed RUST_LOG=info resolves this environment issue; no code workaround or dependency change.
@@ -648,7 +648,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Known problems: enforcement, page controls, integration and copy correction follow in authorized subtasks. Protected dev.db and walkthrough.db are absent in this fresh checkout; neither was created or opened.
 - Next suggested task: M4-T4h2.
 
-## 2026-11-08 M4-T4h2 Server read authorization
+## 2026-11-07 M4-T4h2 Server read authorization
 - Done: enforced trusted selection and per-entry scopes before returning published sessions; added semester-scoped teaching relationship reads and shared authorized-option loading. Forged selections are FORBIDDEN before publication reads. Missing identities cannot be bypassed through explicit IDs.
 - Files changed: publishedTimetable.ts; publishedTimetableContract.ts; publishedTimetableStorePrisma.ts; publishedTimetableOptions.ts; their service, adapter, lifecycle and page fixture tests; PROGRESS.md.
 - Verify: PASS RUST_LOG=info npm run verify: typecheck/lint pass, 1323 tests across 55 files, seed integrity 11/11.
@@ -656,7 +656,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Known problems: page selectors and permission matrix are updated together in h3; browser validation and real multi-department security suite follow.
 - Next suggested task: M4-T4h3.
 
-## 2026-11-08 M4-T4h3 Role-aware page controls and permission matrix
+## 2026-11-07 M4-T4h3 Role-aware page controls and permission matrix
 - Done: changed VIEW_TIMETABLE scopes to OWN_GROUP / OWN_CLASSES / OWN_DEPARTMENT; switched page entry to requireAnyAction with resource authorization retained in the service. Shared relationship policy restricts server-rendered options. Students receive semester-only controls; lecturer and department venue selectors are absent; officer/admin full read views remain.
 - Files changed: permissions.ts; permissions.test.ts; menu.test.ts; timetable/page.tsx; PublishedTimetableControls.tsx; publishedTimetablePage.test.tsx; PROGRESS.md.
 - Verify: PASS RUST_LOG=info npm run verify: typecheck/lint pass; 1333 tests in 55 files; seed integrity 11/11. Ten page regressions added, including forged URLs and indirect session disclosure.
@@ -664,10 +664,21 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Known problems: live browser retest and multi-department real-database test remain in the authorized bundle.
 - Next suggested task: M4-T4h4.
 
-## 2026-11-08 M4-T4h4 Integrated security regression
+## 2026-11-07 M4-T4h4 Integrated security regression
 - Done: added an exclusive disposable SQLite suite with two departments, three groups, cross-department lecturers, semester-specific teaching, two current publications, a draft and an archive. Eighteen tests exercise real relationships, strict request validation, permitted and forged selections, scoped options, per-session filtering, missing links, admin/officer oversight and write-free reads. Existing lifecycle suite still proves real publish/archive/current-version transitions and default student/lecturer reads after publication.
 - Files changed: src/server/__tests__/publishedTimetableSecurity.test.ts; PROGRESS.md.
 - Verify: PASS RUST_LOG=info npm run verify: typecheck/lint pass; 1351 tests in 56 files; seed integrity 11/11.
 - Decisions: cross-department relevance is determined by the student group department, so visiting/service lecturers appear only with the relevant sessions. All test data are synthetic.
 - Known problems: live browser security retest cannot run because the browser URL policy blocks the local app. No browser claim is made from static rendering or database tests.
 - Next suggested task: M4-T4h5 copy correction, final checks, documentation and browser handoff.
+
+## 2026-11-07 M4-T4h5 Copy correction and verification handoff
+- Done: corrected D1 in both publication-success presentations, with semester-specific links to the current published timetable; added two navigation regressions; documented the access contract, verification, deferred work, pull instructions and browser checklist in docs/M4-T4h.md. Preserved the user-reported pre-amendment 24/24 manual result; D2 was not reproduced by that user acceptance and no grid layout change was made.
+- Files changed: src/app/officer/draft/DraftPublishOutcome.tsx; src/server/__tests__/draftPublishUi.test.ts; docs/M4-T4h.md; docs/M4-T4h-verification.txt; DECISIONS.md; PROGRESS.md.
+- Verify: PASS RUST_LOG=info npm run verify: typecheck pass; lint pass; 1353/1353 tests across 56 files; seed integrity 11/11; production build PASS (19/19 pages generated). Full actual output is in docs/M4-T4h-verification.txt. npm run dev reached Ready on port 3100 and was stopped before the build. git diff --check passed.
+- Decisions: no dependencies, schema, migrations, seed data or PROTOTYPE_SPEC changes; admin scheduling oversight is explicitly read-only under the unchanged mutation matrix. The final amendment changes 22 files, covered by user authorization for more than 20 if necessary.
+- Known problems: browser URL policy blocked the local app, so amended live browser acceptance remains pending. No policy workaround was attempted. Relationship reads and publication reads are separate snapshots; no simultaneous ownership-change race or load guarantee is claimed. Do not close M4-T4h browser acceptance or start M5 from automated results alone.
+- Cleanup: dev server stopped; integration suites remove their own exclusive temporary databases. Only this task-created browser directory and three environment-probe directories were removed during final cleanup. No tracked repository file was deleted. Protected dev.db and walkthrough.db were absent from this checkout and never opened or created.
+- Next suggested task: execute the documented browser acceptance checklist against a disposable synthetic database, then review M4 closure before M5.
+
+- Publication handoff for M4-T4h5: GitHub tree creation was refused with HTTP 403 Resource not accessible by integration. Direct git push also failed with no password/write credential. Remote m4-generator-versions remained at 2b0e28f; no remote commit or ref was changed. The five-commit patch is the deliverable until a user-authorized write credential is available.

@@ -448,3 +448,21 @@ describe("the accepted server boundary stays the only door (requirements 1, 4)",
     expect(`${form}${outcome}${page ?? ""}`).not.toContain("confirm(");
   });
 });
+
+
+describe("M4-T4h D1 current publication navigation", () => {
+  it("successful publication offers the current timetable for its semester", () => {
+    const result = { ok: true, versionId: "published-s2", semester: 2, archivedVersionIds: [], publishedAt: PUBLISHED_AT } as const;
+    const markup = render(createElement(PublishResultPanel, { result: { ...result, archivedVersionIds: [] } }));
+    expect(markup).toContain('href="/timetable?semester=2"');
+    expect(markup).toContain("View current published timetable");
+    expect(markup).not.toContain("later task");
+  });
+  it("verified publication offers navigation while unverified states never imply publication success", () => {
+    const markup = render(createElement(PublishedVersionPanel, { state: { kind: "verified", versionId: "v", semester: 1, publishedAt: PUBLISHED_AT, entryCount: 2 } }));
+    expect(markup).toContain('href="/timetable?semester=1"');
+    expect(markup).not.toContain("later task");
+    const absent = render(createElement(PublishedVersionPanel, { state: { kind: "absent", versionId: "gone" } }));
+    expect(absent).not.toContain("View current published timetable");
+  });
+});
