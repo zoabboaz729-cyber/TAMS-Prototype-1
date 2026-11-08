@@ -1,4 +1,6 @@
 /** Server orchestration: trusted actor, strict request, one snapshot, redacted output. */
+import { M6Error } from "./m6Errors";
+import { campusDateTime, inTerm, termFor, weekday } from "@/domain/termCalendar";
 import { decideAnyAccess } from "@/domain/access";
 import type { Actor } from "@/domain/permissions";
 import { UserRoleSchema } from "@/domain/types";
@@ -26,13 +28,16 @@ export async function readVenueStatus(
   if (!UserRoleSchema.safeParse(actor.role).success || !actor.id || decideAnyAccess(actor, "VIEW_VENUE_STATUS").status !== "ALLOW") return fail("FORBIDDEN");
   const request = VenueStatusRequestSchema.safeParse(input);
   if (!request.success) return fail("INVALID_INPUT");
-  const q = request.data, mode = q.mode ?? "live";
+  const q = request.data, mode = q.mode === "demo-date" ? "demo" : q.mode ?? "live";
   if (mode === "demo" && !canUseVenueDemoClock(actor)) return fail("FORBIDDEN");
   try {
-    const clock = VenueClockSchema.safeParse(q.mode === "demo" ? { day: q.day, time: q.time } : campusVenueClock(now()));
+    const instant = mode === "live" ? now() : null;
+    const date = q.mode === "demo-date" ? q.date : mode === "live" ? campusDateTime(instant!).date : undefined;
+    if (q.mode === "demo-date" && !inTerm(q.date,termFor(Number(q.semester)))) return fail("INVALID_INPUT");
+    const clock = VenueClockSchema.safeParse(q.mode === "demo-date" ? { day: weekday(q.date), time: q.time } : q.mode === "demo" ? { day: q.day, time: q.time } : campusVenueClock(instant!));
     if (!clock.success) return fail("INVALID_CLOCK");
     const semester = Number(q.semester);
-    const data = VenueStatusSnapshotSchema.safeParse(await store.readSnapshot(semester));
+    const data = VenueStatusSnapshotSchema.safeParse(await (date && store.readDatedSnapshot ? store.readDatedSnapshot(semester,date) : store.readSnapshot(semester)));
     if (!data.success) return fail("INVALID_PUBLISHED_DATA");
     const { versions, entries } = data.data;
     if (versions.length === 0) return fail("NO_PUBLISHED_VERSION");
@@ -60,8 +65,9 @@ export async function readVenueStatus(
     const asOf = clock.data;
     const outsideHours = !DEFAULT_VENUE_STATUS_POLICY.days.some((d) => d === asOf.day) || asOf.time < DEFAULT_VENUE_STATUS_POLICY.slotStart || asOf.time >= DEFAULT_VENUE_STATUS_POLICY.slotEnd;
     return { ok: true, semester, publication: { id: pub.id, publishedAt: pub.publishedAt.toISOString() },
-      mode, asOf, outsideHours, rows, ...(canUseVenueDemoClock(actor) ? { integrityCount } : {}) };
-  } catch {
+      mode, asOf, outsideHours, rows, ...(data.data.actualDate ? { actualDate:data.data.actualDate,dateApplied:data.data.dateApplied } : {}), ...(canUseVenueDemoClock(actor) ? { integrityCount } : {}) };
+  } catch (error) {
+    if (error instanceof M6Error && error.code === "DATE_OUT_OF_TERM") return fail("OUTSIDE_TERM");
     // No exception logging: DB paths, SQL and credentials must never cross this boundary.
     return fail("INTERNAL_ERROR");
   }

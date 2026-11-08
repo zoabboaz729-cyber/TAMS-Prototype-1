@@ -1,0 +1,262 @@
+FINAL FULL VERIFICATION OUTPUT
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> tams-prototype@0.1.0 verify
+> npm run typecheck && npm run lint && npm run test && npm run seed:check
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> tams-prototype@0.1.0 typecheck
+> tsc --noEmit
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> tams-prototype@0.1.0 lint
+> next lint
+
+`next lint` is deprecated and will be removed in Next.js 16.
+For new projects, use create-next-app to choose your preferred linter.
+For existing projects, migrate to the ESLint CLI:
+npx @next/codemod@canary next-lint-to-eslint-cli .
+
+✔ No ESLint warnings or errors
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> tams-prototype@0.1.0 test
+> vitest run
+
+
+ RUN  v3.2.7 /workspace/scratch/3a1c8c4993ee/tams
+
+stdout | src/server/__tests__/publishedTimetableLifecycle.test.ts > published timetable lifecycle on one disposable SQLite database
+[M4-T4f] disposable database: /tmp/tams-m4t4f-life-Px25Wl/timetable.db
+
+ ✓ src/server/__tests__/publishedTimetableSecurity.test.ts (18 tests) 1821ms
+stdout | src/server/__tests__/venueStatusStorePrisma.test.ts > M5-T2b real isolated SQLite snapshot > records measured full-board read duration without an SLA assertion
+M5 measurement: 9 venues, 1 current entry, 20 sequential SQLite full-board reads, 90.40 ms; linux x64, Node v24.22.1. No production load guarantee.
+
+ ✓ src/server/__tests__/venueStatusStorePrisma.test.ts (22 tests) 1936ms
+stdout | src/server/__tests__/publishedTimetableLifecycle.test.ts > published timetable lifecycle on one disposable SQLite database
+[M4-T4f] cleanup removed /tmp/tams-m4t4f-life-Px25Wl: true
+
+ ✓ src/server/__tests__/publishedTimetableLifecycle.test.ts (26 tests) 3489ms
+ ✓ src/server/__tests__/draftGenerateStorePrisma.test.ts (21 tests) 3511ms
+ ✓ src/server/__tests__/publishedTimetableStorePrisma.test.ts (31 tests) 3658ms
+ ✓ src/server/__tests__/draftMove.test.ts (46 tests) 1455ms
+stderr | src/server/__tests__/draftGenerate.test.ts > complete generation and persistence contract > reports a store failure as INTERNAL_ERROR without claiming a version
+[draftGenerate] generate failed: store down
+
+ ✓ src/server/__tests__/draftAdd.test.ts (39 tests) 1714ms
+stderr | src/server/__tests__/draftGenerate.test.ts > concurrency and store failure > reports INTERNAL_ERROR when a read fails, never as an empty dataset
+[draftGenerate] generate failed: store down
+
+stderr | src/server/__tests__/draftGenerate.test.ts > concurrency and store failure > reports INTERNAL_ERROR when a read fails, never as an empty dataset
+[draftGenerate] generate failed: store down
+
+stderr | src/server/__tests__/draftGenerate.test.ts > concurrency and store failure > reports INTERNAL_ERROR when a read fails, never as an empty dataset
+[draftGenerate] generate failed: store down
+
+stderr | src/server/__tests__/draftGenerate.test.ts > concurrency and store failure > reports INTERNAL_ERROR when a read fails, never as an empty dataset
+[draftGenerate] generate failed: store down
+
+stderr | src/server/__tests__/draftGenerate.test.ts > concurrency and store failure > reports INTERNAL_ERROR when a read fails, never as an empty dataset
+[draftGenerate] generate failed: store down
+
+ ✓ src/server/__tests__/draftGenerate.test.ts (25 tests) 119ms
+ ✓ src/server/__tests__/publishedWeekTable.test.tsx (32 tests) 228ms
+ ✓ src/server/__tests__/password.test.ts (4 tests) 494ms
+ ✓ src/server/__tests__/publishedTimetablePage.test.tsx (46 tests) 324ms
+ ✓ src/domain/__tests__/generator.test.ts (28 tests) 159ms
+ ✓ src/server/__tests__/m6Pages.test.tsx (4 tests) 34ms
+ ✓ src/server/__tests__/draftGenerateActions.test.ts (43 tests) 64ms
+ ✓ src/server/__tests__/venueStatusPage.test.tsx (40 tests) 123ms
+ ✓ src/server/__tests__/venueStatus.test.ts (56 tests) 50ms
+ ✓ src/server/__tests__/draftPublishStorePrisma.test.ts (38 tests) 4935ms
+ ✓ src/server/__tests__/draftPublishActions.test.ts (58 tests) 50ms
+ ✓ src/server/__tests__/draftPublishUi.test.ts (38 tests) 84ms
+ ✓ src/domain/__tests__/menu.test.ts (26 tests) 36ms
+ ✓ src/domain/__tests__/termCalendar.test.ts (11 tests) 27ms
+ ✓ src/server/__tests__/draftAddActions.test.ts (29 tests) 34ms
+ ✓ src/server/__tests__/draftGenerateUi.test.ts (28 tests) 68ms
+ ✓ src/server/__tests__/m6Lifecycle.test.ts (83 tests) 5372ms
+stderr | src/server/__tests__/draftPublish.test.ts > target version status > reports an unreadable stored status as INTERNAL_ERROR instead of guessing
+[draftPublish] publication failed; returning INTERNAL_ERROR
+
+ ✓ src/domain/__tests__/venueStatus.test.ts (54 tests) 42ms
+ ✓ src/server/__tests__/submissionWrite.test.ts (24 tests) 20ms
+stderr | src/server/__tests__/draftPublish.test.ts > stale protection and failure handling > reports every store failure as INTERNAL_ERROR without claiming a publication
+[draftPublish] publication failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/draftPublish.test.ts > stale protection and failure handling > reports every store failure as INTERNAL_ERROR without claiming a publication
+[draftPublish] publication failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/draftPublish.test.ts > stale protection and failure handling > reports every store failure as INTERNAL_ERROR without claiming a publication
+[draftPublish] publication failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/draftPublish.test.ts > stale protection and failure handling > reports every store failure as INTERNAL_ERROR without claiming a publication
+[draftPublish] publication failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/draftPublish.test.ts > stale protection and failure handling > reports every store failure as INTERNAL_ERROR without claiming a publication
+[draftPublish] publication failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/draftPublish.test.ts > stale protection and failure handling > reports every store failure as INTERNAL_ERROR without claiming a publication
+[draftPublish] publication failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/draftPublish.test.ts > stale protection and failure handling > reports every store failure as INTERNAL_ERROR without claiming a publication
+[draftPublish] publication failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/draftPublish.test.ts > stale protection and failure handling > reports every store failure as INTERNAL_ERROR without claiming a publication
+[draftPublish] publication failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/draftPublish.test.ts > stale protection and failure handling > fails closed when the published-version read leaks another semester
+[draftPublish] publication failed; returning INTERNAL_ERROR
+
+ ✓ src/server/__tests__/m6Migration.test.ts (7 tests) 5690ms
+   ✓ M6 additive SQLite migration > duplicate historical pending rows abort without erasing requests  1000ms
+ ✓ src/server/__tests__/draftPublish.test.ts (38 tests) 31ms
+stderr | src/server/__tests__/publishedTimetable.test.ts > published-version selection > fails closed on a stored version with an unreadable status
+[publishedTimetable] read failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/publishedTimetable.test.ts > published-version selection > fails closed when the version read leaks another semester
+[publishedTimetable] read failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/publishedTimetable.test.ts > published-version selection > never presents a DRAFT or ARCHIVED re-read as the current publication
+[publishedTimetable] read failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/publishedTimetable.test.ts > published-version selection > never presents a DRAFT or ARCHIVED re-read as the current publication
+[publishedTimetable] read failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/publishedTimetable.test.ts > consistency, failures and read-only guarantee > reports every store failure as INTERNAL_ERROR without leaking details
+[publishedTimetable] read failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/publishedTimetable.test.ts > consistency, failures and read-only guarantee > reports every store failure as INTERNAL_ERROR without leaking details
+[publishedTimetable] read failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/publishedTimetable.test.ts > consistency, failures and read-only guarantee > reports every store failure as INTERNAL_ERROR without leaking details
+[publishedTimetable] read failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/publishedTimetable.test.ts > consistency, failures and read-only guarantee > reports every store failure as INTERNAL_ERROR without leaking details
+[publishedTimetable] read failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/publishedTimetable.test.ts > consistency, failures and read-only guarantee > reports every store failure as INTERNAL_ERROR without leaking details
+[publishedTimetable] read failed; returning INTERNAL_ERROR
+
+stderr | src/server/__tests__/publishedTimetable.test.ts > consistency, failures and read-only guarantee > reports every store failure as INTERNAL_ERROR without leaking details
+[publishedTimetable] read failed; returning INTERNAL_ERROR
+
+ ✓ src/server/__tests__/publishedTimetable.test.ts (42 tests) 23ms
+ ✓ src/domain/__tests__/occurrences.test.ts (12 tests) 19ms
+ ✓ src/domain/__tests__/permissions.test.ts (35 tests) 17ms
+ ✓ src/domain/__tests__/lecturerAvailability.test.ts (40 tests) 13ms
+ ✓ src/server/__tests__/submissionActions.test.ts (17 tests) 21ms
+ ✓ src/domain/__tests__/seed-check.test.ts (11 tests) 20ms
+ ✓ src/server/__tests__/venueWrite.test.ts (35 tests) 29ms
+ ✓ src/server/__tests__/draftMoveActions.test.ts (28 tests) 34ms
+ ✓ src/domain/__tests__/rescheduleRules.test.ts (2 tests) 18ms
+ ✓ src/server/__tests__/session.test.ts (14 tests) 10ms
+ ✓ src/domain/__tests__/venueSchema.test.ts (22 tests) 11ms
+ ✓ src/server/__tests__/lecturerAvailability.test.ts (47 tests) 27ms
+ ✓ src/domain/__tests__/publishedWeekGrid.test.ts (47 tests) 21ms
+ ✓ src/domain/__tests__/venueForm.test.ts (22 tests) 9ms
+ ✓ src/server/__tests__/draftValidation.test.ts (39 tests) 16ms
+ ✓ src/server/__tests__/draftPublishFingerprint.test.ts (13 tests) 13ms
+ ✓ src/server/__tests__/draftPublishReadinessCopy.test.ts (14 tests) 12ms
+ ✓ src/domain/__tests__/venueRules.test.ts (32 tests) 15ms
+ ✓ src/domain/__tests__/submissionRules.test.ts (21 tests) 8ms
+ ✓ src/domain/__tests__/access.test.ts (19 tests) 9ms
+ ✓ src/domain/__tests__/validator.test.ts (28 tests) 18ms
+ ✓ src/domain/__tests__/types.test.ts (15 tests) 10ms
+ ✓ src/domain/__tests__/submissionView.test.ts (24 tests) 11ms
+ ✓ src/domain/__tests__/venueRegister.test.ts (10 tests) 8ms
+ ✓ src/domain/__tests__/generatorFixed.test.ts (12 tests) 11ms
+ ✓ src/domain/__tests__/draftViolations.test.ts (12 tests) 5ms
+ ✓ src/server/__tests__/venueSubmission.test.ts (15 tests) 10ms
+ ✓ src/server/__tests__/loginSchema.test.ts (6 tests) 8ms
+ ✓ src/domain/__tests__/publishedTimetableAccess.test.ts (8 tests) 4ms
+ ✓ src/domain/__tests__/venueOwnerOptions.test.ts (15 tests) 5ms
+ ✓ src/domain/__tests__/venueAudit.test.ts (13 tests) 6ms
+ ✓ src/server/__tests__/demoMode.test.ts (20 tests) 4ms
+ ✓ src/server/__tests__/m6Actions.test.ts (12 tests) 7ms
+ ✓ src/domain/__tests__/issueRules.test.ts (10 tests) 5ms
+ ✓ src/server/__tests__/venueFormView.test.ts (16 tests) 5ms
+ ✓ src/domain/__tests__/venueFilterParams.test.ts (7 tests) 9ms
+ ✓ src/domain/__tests__/roles.test.ts (5 tests) 3ms
+ ✓ src/server/__tests__/email.test.ts (4 tests) 3ms
+ ✓ src/domain/__tests__/baseline.test.ts (1 test) 3ms
+ ✓ src/server/__tests__/origin.test.ts (12 tests) 5ms
+
+ Test Files  68 passed (68)
+      Tests  1672 passed (1672)
+   Start at  16:39:54
+   Duration  7.71s (transform 3.24s, setup 0ms, collect 8.10s, tests 36.05s, environment 12ms, prepare 4.91s)
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> tams-prototype@0.1.0 seed:check
+> vitest run src/domain/__tests__/seed-check.test.ts
+
+
+ RUN  v3.2.7 /workspace/scratch/3a1c8c4993ee/tams
+
+ ✓ src/domain/__tests__/seed-check.test.ts (11 tests) 10ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  16:40:02
+   Duration  352ms (transform 59ms, setup 0ms, collect 64ms, tests 10ms, environment 0ms, prepare 103ms)
+
+
+FINAL PRODUCTION BUILD OUTPUT
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> tams-prototype@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.28
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 2.8s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/19) ...
+   Generating static pages (4/19)
+   Generating static pages (9/19)
+   Generating static pages (14/19)
+ ✓ Generating static pages (19/19)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                      168 B         106 kB
+├ ƒ /_not-found                            993 B         104 kB
+├ ƒ /admin                                 143 B         103 kB
+├ ƒ /api/auth/login                        143 B         103 kB
+├ ƒ /api/auth/logout                       143 B         103 kB
+├ ƒ /api/demo/switch                       143 B         103 kB
+├ ƒ /department/review                    1.7 kB         104 kB
+├ ƒ /department/submission               1.21 kB         104 kB
+├ ƒ /forbidden                             168 B         106 kB
+├ ƒ /issues                                984 B         107 kB
+├ ƒ /issues/new                            964 B         104 kB
+├ ƒ /lecturer/availability               2.69 kB         118 kB
+├ ƒ /lecturer/reschedule                 1.66 kB         104 kB
+├ ƒ /login                                 143 B         103 kB
+├ ƒ /officer                               143 B         103 kB
+├ ƒ /officer/draft                       11.3 kB         130 kB
+├ ƒ /officer/reschedules                   984 B         107 kB
+├ ƒ /officer/submissions                   143 B         103 kB
+├ ƒ /timetable                             143 B         103 kB
+├ ƒ /timetable/date                        168 B         106 kB
+├ ƒ /venues                                162 B         106 kB
+├ ƒ /venues/[id]/edit                    2.59 kB         122 kB
+├ ƒ /venues/new                          2.59 kB         122 kB
+└ ƒ /venues/status                       2.05 kB         118 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/255-b1e2483a7e02feee.js       46.6 kB
+  ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
+  └ other shared chunks (total)          1.92 kB
+
+
+ƒ  (Dynamic)  server-rendered on demand

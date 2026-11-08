@@ -291,7 +291,7 @@ function PageShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-[calc(100vh-8rem)] p-4 sm:p-6">
       <div className="mx-auto max-w-6xl">
-        <h1 className="text-xl font-bold text-slate-800">Published timetable</h1>
+        <h1 className="text-xl font-bold text-slate-800">Published timetable</h1><p><a className="underline" href="/timetable/date">Schedule for a date (effective occurrences)</a> · Recurring weekly template shown below.</p>
         <p className="mt-1 text-sm text-slate-600">
           View the current published weekly timetable within your permitted group, teaching or department scope.
           This page is read-only: it never edits, generates or publishes a timetable.

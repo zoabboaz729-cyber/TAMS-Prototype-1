@@ -1,18 +1,22 @@
 /** M5 read-only contract. No raw timetable or actor-controlled publication selector. */
 import { z } from "zod";
+import { ISODateSchema } from "@/domain/termCalendar";
 import { VenueClockSchema, type VenueClock, type VenueStatusResult } from "@/domain/venueStatus";
 const semester = z.enum(["1", "2"]).default("1");
 export const VenueStatusRequestSchema = z.union([
   z.object({ semester, mode: z.literal("live").optional() }).strict(),
   z.object({ semester, mode: z.literal("demo"), day: z.string(), time: z.string() }).strict(),
+  z.object({ semester, mode: z.literal("demo-date"), date: ISODateSchema, time: z.string() }).strict(),
 ]);
 export type VenueStatusRequest = z.infer<typeof VenueStatusRequestSchema>;
 export type VenueStatusFailureKind = "UNAUTHENTICATED" | "FORBIDDEN" | "INVALID_INPUT" | "INVALID_CLOCK" |
-  "NO_PUBLISHED_VERSION" | "AMBIGUOUS_PUBLISHED_VERSION" | "INVALID_PUBLISHED_DATA" | "INTERNAL_ERROR";
+  "OUTSIDE_TERM" | "NO_PUBLISHED_VERSION" | "AMBIGUOUS_PUBLISHED_VERSION" | "INVALID_PUBLISHED_DATA" | "INTERNAL_ERROR";
 export type VenueStatusFailure = { ok: false; kind: VenueStatusFailureKind; message: string };
 /** Unknown return is intentional: the service validates persisted data before deriving availability. */
-export interface VenueStatusStore { readSnapshot(semester: number): Promise<unknown> }
+export interface VenueStatusStore { readSnapshot(semester: number): Promise<unknown>; readDatedSnapshot?(semester: number,date: string): Promise<unknown> }
 export const VenueStatusSnapshotSchema = z.object({
+  actualDate: z.string().optional(),
+  dateApplied: z.boolean().optional(),
   versions: z.array(z.object({ id: z.string().min(1), semester: z.number().int(), status: z.string(), publishedAt: z.date().nullable() })),
   venues: z.array(z.unknown()),
   entries: z.array(z.object({
@@ -28,10 +32,12 @@ export type VenueStatusRow = {
 export type VenueStatusBoard = {
   ok: true; semester: number; publication: { id: string; publishedAt: string };
   mode: "live" | "demo"; asOf: z.infer<typeof VenueClockSchema>; outsideHours: boolean;
+  actualDate?: string; dateApplied?: boolean;
   rows: VenueStatusRow[]; integrityCount?: number;
 };
 export type VenueStatusBoardResult = VenueStatusBoard | VenueStatusFailure;
 export const VENUE_STATUS_MESSAGES: Record<VenueStatusFailureKind, string> = {
+  OUTSIDE_TERM: "This date is outside the configured synthetic term. Choose a supported demonstration date or ask an officer to configure the term; actual availability cannot be inferred.",
   UNAUTHENTICATED: "Sign in to view venue status.",
   FORBIDDEN: "This venue clock is not permitted for your account. Return to live status or contact an officer.",
   INVALID_INPUT: "Invalid venue status request. Choose semester 1 or 2 and use only the labelled clock controls.",

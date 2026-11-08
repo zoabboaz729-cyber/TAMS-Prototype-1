@@ -258,11 +258,13 @@ export async function performDraftPublish(
     // nothing. The fingerprint is what the store must reproduce from its own
     // reads inside the transaction before it is allowed to write.
     const publishedAt = now();
+    const m6 = store.readM6Guard ? await store.readM6Guard(version.id, publishedAt) : null;
+    if (m6?.problem) return { ok: false, kind: "INVALID_INPUT", message: `${m6.problem}. Refresh the source and repair the dated draft before publishing.` };
     const input: PublishTransactionInput = {
       versionId: version.id,
       semester: version.semester,
       publishedAt,
-      expected: { snapshotFingerprint: publishSnapshotFingerprint(snapshot), publishedVersionIds, policy },
+      expected: { snapshotFingerprint: publishSnapshotFingerprint(snapshot), publishedVersionIds, policy, ...(m6 ? { m6Fingerprint: m6.fingerprint } : {}) },
       audit: {
         actorId: actor.id,
         action: "TIMETABLE_PUBLISH",

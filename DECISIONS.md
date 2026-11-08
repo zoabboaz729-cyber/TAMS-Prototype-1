@@ -824,3 +824,172 @@
 - Attribution: this is user-reported acceptance, not an agent-run browser test. The report did not include browser/version, viewport, fixture, individual checklist results or additional observations; those details are not inferred.
 - Decision: retain every section-13 limitation and rely on the existing automated evidence plus the T2g verification recorded in PROGRESS. Closure is not production, institutional-policy, privacy, load, concurrency or deployment certification.
 - Git scope: the user authorized this M5 documentation commit and push, a local merge into master, and creation/publication of m6-change-handling. No M6 implementation is part of this closure task.
+
+
+## 2026-11-08 M6-T0 Approved revision-2 implementation scope
+- Owner authorized the entire M6 blueprint and exempted the five-file limit; separate task commits remain required.
+- Base: m6-change-handling at 2f2df40f5b4910d6d44d2f8befa8db6f5896c0dd; M5 accepted per T2g.
+- Calendar choice: explicitly synthetic semester 1, 2026-09-01 through 2026-12-18, Africa/Nairobi. Semester 2 dated changes fail closed until configured.
+- Verify: PASS, typecheck/lint, 1566 tests/61 files including staged M6 pure rules in the working tree, seed 11/11 (core-verify2.txt). No protected database opened.
+- Plan: additive schema/domain foundation; rescheduling services; M4/M5/date integration; issue workflow; presentation and lifecycle verification; patch replay delivery. No new dependencies, no M7. Manual browser acceptance remains owner-performed.
+
+
+## 2026-11-08 M6-T1a add canonical campus dates and synthetic term calendar
+- Done: add canonical campus dates and synthetic term calendar. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/domain/termCalendar.ts, src/domain/__tests__/termCalendar.test.ts, docs/M6-IMPLEMENTATION.md.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1b add atomic additive occurrence and request migration
+- Done: add atomic additive occurrence and request migration. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: prisma/schema.prisma, prisma/migrations/20261108160000_m6_changes/migration.sql, src/server/__tests__/m6Migration.test.ts.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1c project and validate effective dated occurrences with M3
+- Done: project and validate effective dated occurrences with M3. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/domain/occurrences.ts, src/domain/__tests__/occurrences.test.ts.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1e validate strict weekly and one-off request proposals
+- Done: validate strict weekly and one-off request proposals. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/domain/rescheduleRules.ts, src/domain/__tests__/rescheduleRules.test.ts.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1f load complete schedule snapshots and centralize typed failures
+- Done: load complete schedule snapshots and centralize typed failures. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/server/m6Snapshot.ts, src/server/m6Errors.ts.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1h create audited immutable reschedule draft candidates transactionally
+- Done: create audited immutable reschedule draft candidates transactionally. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/server/rescheduleService.ts.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1n extend M4 publication with dated validation and stale-source snapshots
+- Done: extend M4 publication with dated validation and stale-source snapshots. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/server/draftPublishContract.ts, src/server/draftPublish.ts, src/server/draftPublishStorePrisma.ts, src/server/m6Publication.ts.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1j add same-origin reschedule actions and lecturer-officer workspaces
+- Done: add same-origin reschedule actions and lecturer-officer workspaces. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/server/m6ActionAuth.ts, src/components/M6Form.tsx, src/app/lecturer/reschedule/actions.ts, src/app/lecturer/reschedule/RescheduleForm.tsx, src/app/lecturer/reschedule/page.tsx, src/app/officer/reschedules/actions.ts, src/app/officer/reschedules/page.tsx.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1q add protected effective-date timetable reads and presentation
+- Done: add protected effective-date timetable reads and presentation. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/server/datedTimetable.ts, src/app/timetable/date/page.tsx, src/app/timetable/page.tsx.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1t apply published dated exceptions to live and simulated venue status
+- Done: apply published dated exceptions to live and simulated venue status. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/server/venueStatusContract.ts, src/server/venueStatus.ts, src/server/venueStatusStorePrisma.ts, src/app/venues/status/page.tsx.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1w expose guarded dated draft repairs and publication readiness
+- Done: expose guarded dated draft repairs and publication readiness. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/server/draftExceptionRepair.ts, src/app/officer/draft/exceptionActions.ts, src/app/officer/draft/DatedDraftPanel.tsx, src/app/officer/draft/page.tsx.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T2a add issue transition rules and explicit officer update permission
+- Done: add issue transition rules and explicit officer update permission. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/domain/issueRules.ts, src/domain/__tests__/issueRules.test.ts, src/domain/permissions.ts, src/domain/__tests__/permissions.test.ts.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T2c implement audited issue creation updates and scoped pagination
+- Done: implement audited issue creation updates and scoped pagination. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/server/issueService.ts.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T2f deliver guarded issue submission and departmental-officer queues
+- Done: deliver guarded issue submission and departmental-officer queues. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/app/issues/actions.ts, src/app/issues/new/page.tsx, src/app/issues/page.tsx.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T2i activate delivered navigation and exercise SQLite lifecycle boundaries
+- Done: activate delivered navigation and exercise SQLite lifecycle boundaries. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/domain/menu.ts, src/domain/__tests__/menu.test.ts, src/server/__tests__/m6Lifecycle.test.ts, src/server/__tests__/m6Actions.test.ts.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T3a1 Lifecycle hardening and review
+- Done: added draft repair, copy-failure rollback, strict identity and stored-data handling, supported-range messages, public-board sanitization, guarded date filters, visiting-lecturer scope, escaped issue-page and same-origin action coverage. Form success text uses only committed server results. Formatted new modules for review.
+- Verify: PASS: npm run verify, 1666/1666 tests across 68 files, seed 11/11; full output retained. Production build and final committed-tree replay follow this commit.
+- Decisions: migration fixtures invoke the actual Prisma migration runner against empty and prior-M5 disposable databases and preserve every legacy table's original fields. No new package/runtime dependency. Original protected databases remain absent and untouched. One task-created intermediate combined test file was replaced with four domain-specific test files; test cleanup deletes only its own temporary fixtures.
+- Known problems: M6 user browser acceptance remains pending. Unchanged legacy SQLite corruption fixture transiently failed once during commit replay and passed unchanged on retry; both outputs are retained. No live browser acceptance is claimed.
+- Next: final verification artifact and owner acceptance, no M7.
+
+
+## 2026-11-08 M6-T3a2 Close source and calendar regression gaps
+- Done: explicitly reject DRAFT/ARCHIVED source entries before checking current-publication timestamp integrity; verify null publication timestamps, source replacement after review, incomplete-context override denial and term-window snapshot drift.
+- Files changed: src/server/rescheduleService.ts; src/server/__tests__/m6Lifecycle.test.ts; PROGRESS.md; DECISIONS.md.
+- Verify: PASS, npm run verify: 1672 tests/68 files; seed integrity 11/11. Earlier failing source-status assertions exposed the priority of the timestamp check and were resolved in the service, without weakening expected behavior.
+- Decisions: noncurrent version is STALE_SOURCE; malformed timestamp on the actual current publication is INVALID_STORED_DATA. Both commit zero writes.
+- Known problems: user manual browser acceptance is pending, so M6 remains open.
+- Next: final build, exact patch replay and handoff.
+
+
+## 2026-11-08 M6-T3a Automated handoff; owner acceptance pending
+- Done: recorded the implementation map, actual test/build output, migration/HTTP evidence, apply directions and manual acceptance requirements. All M6 implementation is delivered; M6 is not closed.
+- Files changed: docs/M6-DESIGN.md; docs/M6-IMPLEMENTATION.md; docs/M6-VERIFICATION.md; docs/M6-verification.txt; PROGRESS.md; DECISIONS.md.
+- Verify: PASS, 1672 tests/68 files, seed 11/11, production build and Prisma checks. Exact final documentation-commit verification and patch replay/tree comparison are recorded outside the commit in ZIP evidence to avoid recursive self-hashing.
+- Decisions: explicit consolidated commit boundaries replace the proposed manifests; every delivered slice remains separate and independently verified. GitHub remains at the observed base. Apply with git am --keep-cr. No protected working-database migration is authorized.
+- Known problems: owner browser acceptance pending. Two unchanged legacy M5 corruption-fixture replay attempts transiently failed and passed unchanged on retry; raw outputs are retained. Automated/static/HTTP checks are not browser acceptance.
+- Next: owner applies to the exact base, checks a disposable synthetic database and returns the both-mode acceptance checklist. No M7 is started.
