@@ -28,6 +28,7 @@ export default async function VenueStatusPage({ searchParams }: {
   return <main className="mx-auto w-full max-w-6xl space-y-5 p-4 sm:p-6">
     <h1 className="text-2xl font-bold">Venue status</h1>
     <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 font-medium">Prototype — sample data. Not official university records.</p>
+    <p><a className="underline" href="/timetable/date">Schedule for a date</a></p>
     <p>Calculated from the current published weekly timetable and recorded venue unavailability. Not a sensor reading or a booking guarantee.</p>
     {!result.ok ? <section role="alert" className="space-y-3 rounded-lg border border-red-300 p-4">
       <h2 className="text-lg font-semibold">Venue status unavailable</h2>
@@ -42,6 +43,9 @@ export default async function VenueStatusPage({ searchParams }: {
         <p role="status" aria-live="polite">{result.mode === "demo" ? "Simulated time — not live" : "Live schedule clock"}: {result.asOf.day} {result.asOf.time} EAT (Africa/Nairobi).</p>
         {result.outsideHours && <p>Outside assumed Mon–Fri 08:00–17:00 teaching hours. This weekly prototype is not an academic calendar.</p>}
       </section>
+      {result.actualDate && <p>{result.dateApplied ? `Effective schedule for ${result.actualDate}, including dated exceptions.` : `Outside the configured demonstration term (${result.actualDate}). Weekly pattern only; actual availability cannot be inferred.`}</p>}
+      {result.mode === "demo" && !result.actualDate && <p>No dated exceptions applied because no calendar date is selected. Generic weekly-template demo.</p>}
+      {canUseVenueDemoClock(actor) && <form action="/venues/status" className="space-x-3 rounded border p-3"><input type="hidden" name="mode" value="demo-date" /><input type="hidden" name="semester" value={result.semester} /><label>Demonstration date <input type="date" name="date" required /></label><label>Time (EAT) <input type="time" name="time" required /></label><button type="submit">Simulate date and time</button><p>Simulated date and time — not live. Synthetic semester 1 window: 2026-09-01 to 2026-12-18.</p></form>}
       <VenueStatusControls semester={result.semester} mode={result.mode} asOf={result.asOf} canDemo={canUseVenueDemoClock(actor)} />
       {result.integrityCount !== undefined && result.integrityCount > 0 &&
         <p role="alert">Published-data integrity warning: {result.integrityCount} overlapping booking/closure pairs on this day. Ask an officer to review the published timetable.</p>}
