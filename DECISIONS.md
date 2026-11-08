@@ -949,3 +949,12 @@
 - Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
 - Known problems: user browser acceptance pending; M6 not closed.
 - Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T2f deliver guarded issue submission and departmental-officer queues
+- Done: deliver guarded issue submission and departmental-officer queues. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/app/issues/actions.ts, src/app/issues/new/page.tsx, src/app/issues/page.tsx.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
