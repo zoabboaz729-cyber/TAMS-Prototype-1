@@ -11,8 +11,8 @@ async function current(tx: M6Client, s: M6Snapshot) {
     const pubs = await tx.timetableVersion.findMany({ where: { semester: s.version.semester, status: "PUBLISHED" } });
     ensure(pubs.length, "NO_PUBLICATION");
     ensure(pubs.length === 1, "AMBIGUOUS_PUBLICATION");
+    ensure(pubs[0].id === s.version.id && s.version.status === "PUBLISHED", "STALE_SOURCE");
     ensure(pubs[0].publishedAt && s.version.publishedAt, "INVALID_STORED_DATA");
-    ensure(pubs[0].id === s.version.id, "STALE_SOURCE");
 }
 function proposal(r: RescheduleRequest) {
     const common = { sourceEntryId: r.entryId, proposedStart: r.proposedStart, proposedEnd: r.proposedEnd, reason: r.reason };

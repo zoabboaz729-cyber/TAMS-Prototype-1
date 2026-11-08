@@ -919,3 +919,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: migration fixtures invoke the actual Prisma migration runner against empty and prior-M5 disposable databases and preserve every legacy table's original fields. No new package/runtime dependency. Original protected databases remain absent and untouched. One task-created intermediate combined test file was replaced with four domain-specific test files; test cleanup deletes only its own temporary fixtures.
 - Known problems: M6 user browser acceptance remains pending. Unchanged legacy SQLite corruption fixture transiently failed once during commit replay and passed unchanged on retry; both outputs are retained. No live browser acceptance is claimed.
 - Next: final verification artifact and owner acceptance, no M7.
+
+
+## 2026-11-08 M6-T3a2 Close source and calendar regression gaps
+- Done: explicitly reject DRAFT/ARCHIVED source entries before checking current-publication timestamp integrity; verify null publication timestamps, source replacement after review, incomplete-context override denial and term-window snapshot drift.
+- Files changed: src/server/rescheduleService.ts; src/server/__tests__/m6Lifecycle.test.ts; PROGRESS.md; DECISIONS.md.
+- Verify: PASS, npm run verify: 1672 tests/68 files; seed integrity 11/11. Earlier failing source-status assertions exposed the priority of the timestamp check and were resolved in the service, without weakening expected behavior.
+- Decisions: noncurrent version is STALE_SOURCE; malformed timestamp on the actual current publication is INVALID_STORED_DATA. Both commit zero writes.
+- Known problems: user manual browser acceptance is pending, so M6 remains open.
+- Next: final build, exact patch replay and handoff.
