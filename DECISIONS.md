@@ -895,3 +895,12 @@
 - Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
 - Known problems: user browser acceptance pending; M6 not closed.
 - Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1j add same-origin reschedule actions and lecturer-officer workspaces
+- Done: add same-origin reschedule actions and lecturer-officer workspaces. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/server/m6ActionAuth.ts, src/components/M6Form.tsx, src/app/lecturer/reschedule/actions.ts, src/app/lecturer/reschedule/RescheduleForm.tsx, src/app/lecturer/reschedule/page.tsx, src/app/officer/reschedules/actions.ts, src/app/officer/reschedules/page.tsx.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
