@@ -220,6 +220,12 @@ model TimetableVersion {
   creator     User      @relation("VersionCreator", fields: [createdBy], references: [id])
   publishedAt DateTime?
 
+  basePublishedVersionId String?
+  basePublishedVersion TimetableVersion? @relation("VersionBase", fields: [basePublishedVersionId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  derivedVersions TimetableVersion[] @relation("VersionBase")
+  resultRequests RescheduleRequest[] @relation("RequestDraft")
+  exceptions TimetableOccurrenceException[]
+  @@index([basePublishedVersionId])
   // Relations
   entries TimetableEntry[]
 
@@ -245,6 +251,8 @@ model TimetableEntry {
   locked     Boolean          @default(false)
 
   // Relations
+  occurrenceExceptions TimetableOccurrenceException[]
+  @@unique([id, versionId])
   rescheduleRequests RescheduleRequest[]
   attendanceSessions AttendanceSession[]
 
@@ -257,7 +265,30 @@ model TimetableEntry {
   @@index([day])
 }
 
+model TimetableOccurrenceException {
+  id String @id @default(cuid())
+  versionId String
+  version TimetableVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  entryId String
+  entry TimetableEntry @relation(fields: [entryId, versionId], references: [id, versionId], onDelete: Cascade, onUpdate: NoAction)
+  originalDate String
+  replacementDate String
+  replacementStart String
+  replacementEnd String
+  createdAt DateTime @default(now())
+  @@unique([versionId, entryId, originalDate])
+  @@index([versionId, replacementDate])
+  @@index([entryId])
+}
+
 model RescheduleRequest {
+  kind String @default("WEEKLY")
+  originalDate String?
+  replacementDate String?
+  pendingKey String? @unique
+  resultDraftVersionId String?
+  resultDraftVersion TimetableVersion? @relation("RequestDraft", fields: [resultDraftVersionId], references: [id], onDelete: Restrict)
+
   id            String         @id @default(cuid())
   entryId       String
   entry         TimetableEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)

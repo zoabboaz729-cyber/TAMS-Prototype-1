@@ -785,3 +785,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
 - Known problems: user browser acceptance pending; M6 not closed.
 - Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1b add atomic additive occurrence and request migration
+- Done: add atomic additive occurrence and request migration. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: prisma/schema.prisma, prisma/migrations/20261108160000_m6_changes/migration.sql, src/server/__tests__/m6Migration.test.ts.
+- Verify: full working-tree verify passed before commit; exact committed-tree replay verification is recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
