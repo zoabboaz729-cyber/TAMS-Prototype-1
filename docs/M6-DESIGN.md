@@ -1,11 +1,13 @@
 # TAMS Prototype 1 — M6 Full Implementation Blueprint
 ## Revision 2.0: Recurring weekly AND one-off dated reschedules, plus issue reporting
 
-**Design revision:** 2.0 — 8 November 2026  
-**Target branch:** `m6-change-handling`  
-**Verified design starting HEAD:** `2f2df40f5b4910d6d44d2f8befa8db6f5896c0dd`  
-**Repository:** https://github.com/zoabboaz729-cyber/TAMS-Prototype-1  
-**Status:** approved *feature scope* by the project owner; technical decisions below are proposed implementation choices, **not verified Kisii University policy**. No M6 implementation or testing was performed in preparing this document.  
+> Implementation handoff, 8 November 2026: implemented and automated-verified; **owner browser acceptance pending**. The original design below is retained as the approved scope baseline. See M6-IMPLEMENTATION.md for the explicit revised commit boundaries and M6-VERIFICATION.md / M6-verification.txt for actual results. The design's original preparation-time status does not describe the current implementation.
+
+**Design revision:** 2.0 — 8 November 2026
+**Target branch:** `m6-change-handling`
+**Verified design starting HEAD:** `2f2df40f5b4910d6d44d2f8befa8db6f5896c0dd`
+**Repository:** https://github.com/zoabboaz729-cyber/TAMS-Prototype-1
+**Status:** approved *feature scope* by the project owner; technical decisions below are proposed implementation choices, **not verified Kisii University policy**. No M6 implementation or testing was performed in preparing this document.
 **Source baseline:** `AGENTS.md`, `PROTOTYPE_SPEC.md`, `PROGRESS.md`, `DECISIONS.md`, `docs/M5-DESIGN.md`, the actual Prisma schema, M3 validator, M4 version/publication services, M5 venue-status services, permission matrix and menu on the named branch. M5-T2g records user acceptance. The repository's `PROGRESS.md` opening status block is stale; its latest M5-T2g log entry governs. At inspection M6 was 9 commits ahead of remote `master` and 0 behind. Recheck before implementation.
 
 > **Scope decision from project owner:** M6 MUST support (1) changing a repeating weekly teaching slot and (2) moving exactly one occurrence on specific calendar dates. **This explicitly supersedes revision 1.0's recurring-only/no-migration premise.** Both kinds use request → officer decision → new DRAFT → existing (extended) M4 publication; no request or approval silently alters live timetables. M6-T2 issue reporting remains required. Design-first only: this file is not permission to start writing code or change GitHub without a separate implementation instruction.

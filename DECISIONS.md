@@ -984,3 +984,12 @@
 - Decisions: noncurrent version is STALE_SOURCE; malformed timestamp on the actual current publication is INVALID_STORED_DATA. Both commit zero writes.
 - Known problems: user manual browser acceptance is pending, so M6 remains open.
 - Next: final build, exact patch replay and handoff.
+
+
+## 2026-11-08 M6-T3a Automated handoff; owner acceptance pending
+- Done: recorded the implementation map, actual test/build output, migration/HTTP evidence, apply directions and manual acceptance requirements. All M6 implementation is delivered; M6 is not closed.
+- Files changed: docs/M6-DESIGN.md; docs/M6-IMPLEMENTATION.md; docs/M6-VERIFICATION.md; docs/M6-verification.txt; PROGRESS.md; DECISIONS.md.
+- Verify: PASS, 1672 tests/68 files, seed 11/11, production build and Prisma checks. Exact final documentation-commit verification and patch replay/tree comparison are recorded outside the commit in ZIP evidence to avoid recursive self-hashing.
+- Decisions: explicit consolidated commit boundaries replace the proposed manifests; every delivered slice remains separate and independently verified. GitHub remains at the observed base. Apply with git am --keep-cr. No protected working-database migration is authorized.
+- Known problems: owner browser acceptance pending. Two unchanged legacy M5 corruption-fixture replay attempts transiently failed and passed unchanged on retry; raw outputs are retained. Automated/static/HTTP checks are not browser acceptance.
+- Next: owner applies to the exact base, checks a disposable synthetic database and returns the both-mode acceptance checklist. No M7 is started.

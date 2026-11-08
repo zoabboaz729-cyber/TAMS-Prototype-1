@@ -20,6 +20,7 @@ Owner authorized the whole revision-2 blueprint and waived the five-file ceiling
 | T2c transactional issue service | T2c–T2e |
 | T2f guarded issue forms/queue | T2f–T2h |
 | T2i navigation and acceptance regressions | T2i, T1w navigation |
+| T3a1 lifecycle hardening and T3a2 final source/calendar regressions | Cross-module acceptance and final review |
 | T3a evidence and handoff | T3a |
 | T3b | Reserved for actual owner manual acceptance, not performed by agent |
 
