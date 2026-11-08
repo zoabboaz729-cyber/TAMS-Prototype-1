@@ -22,7 +22,7 @@ Owner authorized the whole revision-2 blueprint and waived the five-file ceiling
 | T2i navigation and acceptance regressions | T2i, T1w navigation |
 | T3a1 lifecycle hardening and T3a2 final source/calendar regressions | Cross-module acceptance and final review |
 | T3a evidence and handoff | T3a |
-| T3b | Reserved for actual owner manual acceptance, not performed by agent |
+| T3b | User-reported manual browser acceptance recorded and M6 closed (8 November 2026); performed by the owner, not by the agent |
 
 Synthetic semester 1: 2026-09-01–2026-12-18, Africa/Nairobi. Semester 2 has no dated window. This configuration is not institutional policy. No notifications, M7 attendance implementation, dependency additions, protected database operations, or remote writes are included.
 
@@ -30,4 +30,4 @@ Both reschedule kinds inherit the original venue. A complete conflict override c
 
 Legacy migration preflight: inspect pending requests on a user-approved disposable copy. More than one PENDING row for the same entry aborts the atomic migration. Resolve duplicates explicitly before retrying; no request is silently discarded. Existing requests default to WEEKLY and pending claims are backfilled; all original fields and records are retained.
 
-Verification uses disposable synthetic SQLite and unchanged existing M0–M5 tests except explicit permission/menu assertions updated for delivered functionality. The patch bundle includes all real outputs, exact base/head/tree hashes and replay comparison. Automated/static/HTTP checks are not user browser acceptance; M6 remains pending owner acceptance.
+Verification uses disposable synthetic SQLite and unchanged existing M0–M5 tests except explicit permission/menu assertions updated for delivered functionality. The patch bundle includes all real outputs, exact base/head/tree hashes and replay comparison. Automated/static/HTTP checks are not user browser acceptance; at the T3a handoff M6 remained pending owner acceptance. M6-T3b records the user's report of successful manual browser acceptance and closes M6 (see M6-VERIFICATION.md).

@@ -33,10 +33,18 @@ Full actual output: M6-verification.txt and the ZIP evidence.
 - [x] Live actual date, officer/admin dated demo and honestly labelled generic weekday demo.
 - [x] Issue submission, home-department ownership, precise officer CAS/audit transitions, stable 25-row scoped pagination, guards and escaped text.
 - [x] No new dependency, protected-database modification, notification or M7 feature.
-- [ ] Owner manual browser acceptance for both reschedule modes and issue reporting.
-- [ ] M6 closure: current status is IMPLEMENTED / AUTOMATED VERIFIED / PENDING OWNER ACCEPTANCE.
+- [x] Owner manual browser acceptance for both reschedule modes and issue reporting: user-reported on 8 November 2026 (M6-T3b below); not an agent-run browser test.
+- [x] M6 closure: status is ACCEPTED / CLOSED (M6-T3b). The T3a handoff status was IMPLEMENTED / AUTOMATED VERIFIED / PENDING OWNER ACCEPTANCE.
 
 ## Open questions and limits
 Semester 1 dates 2026-09-01 through 2026-12-18 are synthetic; semester 2 has no configured dated window. Africa/Nairobi is a provisional campus reference zone. No official holidays/calendar, production-load assurance or historical-attendance claim is made. Lecturer proposals retain their source venue; publication remains one current version per semester. Occurrence metadata is only an M7 interface seam. Institutional questions remain in the design.
 
 Protected prisma/dev.db, prisma/walkthrough.db, companions and .env were absent in the fresh clone and remain untouched. Cleanup deletes only test-owned temporary fixtures and task-created intermediate files. The combined draft domain test was split into four focused tests; a duplicate intermediate patch was regenerated before packaging. A local rebase consolidated the agent's unpushed migration-fixture correction; no remote history was changed.
+
+## M6-T3b owner acceptance and closure (8 November 2026)
+The sections above are the T3a handoff record and are kept unchanged except for the two acceptance boxes.
+
+- Integration: the 19 patches were applied with `git am --keep-cr` to the exact base; the resulting tree `b8128f5a11badd9e873af2d4a650a43406415e33` matched the delivery record. Local Windows verification then passed (1672/1672 tests across 68 files, seed 11/11, production build, Prisma validate/generate/migrate on a fresh disposable database, signed-out HTTP smoke). Commit `aa27b4a` (M6-APPLY) was pushed to `origin/m6-change-handling`, and GitHub PR #2 merged it into `origin/master` (`f1bdd09`).
+- Manual acceptance: the user reported, "I have run the manual browser checklist and i can confirm that everything is okay." The checklist is M6-DESIGN.md section 13, covering both reschedule kinds and issue reporting.
+- Not supplied, therefore not inferred: tested commit, database identifier, browser/version, device/viewport, version/request/draft IDs, per-item PASS/FAIL/BLOCKED counts and defect notes from the section 13.5 record.
+- Limits above still apply. Closure is not production, institutional-policy, privacy, load, concurrency or deployment certification. No M7 feature is included.
