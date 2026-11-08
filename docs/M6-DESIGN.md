@@ -1,7 +1,7 @@
 # TAMS Prototype 1 — M6 Full Implementation Blueprint
 ## Revision 2.0: Recurring weekly AND one-off dated reschedules, plus issue reporting
 
-> Implementation handoff, 8 November 2026: implemented and automated-verified; **owner browser acceptance pending**. The original design below is retained as the approved scope baseline. See M6-IMPLEMENTATION.md for the explicit revised commit boundaries and M6-VERIFICATION.md / M6-verification.txt for actual results. The design's original preparation-time status does not describe the current implementation.
+> Status update, 8 November 2026 (M6-T3b): implemented, automated-verified and **ACCEPTED AND CLOSED** on the user's report of successful manual browser acceptance; see the closure section at the end of this document. The M6-T3a handoff recorded "owner browser acceptance pending" and is superseded, not rewritten. The original design below is retained as the approved scope baseline; its unchecked section 15 boxes and preparation-time status are historical. See M6-IMPLEMENTATION.md for the explicit revised commit boundaries and M6-VERIFICATION.md / M6-verification.txt for actual results.
 
 **Design revision:** 2.0 — 8 November 2026
 **Target branch:** `m6-change-handling`
@@ -775,3 +775,32 @@ These remain **questions**, not claims about how Kisii University currently sche
 ---
 
 **Final design position:** Both modes share one safe lifecycle: *authenticated lecturer request → actual weekly/date-aware officer validation → optional reasoned approval into a new DRAFT → immutable, version-checked M4 publication → role-scoped dated timetable and M5 occupancy*. The weekly template remains the source of recurring sessions; a one-off is a versioned exception affecting exactly one original occurrence. M6-T2 remains an independent audited reporting workflow. The entire design is testable with synthetic data and is explicitly provisional pending university consultation.
+
+## M6-T3b user-reported manual acceptance and milestone closure — 8 November 2026
+
+**Current status: M6 ACCEPTED AND CLOSED for the approved prototype scope.** This
+supersedes the pending handoff in M6-T3a while preserving that historical record.
+On 8 November 2026 the user reported: "I have run the manual browser checklist and
+i can confirm that everything is okay." This is recorded as user-performed
+acceptance of the section 13 browser checklist, which covers both WEEKLY and
+ONE_OFF reschedules, officer preview/rejection/override/repair and M4
+publication, dated timetable views, the M5 live and dated-demo board, issue
+reporting and status queues, and direct-URL role denials.
+
+The section 13.5 acceptance-record fields (tested commit, database identifier,
+browser/version, device/viewport, version/request/draft IDs, per-item
+PASS/FAIL/BLOCKED counts and defect notes) were not supplied. They are not
+inferred, and this acceptance is not described as an agent-run browser test. The
+automated evidence in M6-VERIFICATION.md and the local integration verification
+recorded in PROGRESS (M6-APPLY) remain the basis for the automated gates; T3b adds
+a fresh `npm run verify` before its documentation-only commit. The section 15
+manual and closure gates are satisfied by this dated record.
+
+The user separately authorized this documentation commit and push to
+`m6-change-handling`, a merge into `master` with push, and creation/publication of
+`m7-qr-attendance` from `master`. No M7 implementation is included in this closure.
+Retained limitations still apply: the semester 1 window (2026-09-01 through
+2026-12-18, Africa/Nairobi) is synthetic and semester 2 has no dated window; the
+section 16 questions remain unvalidated with Kisii University; and no official
+calendar, physical occupancy, production load, concurrency, deployment, privacy or
+institutional-policy certification is claimed.

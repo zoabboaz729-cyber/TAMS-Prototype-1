@@ -3,8 +3,8 @@ Entries are listed newest-last; the Status block below is authoritative.
 (The agent appends entries here at the end of every task. This file is the agent's memory between sessions.)
 
 ## Status
-- Current milestone: M6 - IMPLEMENTED / AUTOMATED VERIFIED / PENDING OWNER ACCEPTANCE
-- Last verified code task: M6-T3a2 (`314f62b3a2fb`) on `m6-change-handling`; 1672 tests, seed 11/11 and build pass; M6 browser acceptance pending (docs/M6-VERIFICATION.md).
+- Current milestone: M6 - ACCEPTED AND CLOSED (user-reported manual browser acceptance, M6-T3b, 8 November 2026). M7 NOT STARTED.
+- Last verified code task: M6-T3a2 (`9df0181`, applied from delivery commit `314f62b3a2fb`) on `m6-change-handling`; 1672 tests, seed 11/11 and build pass; M6 manual acceptance recorded in docs/M6-VERIFICATION.md.
 - Demo-ready: no
 
 ## Log
@@ -945,3 +945,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: User authorized application, commits, and push to the existing origin/m6-change-handling branch, not a merge. Only the new prisma/m6-acceptance-local-20261108.db was migrated/seeded. SHA256 checks confirmed .env, prisma/dev.db and prisma/walkthrough.db unchanged. With explicit user approval, stopped the existing dev servers on ports 3100/3101 and started the acceptance server on 127.0.0.1:3100 using the fresh database. Dependency manifests and lockfile are unchanged; acceptance database and local logs are not committed.
 - Known problems: owner manual browser checklist remains unperformed; no browser acceptance or M6 closure is claimed. npm audit reports 15 dependency vulnerabilities (8 moderate, 5 high, 2 critical); the full audit output is retained locally. No audit fix, dependency upgrade, hook bypass or force push was performed.
 - Next suggested task: owner performs ../evidence/M6-manual-browser-checklist.md against the fresh acceptance database and reports actual observations. M6 remains open; do not begin M7.
+
+## 2026-11-08 M6-T3b Record user manual acceptance and close M6
+- Done: Recorded the user's report that the M6 manual browser checklist (M6-DESIGN.md section 13: both WEEKLY and ONE_OFF reschedules, officer decisions/override/repair/publication, dated views, M5 board, issue reporting and role denials) was completed and everything is okay; marked M6 ACCEPTED/CLOSED for the approved prototype scope, superseding the T3a pending handoff.
+- Files changed: docs/M6-DESIGN.md; docs/M6-IMPLEMENTATION.md; docs/M6-VERIFICATION.md; PROGRESS.md; DECISIONS.md.
+- Verify: PASS, RUST_LOG=info npm run verify with a nonprotected DATABASE_URL: typecheck/lint pass, 1672/1672 tests across 68 files, seed integrity 11/11. Documentation-only diff; no code, schema, seed, test or dependency change.
+- Decisions: Treat the user's explicit success report as the manual acceptance evidence, with user attribution preserved. No tested commit, database identifier, browser/version, viewport, IDs, per-item counts or defect notes were supplied, so none are invented or attributed to an agent run. Status block now cites applied commit 9df0181 instead of the delivery-package hash. The user authorized this commit/push, a merge into master with push, and creation/publication of m7-qr-attendance from master; no M7 implementation is included.
+- Known problems: granular browser metadata and individual checklist observations were not supplied. The synthetic semester 1 calendar, absent semester 2 dated window, unvalidated institutional questions (M6-DESIGN.md section 16), npm audit advisories recorded in M6-APPLY and the other prototype limitations remain outside this closure.
+- Next suggested task: M7-T1 on m7-qr-attendance after separate task authorization.
