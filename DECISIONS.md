@@ -859,3 +859,12 @@
 - Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
 - Known problems: user browser acceptance pending; M6 not closed.
 - Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1e validate strict weekly and one-off request proposals
+- Done: validate strict weekly and one-off request proposals. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/domain/rescheduleRules.ts, src/domain/__tests__/rescheduleRules.test.ts.
+- Verify: full working-tree verify passed before commit; exact committed-tree replay verification is recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
