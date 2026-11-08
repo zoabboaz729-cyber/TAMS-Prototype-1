@@ -40,6 +40,9 @@
  * shown. A move, add or generate result alone never says the draft is clean
  * (requirement #9).
  */
+import { readM6Snapshot } from "@/server/m6Snapshot";
+import { readM6PublicationGuard } from "@/server/m6Publication";
+import DatedDraftPanel from "./DatedDraftPanel";
 import { requireAction } from "@/server/guards";
 import { prisma } from "@/server/db";
 import { createDraftValidationStore } from "@/server/draftStorePrisma";
@@ -165,7 +168,7 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
   // The thin read behind the page guard: which versions can be edited at all.
   const drafts = await prisma.timetableVersion.findMany({
     where: { status: "DRAFT" },
-    select: { id: true, semester: true },
+    select: { id: true, semester: true, basePublishedVersionId: true },
     orderBy: { id: "asc" },
   });
 
@@ -217,6 +220,8 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
     loadDraftForValidation(createDraftValidationStore(), user, selectedId),
     loadVenueRecords(),
   ]);
+  const based = drafts.find(d => d.id === selectedId)?.basePublishedVersionId;
+  const dated = based && result.ok ? await prisma.$transaction(async tx => ({ snapshot:await readM6Snapshot(tx,selectedId), guard:await readM6PublicationGuard(tx,selectedId,new Date()) })) : null;
   const venueOptions = venues
     .filter((venue) => venue.status === "ACTIVE")
     .map((venue) => ({
@@ -340,7 +345,8 @@ export default async function OfficerDraftPage({ searchParams }: PageProps) {
               </p>
             )}
 
-            {canPublish && (
+            {dated && <DatedDraftPanel snapshot={dated.snapshot} problem={dated.guard.problem} />}
+            {canPublish && !dated?.guard.problem && (
               <DraftPublishForm
                 versionId={result.version.id}
                 semester={result.version.semester}
