@@ -70,7 +70,7 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
 };
 
 describe("MENU_ITEMS", () => {
-  it("exactly eight items are built: timetable, venue status, venue register, the three submission pages, draft editor, my availability", () => {
+  it("exactly twelve items are built: timetable, venue status, venue register, the three submission pages, draft editor, my availability", () => {
     expect(MENU_ITEMS).toHaveLength(17);
     const built = MENU_ITEMS.filter((item) => item.built).map((item) => item.key);
     expect(built).toEqual([
@@ -81,7 +81,11 @@ describe("MENU_ITEMS", () => {
       "submission-review",
       "submission-overview",
       "draft-editor",
+      "reschedule-decide",
+      "reschedule-request",
       "lecturer-availability",
+      "issues-new",
+      "issues-list",
     ]);
     for (const item of MENU_ITEMS) {
       if (!built.includes(item.key)) {
@@ -168,13 +172,9 @@ describe("Timetable navigation activation (M4-T4e)", () => {
     }
   });
 
-  it("6. every other built flag is unchanged: the nine unfinished features stay unbuilt, the six pre-M4 features stay built and venue status is now built", () => {
+  it("6. every other built flag is unchanged: the five unfinished features stay unbuilt, the six pre-M4 features stay built and venue status is now built", () => {
     const unbuilt = [
       "generate",
-      "reschedule-decide",
-      "reschedule-request",
-      "issues-new",
-      "issues-list",
       "attendance-open",
       "attendance-scan",
       "attendance-report",
@@ -184,6 +184,10 @@ describe("Timetable navigation activation (M4-T4e)", () => {
       expect(MENU_ITEMS.find((item) => item.key === key)?.built).toBe(false);
     }
     const stillBuilt = [
+      "reschedule-decide",
+      "reschedule-request",
+      "issues-new",
+      "issues-list",
       "venue-status",
       "venue-register",
       "submission-edit",
