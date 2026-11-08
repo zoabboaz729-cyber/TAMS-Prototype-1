@@ -695,3 +695,76 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: recorded in DECISIONS.md (M4-T4i a-g): scoped closure and M5 hold; exclusive user attribution of browser acceptance; unchanged least-privilege role policy; precise server/option/entry enforcement wording; current GitHub state versus the historical push incident; preserved future work and concurrency limitations; and the byte-preserving documentation-only manifest.
 - Known problems: academic teaching-data entry/management, approved departmental submission prerequisites where required, venue occupancy/status with data minimization, other Coming soon features, validation of actual university procedures, and additional security/concurrency/deployment verification remain unfinished. Ownership metadata and publication entries are separate snapshots; no simultaneous ownership-change atomicity, load result or simultaneous-writer race result is claimed. The user-reported browser acceptance is not a formal security audit.
 - Next suggested task: M5 planning or implementation only after separate user authorization; M5 remains NOT STARTED and this task stops after the documentation commit and normal push.
+
+## 2026-11-08 M5-T1a Lock venue status design and policy
+- Done: Lock venue status design and policy. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: docs/M5-DESIGN.md; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: RUST_LOG=info npm run verify (1353 tests/56 files; seed 11/11); build PASS; initial inherited-RUST_LOG run failed in existing SQLite fixtures. Full logs in delivery evidence.
+- Decisions: Adopt blueprint sections 4–7 prototype decisions. User explicitly authorizes all listed slices with separate commits, superseding one-slice session default; preserve each file ceiling and manual acceptance hold. Exact remote snapshot reconstructed and all 179 blob hashes/tree verified; no dependency changes.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T1b.
+
+## 2026-11-08 M5-T1b Implement pure venue status logic
+- Done: Implement pure venue status logic. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: src/domain/venueStatus.ts; src/domain/__tests__/venueStatus.test.ts; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: focused 54/54; RUST_LOG=info verify 1407 tests/57 files, seed 11/11; production build PASS; diff check PASS.
+- Decisions: Dedicated M5 policy reuses existing days/hours and configurable 30-minute window without changing PolicyConfig. Half-open precedence, union next-free, same-day generic nextScheduledAt, explicit outside-hours flags, malformed inputs fail closed, overlap/closure conflict count retained internally.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T2a.
+
+## 2026-11-08 M5-T2a Add authorized sanitized venue status service
+- Done: Add authorized sanitized venue status service. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: src/server/venueStatusContract.ts; src/server/venueStatus.ts; src/server/__tests__/venueStatus.test.ts; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: focused 56/56; RUST_LOG=info verify 1463 tests/58 files, seed 11/11; build PASS; diff check PASS.
+- Decisions: Requests allow semester string 1/2 and live/demo fields only; arrays/forged keys fail before reads. All six roles may read live generic status; only OFFICER/ADMIN can simulate and see integrity counts. Server-injected Nairobi clock; fixed non-logging failures. One unknown-return read method forces validation of persisted snapshot before projection.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T2b.
+
+## 2026-11-08 M5-T2b Read coherent published venue snapshot from SQLite
+- Done: Read coherent published venue snapshot from SQLite. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: src/server/venueStatusStorePrisma.ts; src/server/__tests__/venueStatusStorePrisma.test.ts; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: real SQLite focused 22/22; RUST_LOG=info verify 1485 tests/59 files, seed 11/11; build PASS; diff check PASS. Measurement in full output: 9 venues, 1 current entry, 20 reads; no SLA.
+- Decisions: Single read-only transaction resolves all publications then reads venue/closure fields and current time-only entries. Parameterized LEFT joins preserve missing teaching/unit links as invalid data. Disposable fixtures compare every persisted table, preserve archives, exercise all roles and remove only their own mkdtemp directory. No protected DB files present or accessed.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T2c.
+
+## 2026-11-08 M5-T2c Add authenticated venue status board page
+- Done: Add authenticated venue status board page. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: src/app/venues/status/page.tsx; src/server/__tests__/venueStatusPage.test.tsx; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: static page/service integration 22/22; RUST_LOG=info verify 1507 tests/60 files, seed 11/11; production build PASS; diff check PASS.
+- Decisions: Page calls requireAnyAction itself before store access and preserves all query keys/arrays for service validation. Responsive status cards and accessible text distinguish no publication, empty register, errors, operational closure and outside hours. Menu remains Coming soon until clock controls and final regression. Static render is not browser acceptance.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T2d.
+
+## 2026-11-08 M5-T2d Add live refresh and simulated venue clock controls
+- Done: Add live refresh and simulated venue clock controls. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: src/app/venues/status/VenueStatusControls.tsx; src/app/venues/status/page.tsx; src/server/__tests__/venueStatusPage.test.tsx; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: page/control tests 36/36 including fake-timer effect lifecycle and static form labels; RUST_LOG=info verify 1521 tests/60 files, seed 11/11; production build PASS; diff check PASS.
+- Decisions: Native GET forms send only strict clock fields. Officers/admins get Apply simulated time; live semester form discards demo fields. Client receives clock/semester/capability only. Live refresh every 60000 ms while visible and on tab return; cleanup removes timer/listener; demo never polls. Tests execute effect with mocked environment, not a browser.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T2e.
+
+## 2026-11-08 M5-T2e Activate venue status navigation and complete role regression
+- Done: Activate venue status navigation and complete role regression. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: src/domain/menu.ts; src/domain/__tests__/menu.test.ts; src/server/__tests__/venueStatusPage.test.tsx; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: focused menu/page 66/66; RUST_LOG=info verify 1531 tests/60 files, seed 11/11; build PASS; diff check PASS. Existing M4 suites included unchanged except planned menu expectations.
+- Decisions: Only venue-status built flag changes. Planned menu expectations now assert the built link for all six roles while preserving all other built flags, visibility and register permissions. Added forged query, closure precedence, restricted integrity projection and valid-empty-publication regressions. Manual browser acceptance remains pending; no M6.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: M5-T2f.
+
+## 2026-11-08 M5-T2f Record final verification and pending manual acceptance
+- Done: Record final verification and pending manual acceptance. User authorized the attached M5 bundle with separate local commits; no remote writes.
+- Files changed: docs/M5-DESIGN.md; PROGRESS.md; DECISIONS.md.
+- Verify: PASS: final RUST_LOG=info npm run verify 1531 tests/60 files, seed 11/11; production build PASS; real HTTP signed-out /venues/status returns 307 /login; diff check and preservation PASS. Full actual outputs in delivery evidence. Patch replay/tree comparison follows this documentation commit and is recorded separately in ZIP.
+- Decisions: M5 implemented locally but NOT ACCEPTED/CLOSED until user manual checklist is reported. No browser run requested/performed; static/effect/SQLite/HTTP checks are identified separately. Eight authorized slices stay within individual ceilings and 15 total changed files. Remote remains original base; no remote writes. No M6. Source schema, seed, dependencies, M4 runtime behavior and protected-file absence preserved.
+- Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
+- Next suggested task: User manual checklist and review; no new coding milestone authorized.
+- Final documentation review: copied blueprint metadata hard-break trailing spaces normalized to blank lines; full base-to-head diff check passes. Patch replay is packaging evidence, not another browser/test run.
+
+## 2026-11-08 M5-T2g Record user manual acceptance and close M5
+- Done: Recorded the user's report that all requested live browser manual tests completed successfully; marked M5 ACCEPTED/CLOSED for the approved prototype scope, superseding the T2f pending handoff.
+- Files changed: docs/M5-DESIGN.md; PROGRESS.md; DECISIONS.md.
+- Verify: PASS — RUST_LOG=info npm run verify: typecheck/lint pass, 1531/1531 tests across 60 files, seed integrity 11/11; documentation-only diff check PASS.
+- Decisions: Treat the user's explicit success report as Gate E/G manual acceptance evidence, with operator attribution preserved. No browser/version, viewport, fixture, individual checklist results or extra observations were supplied, so none are invented or attributed to an agent run. Existing automated evidence and all section-13 limitations remain applicable. The user authorized the M5 documentation commit/push, local master merge, and creation/publication of m6-change-handling; no M6 implementation is included.
+- Known problems: granular browser metadata and individual observations were not supplied. Institutional calendar/privacy/workflow validation, production load/concurrency/deployment assurance and the other retained prototype limitations remain outside this closure.
+- Next suggested task: M6-T1 on m6-change-handling after separate task authorization.

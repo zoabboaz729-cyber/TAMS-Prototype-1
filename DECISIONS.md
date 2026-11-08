@@ -785,3 +785,42 @@
   - Reason: the fixed manifest and byte-preserving convention prevent a closure task from altering accepted behavior or corrupting mixed documentation line endings. PROGRESS uses its existing CRLF convention and DECISIONS appends with LF to preserve its mixed-ending history.
 - **Protected-file baseline**: prisma/dev.db is present at 479232 bytes with SHA-256 91a96615917188d6c4c0a02ca10b1ef2dc04eff4709c95b31f9acd6a814a3195; prisma/walkthrough.db is present at 417792 bytes with SHA-256 4494e5c5b616cec3014a918745a20b256544b70f136aae500c24a9479cf02dba. Neither has -wal/-shm/-journal companions. The current dev.db identity differs from older historical records; no old contents are inferred or restored. Only raw-byte hashing/stat inspection is performed on these protected paths.
 - **Verification note**: RUST_LOG=info npm run verify exited 0 on 2026-11-08: typecheck 0 errors; lint no warnings/errors plus the known next lint deprecation; 1353 tests in 56 files passed (62.12s); seed check 11/11 (1.78s). RUST_LOG=info npm run build exited 0: Next.js 15.5.28 compiled in 8.9s and generated 19/19 pages. Existing integration suites used their own temporary databases; no pre-existing temporary directory was cleaned. Final manifest, append-only, line-ending, git diff --check and protected-file after comparison: PASS - exactly the three permitted files changed; PROGRESS.md and DECISIONS.md are append-only with 0 deleted lines; existing CRLF/mixed line endings are preserved; docs/M4-T4h-verification.txt is byte-identical; git diff --check exited 0; both protected databases are byte-identical after closure (dev.db SHA-256 91a96615917188d6c4c0a02ca10b1ef2dc04eff4709c95b31f9acd6a814a3195, walkthrough.db SHA-256 4494e5c5b616cec3014a918745a20b256544b70f136aae500c24a9479cf02dba), with sizes/mtimes unchanged and no companions.
+
+## 2026-11-08 M5-T1a Lock venue status design and policy
+- Adopt blueprint sections 4–7 prototype decisions. User explicitly authorizes all listed slices with separate commits, superseding one-slice session default; preserve each file ceiling and manual acceptance hold. Exact remote snapshot reconstructed and all 179 blob hashes/tree verified; no dependency changes.
+- Evidence: PASS: RUST_LOG=info npm run verify (1353 tests/56 files; seed 11/11); build PASS; initial inherited-RUST_LOG run failed in existing SQLite fixtures. Full logs in delivery evidence. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T1b Implement pure venue status logic
+- Dedicated M5 policy reuses existing days/hours and configurable 30-minute window without changing PolicyConfig. Half-open precedence, union next-free, same-day generic nextScheduledAt, explicit outside-hours flags, malformed inputs fail closed, overlap/closure conflict count retained internally.
+- Evidence: PASS: focused 54/54; RUST_LOG=info verify 1407 tests/57 files, seed 11/11; production build PASS; diff check PASS. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T2a Add authorized sanitized venue status service
+- Requests allow semester string 1/2 and live/demo fields only; arrays/forged keys fail before reads. All six roles may read live generic status; only OFFICER/ADMIN can simulate and see integrity counts. Server-injected Nairobi clock; fixed non-logging failures. One unknown-return read method forces validation of persisted snapshot before projection.
+- Evidence: PASS: focused 56/56; RUST_LOG=info verify 1463 tests/58 files, seed 11/11; build PASS; diff check PASS. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T2b Read coherent published venue snapshot from SQLite
+- Single read-only transaction resolves all publications then reads venue/closure fields and current time-only entries. Parameterized LEFT joins preserve missing teaching/unit links as invalid data. Disposable fixtures compare every persisted table, preserve archives, exercise all roles and remove only their own mkdtemp directory. No protected DB files present or accessed.
+- Evidence: PASS: real SQLite focused 22/22; RUST_LOG=info verify 1485 tests/59 files, seed 11/11; build PASS; diff check PASS. Measurement in full output: 9 venues, 1 current entry, 20 reads; no SLA. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T2c Add authenticated venue status board page
+- Page calls requireAnyAction itself before store access and preserves all query keys/arrays for service validation. Responsive status cards and accessible text distinguish no publication, empty register, errors, operational closure and outside hours. Menu remains Coming soon until clock controls and final regression. Static render is not browser acceptance.
+- Evidence: PASS: static page/service integration 22/22; RUST_LOG=info verify 1507 tests/60 files, seed 11/11; production build PASS; diff check PASS. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T2d Add live refresh and simulated venue clock controls
+- Native GET forms send only strict clock fields. Officers/admins get Apply simulated time; live semester form discards demo fields. Client receives clock/semester/capability only. Live refresh every 60000 ms while visible and on tab return; cleanup removes timer/listener; demo never polls. Tests execute effect with mocked environment, not a browser.
+- Evidence: PASS: page/control tests 36/36 including fake-timer effect lifecycle and static form labels; RUST_LOG=info verify 1521 tests/60 files, seed 11/11; production build PASS; diff check PASS. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T2e Activate venue status navigation and complete role regression
+- Only venue-status built flag changes. Planned menu expectations now assert the built link for all six roles while preserving all other built flags, visibility and register permissions. Added forged query, closure precedence, restricted integrity projection and valid-empty-publication regressions. Manual browser acceptance remains pending; no M6.
+- Evidence: PASS: focused menu/page 66/66; RUST_LOG=info verify 1531 tests/60 files, seed 11/11; build PASS; diff check PASS. Existing M4 suites included unchanged except planned menu expectations. Local patch delivery; manual acceptance remains pending.
+
+## 2026-11-08 M5-T2f Record final verification and pending manual acceptance
+- M5 implemented locally but NOT ACCEPTED/CLOSED until user manual checklist is reported. No browser run requested/performed; static/effect/SQLite/HTTP checks are identified separately. Eight authorized slices stay within individual ceilings and 15 total changed files. Remote remains original base; no remote writes. No M6. Source schema, seed, dependencies, M4 runtime behavior and protected-file absence preserved.
+- Evidence: PASS: final RUST_LOG=info npm run verify 1531 tests/60 files, seed 11/11; production build PASS; real HTTP signed-out /venues/status returns 307 /login; diff check and preservation PASS. Full actual outputs in delivery evidence. Patch replay/tree comparison follows this documentation commit and is recorded separately in ZIP. Local patch delivery; manual acceptance remains pending.
+- Final documentation-only cleanup normalizes copied Markdown hard-break trailing spaces; all runtime bytes and automated results remain unchanged.
+
+## 2026-11-08 M5-T2g Record user acceptance and close M5
+- Decision: accept the user's explicit report that all requested live browser manual tests completed successfully as the Gate E/G manual evidence and close M5 for the approved prototype scope. This supersedes the T2f pending status without rewriting its historical record.
+- Attribution: this is user-reported acceptance, not an agent-run browser test. The report did not include browser/version, viewport, fixture, individual checklist results or additional observations; those details are not inferred.
+- Decision: retain every section-13 limitation and rely on the existing automated evidence plus the T2g verification recorded in PROGRESS. Closure is not production, institutional-policy, privacy, load, concurrency or deployment certification.
+- Git scope: the user authorized this M5 documentation commit and push, a local merge into master, and creation/publication of m6-change-handling. No M6 implementation is part of this closure task.
