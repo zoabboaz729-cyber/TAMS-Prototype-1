@@ -832,3 +832,12 @@
 - Calendar choice: explicitly synthetic semester 1, 2026-09-01 through 2026-12-18, Africa/Nairobi. Semester 2 dated changes fail closed until configured.
 - Verify: PASS, typecheck/lint, 1566 tests/61 files including staged M6 pure rules in the working tree, seed 11/11 (core-verify2.txt). No protected database opened.
 - Plan: additive schema/domain foundation; rescheduling services; M4/M5/date integration; issue workflow; presentation and lifecycle verification; patch replay delivery. No new dependencies, no M7. Manual browser acceptance remains owner-performed.
+
+
+## 2026-11-08 M6-T1a add canonical campus dates and synthetic term calendar
+- Done: add canonical campus dates and synthetic term calendar. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/domain/termCalendar.ts, src/domain/__tests__/termCalendar.test.ts, docs/M6-IMPLEMENTATION.md.
+- Verify: full working-tree verify passed before commit; exact committed-tree replay verification is recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.
