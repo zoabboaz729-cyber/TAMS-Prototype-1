@@ -10,7 +10,7 @@ export const VenueStatusRequestSchema = z.union([
 ]);
 export type VenueStatusRequest = z.infer<typeof VenueStatusRequestSchema>;
 export type VenueStatusFailureKind = "UNAUTHENTICATED" | "FORBIDDEN" | "INVALID_INPUT" | "INVALID_CLOCK" |
-  "NO_PUBLISHED_VERSION" | "AMBIGUOUS_PUBLISHED_VERSION" | "INVALID_PUBLISHED_DATA" | "INTERNAL_ERROR";
+  "OUTSIDE_TERM" | "NO_PUBLISHED_VERSION" | "AMBIGUOUS_PUBLISHED_VERSION" | "INVALID_PUBLISHED_DATA" | "INTERNAL_ERROR";
 export type VenueStatusFailure = { ok: false; kind: VenueStatusFailureKind; message: string };
 /** Unknown return is intentional: the service validates persisted data before deriving availability. */
 export interface VenueStatusStore { readSnapshot(semester: number): Promise<unknown>; readDatedSnapshot?(semester: number,date: string): Promise<unknown> }
@@ -37,6 +37,7 @@ export type VenueStatusBoard = {
 };
 export type VenueStatusBoardResult = VenueStatusBoard | VenueStatusFailure;
 export const VENUE_STATUS_MESSAGES: Record<VenueStatusFailureKind, string> = {
+  OUTSIDE_TERM: "This date is outside the configured synthetic term. Choose a supported demonstration date or ask an officer to configure the term; actual availability cannot be inferred.",
   UNAUTHENTICATED: "Sign in to view venue status.",
   FORBIDDEN: "This venue clock is not permitted for your account. Return to live status or contact an officer.",
   INVALID_INPUT: "Invalid venue status request. Choose semester 1 or 2 and use only the labelled clock controls.",

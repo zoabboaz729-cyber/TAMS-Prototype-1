@@ -1,4 +1,5 @@
 /** One coherent, read-only Prisma transaction; never uses the M4 detail-view service. */
+import { M6Error } from "./m6Errors";
 import { readM6Snapshot } from "./m6Snapshot";
 import { materializeDate, checkExceptions } from "@/domain/occurrences";
 import { inTerm } from "@/domain/termCalendar";
@@ -17,7 +18,7 @@ export function createVenueStatusStore(client: PrismaClient): VenueStatusStore {
           checkExceptions(s.entries,s.exceptions,s.term);
           const applied = inTerm(date,s.term);
           // Outside the synthetic range, no actual institution availability claim.
-          if (!applied && s.exceptions.length) throw new Error("DATE_OUT_OF_TERM");
+          if (!applied && s.exceptions.length) throw new M6Error("DATE_OUT_OF_TERM");
           const effective = applied ? materializeDate(s.entries,s.exceptions,date,s.term) : s.entries;
           const venues = await tx.venue.findMany({ select: { id:true,code:true,type:true,status:true,unavailabilities:{ select:{ venueId:true,day:true,start:true,end:true } } } });
           return { versions,venues,actualDate:date,dateApplied:applied,entries:effective.map(e => ({ versionId:e.versionId,venueId:e.venueId,day:e.day,start:e.start,end:e.end,unitSemester:s.teachings.find(t => t.id === e.teachingId)?.unit.semester ?? null })) };

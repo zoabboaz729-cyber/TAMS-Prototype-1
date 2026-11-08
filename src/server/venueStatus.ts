@@ -1,4 +1,5 @@
 /** Server orchestration: trusted actor, strict request, one snapshot, redacted output. */
+import { M6Error } from "./m6Errors";
 import { campusDateTime, inTerm, termFor, weekday } from "@/domain/termCalendar";
 import { decideAnyAccess } from "@/domain/access";
 import type { Actor } from "@/domain/permissions";
@@ -65,7 +66,8 @@ export async function readVenueStatus(
     const outsideHours = !DEFAULT_VENUE_STATUS_POLICY.days.some((d) => d === asOf.day) || asOf.time < DEFAULT_VENUE_STATUS_POLICY.slotStart || asOf.time >= DEFAULT_VENUE_STATUS_POLICY.slotEnd;
     return { ok: true, semester, publication: { id: pub.id, publishedAt: pub.publishedAt.toISOString() },
       mode, asOf, outsideHours, rows, ...(data.data.actualDate ? { actualDate:data.data.actualDate,dateApplied:data.data.dateApplied } : {}), ...(canUseVenueDemoClock(actor) ? { integrityCount } : {}) };
-  } catch {
+  } catch (error) {
+    if (error instanceof M6Error && error.code === "DATE_OUT_OF_TERM") return fail("OUTSIDE_TERM");
     // No exception logging: DB paths, SQL and credentials must never cross this boundary.
     return fail("INTERNAL_ERROR");
   }
