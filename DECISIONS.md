@@ -818,3 +818,9 @@
 - M5 implemented locally but NOT ACCEPTED/CLOSED until user manual checklist is reported. No browser run requested/performed; static/effect/SQLite/HTTP checks are identified separately. Eight authorized slices stay within individual ceilings and 15 total changed files. Remote remains original base; no remote writes. No M6. Source schema, seed, dependencies, M4 runtime behavior and protected-file absence preserved.
 - Evidence: PASS: final RUST_LOG=info npm run verify 1531 tests/60 files, seed 11/11; production build PASS; real HTTP signed-out /venues/status returns 307 /login; diff check and preservation PASS. Full actual outputs in delivery evidence. Patch replay/tree comparison follows this documentation commit and is recorded separately in ZIP. Local patch delivery; manual acceptance remains pending.
 - Final documentation-only cleanup normalizes copied Markdown hard-break trailing spaces; all runtime bytes and automated results remain unchanged.
+
+## 2026-11-08 M5-T2g Record user acceptance and close M5
+- Decision: accept the user's explicit report that all requested live browser manual tests completed successfully as the Gate E/G manual evidence and close M5 for the approved prototype scope. This supersedes the T2f pending status without rewriting its historical record.
+- Attribution: this is user-reported acceptance, not an agent-run browser test. The report did not include browser/version, viewport, fixture, individual checklist results or additional observations; those details are not inferred.
+- Decision: retain every section-13 limitation and rely on the existing automated evidence plus the T2g verification recorded in PROGRESS. Closure is not production, institutional-policy, privacy, load, concurrency or deployment certification.
+- Git scope: the user authorized this M5 documentation commit and push, a local merge into master, and creation/publication of m6-change-handling. No M6 implementation is part of this closure task.

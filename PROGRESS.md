@@ -760,3 +760,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Known problems: browser acceptance reserved for user manual checks; M5 not closed. Protected prisma/dev.db and walkthrough.db and companions absent in fresh exact-source checkout; never opened/created.
 - Next suggested task: User manual checklist and review; no new coding milestone authorized.
 - Final documentation review: copied blueprint metadata hard-break trailing spaces normalized to blank lines; full base-to-head diff check passes. Patch replay is packaging evidence, not another browser/test run.
+
+## 2026-11-08 M5-T2g Record user manual acceptance and close M5
+- Done: Recorded the user's report that all requested live browser manual tests completed successfully; marked M5 ACCEPTED/CLOSED for the approved prototype scope, superseding the T2f pending handoff.
+- Files changed: docs/M5-DESIGN.md; PROGRESS.md; DECISIONS.md.
+- Verify: PASS — RUST_LOG=info npm run verify: typecheck/lint pass, 1531/1531 tests across 60 files, seed integrity 11/11; documentation-only diff check PASS.
+- Decisions: Treat the user's explicit success report as Gate E/G manual acceptance evidence, with operator attribution preserved. No browser/version, viewport, fixture, individual checklist results or extra observations were supplied, so none are invented or attributed to an agent run. Existing automated evidence and all section-13 limitations remain applicable. The user authorized the M5 documentation commit/push, local master merge, and creation/publication of m6-change-handling; no M6 implementation is included.
+- Known problems: granular browser metadata and individual observations were not supplied. Institutional calendar/privacy/workflow validation, production load/concurrency/deployment assurance and the other retained prototype limitations remain outside this closure.
+- Next suggested task: M6-T1 on m6-change-handling after separate task authorization.

@@ -409,3 +409,26 @@ ZIP's MANUAL-CHECKLIST.md and record observations before accepting/closing M5.
 Retained limitations in section 13 still apply: schedule-derived weekly synthetic
 data, no physical occupancy or reservation guarantee, unverified institution
 policies/calendar/privacy, and no production/deployment/concurrency certification.
+
+## M5-T2g user-reported manual acceptance and milestone closure — 8 November 2026
+
+**Current status: M5 ACCEPTED AND CLOSED for the approved prototype scope.** This
+supersedes the pending handoff in T2f while preserving that historical record.
+The user explicitly reported on 8 November 2026: "I have done all the live
+browser manual test successfully." This records successful completion of the
+requested live manual acceptance as user-reported evidence for Gates E and G.
+
+No browser/version, viewport, fixture identifier, individual checklist results or
+additional observations were supplied with the report. They are not inferred, and
+this acceptance is not described as an agent-run browser test. The earlier domain,
+service, real SQLite, page/control, menu, full verification, build, HTTP and Git
+checks remain the automated evidence for Gates A–F; T2g adds a fresh verification
+before its documentation-only commit. Gate H is closed by this dated record.
+
+The user separately authorized the M5 acceptance commit/push, a local merge into
+master, and creation/publication of `m6-change-handling`. No M6 implementation is
+included in this closure. All retained limitations in section 13 still apply:
+status is schedule-derived weekly synthetic data, not physical occupancy or a
+reservation guarantee; institutional calendar/privacy/workflow assumptions remain
+unvalidated; and no production load, distributed-locking, deployment or privacy
+certification is claimed.
