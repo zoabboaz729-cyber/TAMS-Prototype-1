@@ -824,3 +824,11 @@
 - Attribution: this is user-reported acceptance, not an agent-run browser test. The report did not include browser/version, viewport, fixture, individual checklist results or additional observations; those details are not inferred.
 - Decision: retain every section-13 limitation and rely on the existing automated evidence plus the T2g verification recorded in PROGRESS. Closure is not production, institutional-policy, privacy, load, concurrency or deployment certification.
 - Git scope: the user authorized this M5 documentation commit and push, a local merge into master, and creation/publication of m6-change-handling. No M6 implementation is part of this closure task.
+
+
+## 2026-11-08 M6-T0 Approved revision-2 implementation scope
+- Owner authorized the entire M6 blueprint and exempted the five-file limit; separate task commits remain required.
+- Base: m6-change-handling at 2f2df40f5b4910d6d44d2f8befa8db6f5896c0dd; M5 accepted per T2g.
+- Calendar choice: explicitly synthetic semester 1, 2026-09-01 through 2026-12-18, Africa/Nairobi. Semester 2 dated changes fail closed until configured.
+- Verify: PASS, typecheck/lint, 1566 tests/61 files including staged M6 pure rules in the working tree, seed 11/11 (core-verify2.txt). No protected database opened.
+- Plan: additive schema/domain foundation; rescheduling services; M4/M5/date integration; issue workflow; presentation and lifecycle verification; patch replay delivery. No new dependencies, no M7. Manual browser acceptance remains owner-performed.
