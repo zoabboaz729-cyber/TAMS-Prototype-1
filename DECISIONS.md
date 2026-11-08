@@ -886,3 +886,12 @@
 - Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
 - Known problems: user browser acceptance pending; M6 not closed.
 - Next: next authorized M6 slice, then owner acceptance.
+
+
+## 2026-11-08 M6-T1n extend M4 publication with dated validation and stale-source snapshots
+- Done: extend M4 publication with dated validation and stale-source snapshots. Revised cohesive commit boundaries are mapped in docs/M6-IMPLEMENTATION.md.
+- Files changed: src/server/draftPublishContract.ts, src/server/draftPublish.ts, src/server/draftPublishStorePrisma.ts, src/server/m6Publication.ts.
+- Verify: working-tree checks executed; exact committed-tree replay verification and intermediate failures are recorded per commit in delivery evidence.
+- Decisions: SQLite only, no dependencies, protected databases unchanged. User authorized all M6 tasks and removed the file cap.
+- Known problems: user browser acceptance pending; M6 not closed.
+- Next: next authorized M6 slice, then owner acceptance.

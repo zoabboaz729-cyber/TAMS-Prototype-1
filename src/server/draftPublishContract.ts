@@ -93,6 +93,7 @@ export type PublishStaleReason =
 /** The preconditions the transaction must re-establish before it writes. */
 export type PublishPreconditions = {
   snapshotFingerprint: string;
+  m6Fingerprint?: string;
   /** Sorted ids of the PUBLISHED versions of this semester as the service saw them. */
   publishedVersionIds: readonly string[];
   /** The policy the validation ran under, so the recomputation is comparable. */
@@ -126,6 +127,7 @@ export type PublishTransactionOutcome =
  * write. No Prisma import and no database access here — the adapter is M4-T3b.
  */
 export interface DraftPublishStore {
+  readM6Guard?(versionId: string, now: Date): Promise<{ fingerprint: string; problem: string | null }>;
   findVersion(versionId: string): Promise<PublishVersionRow | null>;
   listEntriesByVersion(versionId: string): Promise<DraftEntryRow[]>;
   listTeachingsByIds(teachingIds: readonly string[]): Promise<TeachingRow[]>;

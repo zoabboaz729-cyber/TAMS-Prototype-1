@@ -75,6 +75,7 @@
  * uses the existing singleton. No migration, no schema change, no new table, no
  * server action and no UI — those are M4-T3c.
  */
+import { readM6PublicationGuard } from "./m6Publication";
 import { TimetableVersionStatusSchema } from "@/domain/types";
 import type { PolicyConfig } from "@/domain/policy";
 import { PrismaClient, type Prisma } from "@prisma/client";
@@ -280,6 +281,7 @@ async function readSnapshot(client: ReadClient, version: PublishVersionRow, poli
  */
 export function createDraftPublishStore(client: PrismaClient = prisma): DraftPublishStore {
   return {
+    readM6Guard: (id, now) => client.$transaction(tx => readM6PublicationGuard(tx, id, now)),
     async findVersion(versionId): Promise<PublishVersionRow | null> {
       const row = await client.timetableVersion.findUnique({ where: { id: versionId }, select: versionSelect });
       return row === null ? null : toVersionRow(row);
@@ -346,6 +348,10 @@ export function createDraftPublishStore(client: PrismaClient = prisma): DraftPub
           return { stale: true, reason: "PUBLISHED_SET_CHANGED" } as const;
         }
 
+        if (input.expected.m6Fingerprint !== undefined) {
+          const guard = await readM6PublicationGuard(tx, version.id, input.publishedAt);
+          if (guard.problem || guard.fingerprint !== input.expected.m6Fingerprint) return { stale: true, reason: "SNAPSHOT_CHANGED" } as const;
+        }
         if (archivedVersionIds.length > 0) {
           const archived = await tx.timetableVersion.updateMany({
             where: { id: { in: archivedVersionIds }, status: "PUBLISHED", semester: input.semester },
