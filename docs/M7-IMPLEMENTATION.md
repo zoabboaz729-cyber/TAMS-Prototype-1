@@ -1,5 +1,7 @@
 # M7 implementation decisions and slice map
 
+Status: M7 ACCEPTED/CLOSED on 9 November 2026 following the owner's report that the manual acceptance checklist was completed and everything behaved as expected. This is owner-reported acceptance, not an agent-run device test; see M7-MANUAL-ACCEPTANCE.md and M7-VERIFICATION.md for attribution and retained limitations. M8 implementation has not started.
+
 Owner authorized all recommended M7 settings, M7-T1–T4 and M7-V0–V5, the M4/M5 seams, dependencies named in the specification, and explicitly waived the file ceiling on 9 November 2026. These are synthetic prototype choices, not university policy.
 
 - Independent Start/End class and Open/Close attendance. No combined operation, room release, backdating or attendance editing.

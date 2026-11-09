@@ -1,6 +1,8 @@
-# M7 owner browser acceptance — PENDING
+# M7 owner browser acceptance — ACCEPTED/CLOSED (owner-reported)
 
-Perform this yourself after applying the patches and local automated checks. Use synthetic accounts and a **new disposable database**, never your working dev.db/walkthrough.db. Do not share live QR/code/secret screenshots. Record PASS/FAIL/BLOCKED rather than assuming outcomes.
+On 9 November 2026, the owner reported: "I have done manual acceptance and everything is as expected and okay." M7 is accepted and closed for the approved prototype scope. The scenario results below record that collective owner report, not separately observed agent tests; detailed device, fixture and per-scenario measurements were not supplied.
+
+The setup and scenarios remain available for repeat testing. Use synthetic accounts and a **new disposable database**, never your working dev.db/walkthrough.db. Do not share live QR/code/secret screenshots. Record actual PASS/FAIL/BLOCKED outcomes for any future retest.
 
 ## Setup
 
@@ -13,29 +15,29 @@ Perform this yourself after applying the patches and local automated checks. Use
 
 | ID | Perform | Required observation | Owner result |
 |---|---|---|---|
-| L1 | View /lecturer/attendance | Only assigned effective classes, venue/date/time and independent controls | PENDING |
-| L2 | Start class only after venue confirmation | Activity reported; no attendance session or QR implicitly created; M5 reservation stays | PENDING |
-| L3 | Open attendance only on a separate occurrence/fixture | QR/code shown; no class start inferred; M5 says start unconfirmed | PENDING |
-| L4 | Start→Open and Open→Start on separate fixtures | Both orders work, no combined action; same original occurrence identity | PENDING |
-| L5 | End class while attendance remains open | Scans stop; QR row not silently closed; venue remains reserved to scheduled end | PENDING |
-| L6 | Close attendance while class remains started | Further scans denied; class report unchanged; CLOSED cannot reopen | PENDING |
-| L7 | Refresh STATIC, then a separate ROTATING session | STATIC stays identical; ROTATING changes at 30-second UTC boundaries; expired code refused | PENDING |
-| L8 | Guess another lecturer's class/session URL | No token or private class data | PENDING |
-| S1 | Phone over trusted HTTPS/localhost, grant camera permission | Scan yields server-confirmed receipt and stored count increases once | PENDING |
-| S2 | Repeat scan; then another eligible student | Duplicate refused, second student's single mark succeeds | PENDING |
-| S3 | Deny camera permission / use ordinary LAN HTTP | Clear fallback; typed code still works under same server rules | PENDING |
-| S4 | Enter 12 symbols inside 30 seconds on actual phone | Record usability; expired code says retry latest, no silent grace period | PENDING |
-| S5 | Lose network during submission | UNKNOWN, no false confirmation; history/retry resolves actual stored state | PENDING |
-| S6 | Wrong group, signed out, tampered/expired code | Exact safe rejection, no stored mark or false success | PENDING |
-| R1 | Lecturer own-session report and independent Start-only report | Minimal own records; Start-only activity exists without QR session | PENDING |
-| R2 | Officer / dept rep / approver / student / ADMIN | Officer/department aggregates only; group-department scope; student own receipts; ADMIN denied | PENDING |
-| R3 | Compare reports with independently counted DB rows | Marks, distinct participants, sessions, provisioned accounts and planned size remain distinct | PENDING |
-| I1 | M6 ONE_OFF Monday→Tuesday (approve/publish before the original occurrence) | Attendance on actual Tuesday only; original identity retained; next Monday distinct | PENDING |
-| I2 | Attempt same-semester publish during live class or QR | Refused; after scheduled end, publication succeeds and history remains | PENDING |
-| I3 | M5 live board after neither/Start/QR/End; then M5 URL demo | Truthful reservation labels; no false vacancy; real evidence not projected into simulated URL time | PENDING |
-| I4 | Publish replacement in disposable fixture | Archived history retained; old tokens fail; no attendance copied to new draft | PENDING |
-| I5 | Regression walkthrough | M0–M6 auth, submissions, generator, views, reschedule, issues, venue functions remain usable | PENDING |
-| A1 | Keyboard, narrow screen, zoom, error/empty/offline states | Labels/buttons/status readable; no real data/secret exposure | PENDING |
+| L1 | View /lecturer/attendance | Only assigned effective classes, venue/date/time and independent controls | PASS (owner report) |
+| L2 | Start class only after venue confirmation | Activity reported; no attendance session or QR implicitly created; M5 reservation stays | PASS (owner report) |
+| L3 | Open attendance only on a separate occurrence/fixture | QR/code shown; no class start inferred; M5 says start unconfirmed | PASS (owner report) |
+| L4 | Start→Open and Open→Start on separate fixtures | Both orders work, no combined action; same original occurrence identity | PASS (owner report) |
+| L5 | End class while attendance remains open | Scans stop; QR row not silently closed; venue remains reserved to scheduled end | PASS (owner report) |
+| L6 | Close attendance while class remains started | Further scans denied; class report unchanged; CLOSED cannot reopen | PASS (owner report) |
+| L7 | Refresh STATIC, then a separate ROTATING session | STATIC stays identical; ROTATING changes at 30-second UTC boundaries; expired code refused | PASS (owner report) |
+| L8 | Guess another lecturer's class/session URL | No token or private class data | PASS (owner report) |
+| S1 | Phone over trusted HTTPS/localhost, grant camera permission | Scan yields server-confirmed receipt and stored count increases once | PASS (owner report) |
+| S2 | Repeat scan; then another eligible student | Duplicate refused, second student's single mark succeeds | PASS (owner report) |
+| S3 | Deny camera permission / use ordinary LAN HTTP | Clear fallback; typed code still works under same server rules | PASS (owner report) |
+| S4 | Enter 12 symbols inside 30 seconds on actual phone | Record usability; expired code says retry latest, no silent grace period | PASS (owner report) |
+| S5 | Lose network during submission | UNKNOWN, no false confirmation; history/retry resolves actual stored state | PASS (owner report) |
+| S6 | Wrong group, signed out, tampered/expired code | Exact safe rejection, no stored mark or false success | PASS (owner report) |
+| R1 | Lecturer own-session report and independent Start-only report | Minimal own records; Start-only activity exists without QR session | PASS (owner report) |
+| R2 | Officer / dept rep / approver / student / ADMIN | Officer/department aggregates only; group-department scope; student own receipts; ADMIN denied | PASS (owner report) |
+| R3 | Compare reports with independently counted DB rows | Marks, distinct participants, sessions, provisioned accounts and planned size remain distinct | PASS (owner report) |
+| I1 | M6 ONE_OFF Monday→Tuesday (approve/publish before the original occurrence) | Attendance on actual Tuesday only; original identity retained; next Monday distinct | PASS (owner report) |
+| I2 | Attempt same-semester publish during live class or QR | Refused; after scheduled end, publication succeeds and history remains | PASS (owner report) |
+| I3 | M5 live board after neither/Start/QR/End; then M5 URL demo | Truthful reservation labels; no false vacancy; real evidence not projected into simulated URL time | PASS (owner report) |
+| I4 | Publish replacement in disposable fixture | Archived history retained; old tokens fail; no attendance copied to new draft | PASS (owner report) |
+| I5 | Regression walkthrough | M0–M6 auth, submissions, generator, views, reschedule, issues, venue functions remain usable | PASS (owner report) |
+| A1 | Keyboard, narrow screen, zoom, error/empty/offline states | Labels/buttons/status readable; no real data/secret exposure | PASS (owner report) |
 
 ## Optional isolated synthetic QR demonstration
 
@@ -52,13 +54,16 @@ Restart the dev server when changing offset/configuration. QR still rotates ever
 
 ## Acceptance record
 
-- Tested local commit and tree:
-- Database filename (new disposable, synthetic):
-- Server real clock / simulation mode, offset and scan policy:
-- Laptop OS/browser/version and viewport:
-- Phone OS/browser/version and trusted HTTPS/localhost context:
-- Synthetic lecturer/group/session and original→actual occurrence dates:
-- Per-ID PASS / FAIL / BLOCKED, defect and retest notes:
-- Owner decision: **PENDING — M7 NOT ACCEPTED/CLOSED**
+- Acceptance date: 9 November 2026.
+- Owner report: "I have done manual acceptance and everything is as expected and okay."
+- Repository revision when recorded: 0ee49f98068baffec32f9c67c9c57d3d94c23121; tree 442b726db1d36201102ea75af94ebd0b6746d940. These identify the observed repository, not an independently confirmed owner-tested revision.
+- Tested local commit and tree: not supplied by the owner.
+- Database filename (new disposable, synthetic): not supplied by the owner.
+- Server real clock / simulation mode, offset and scan policy: not supplied by the owner.
+- Laptop OS/browser/version and viewport: not supplied by the owner.
+- Phone OS/browser/version and trusted HTTPS/localhost context: not supplied by the owner.
+- Synthetic lecturer/group/session and original→actual occurrence dates: not supplied by the owner.
+- Per-ID PASS / FAIL / BLOCKED, defect and retest notes: PASS recorded from the collective owner report; no individual measurements or defect notes supplied.
+- Owner decision: **M7 ACCEPTED/CLOSED — owner-reported successful manual acceptance.**
 
-Return this record or an explicit acceptance report. Automated/static/HTTP results do not fill it automatically.
+Additional fixture/device details may be appended if supplied. Automated/static/HTTP results are separate evidence and do not replace the owner's manual report.

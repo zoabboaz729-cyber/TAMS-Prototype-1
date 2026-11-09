@@ -1,6 +1,6 @@
 # M7 verification and owner acceptance handoff
 
-Status: IMPLEMENTED / AUTOMATED VERIFIED / PENDING OWNER MANUAL ACCEPTANCE. M7 is not closed. No M8 or M9 work is included.
+Status: M7 ACCEPTED/CLOSED on 9 November 2026: implementation and automated verification passed, and the owner reported successful completion of manual acceptance. No M8 or M9 implementation is included.
 
 Repository: zoabboaz729-cyber/TAMS-Prototype-1. Branch: m7-qr-attendance.
 Base: b33098ff3f0d6bdc031d7ae49450acefe1774723 (identical master/m7 at preflight and final remote check).
@@ -32,8 +32,14 @@ All M7-T1–T4 and approved M7-V0–V5 features are implemented: effective dated
 - [x] M7-T3 camera/typed transports, strict server confirmation, UNKNOWN on lost response, device-ID STUB and cleanup/SSR tests.
 - [x] M7-T4 own-session / unit / department / SELF reports, honest denominators and independently reconciled totals.
 - [x] M7-V0–V5 role permission, independent state/projection/persistence/actions, no false room release, M5 integration and publication safeguards.
-- [ ] Owner laptop/phone browser, actual camera/HTTPS and typed-code usability checklist in M7-MANUAL-ACCEPTANCE.md.
-- [ ] Owner explicit M7 acceptance and closure after the checklist.
+- [x] Owner reported completion of M7-MANUAL-ACCEPTANCE.md with everything behaving as expected; scenario results are collectively owner-reported, not agent-observed device measurements.
+- [x] Owner explicit M7 acceptance recorded on 9 November 2026; M7 closed for the approved prototype scope.
+
+## Owner acceptance record — 9 November 2026
+
+The owner stated: "I have done manual acceptance and everything is as expected and okay." This supersedes the pending manual-acceptance status in the original delivery and M7-APPLY handoff. The checklist records PASS on that collective report, without inventing individual observations.
+
+At recording time the repository is at local/remote m7-qr-attendance commit 0ee49f98068baffec32f9c67c9c57d3d94c23121, tree 442b726db1d36201102ea75af94ebd0b6746d940. These are observed repository identifiers, not a claim about the exact revision the owner tested. The owner did not supply tested commit/tree, database, clock/simulation configuration, browser/OS/device/HTTPS context, occurrence identifiers, per-scenario measurements or defect notes. No such metadata is inferred. This acceptance does not change the limitations below.
 
 ## Decisions and limits
 
@@ -45,10 +51,10 @@ Legacy attendance rows with missing occurrence provenance remain retained histor
 
 ## Remote delivery and deletion record
 
-The GitHub integration refused preparation of an actual implementation blob with HTTP 403, Resource not accessible by integration. Direct git push dry-run also lacks credentials. No branch/ref, PR, merge or remote history was changed. Delivery is ordered patches plus exact-tree evidence and instructions.
+During the original delivery, the GitHub integration refused preparation of an implementation blob with HTTP 403 and direct git push dry-run lacked credentials; that source handoff changed no remote history. The subsequent local application successfully pushed all seven delivered commits and the integration record to origin/m7-qr-attendance at 0ee49f98068baffec32f9c67c9c57d3d94c23121. See PROGRESS.md M7-APPLY for local evidence. The current owner instruction additionally authorizes this acceptance-documentation commit/push, followed by merging M7 into master and preparing m8-meeting-tools-polish; no M8 feature implementation is included.
 
 Deletion operations were confined to task-owned temporary fixture directories (test rmSync and HTTP harness shutil.rmtree), seed deleteMany operations on newly created disposable synthetic databases, and npm ci replacing task-owned dependencies. No rm, git clean, reset --hard, user-folder deletion, protected DB reset, force push or test weakening was performed.
 
 ## Open questions
 
-No implementation-policy decision remains pending from the owner. Institutional validation and actual device acceptance remain pending. Record browser/OS/device, HTTPS context, tested commit/tree, synthetic/live mode, scenarios and defects before marking M7 accepted.
+No M7 implementation-policy or owner-acceptance blocker remains reported. Detailed device/fixture metadata was not supplied, and institutional validation remains outside this prototype acceptance. Existing limits remain in force; M8 implementation awaits separate task authorization.
