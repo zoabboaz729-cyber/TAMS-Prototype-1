@@ -93,7 +93,7 @@ export async function publishDraftAction(input: unknown): Promise<DraftPublishRe
   }
 
   try {
-    return await performDraftPublish(createDraftPublishStore(), user, parsed.data);
+    return await performDraftPublish(createDraftPublishStore(undefined, () => new Date()), user, parsed.data);
   } catch {
     console.error("[officer/draft] publish action failed; returning INTERNAL_ERROR");
     return { ok: false, kind: "INTERNAL_ERROR" };

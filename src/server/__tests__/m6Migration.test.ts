@@ -44,7 +44,7 @@ function copyMigrations(target: string, includeM6: boolean) {
     mkdirSync(migrationDir, { recursive: true });
     copyFileSync(path.resolve("prisma/schema.prisma"), path.join(target, "schema.prisma"));
     copyFileSync(path.join(root, "migration_lock.toml"), path.join(migrationDir, "migration_lock.toml"));
-    for (const name of readdirSync(root).filter(n => n !== "migration_lock.toml" && (includeM6 || !n.includes("20261108160000")))) {
+    for (const name of readdirSync(root).filter(n => n !== "migration_lock.toml" && !n.includes("_m7_") && (includeM6 || !n.includes("20261108160000")))) {
         mkdirSync(path.join(migrationDir, name), { recursive: true });
         copyFileSync(path.join(root, name, "migration.sql"), path.join(migrationDir, name, "migration.sql"));
     }

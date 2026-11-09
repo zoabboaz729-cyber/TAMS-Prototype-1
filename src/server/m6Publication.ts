@@ -1,4 +1,5 @@
 /** M4 extension. Runs before preview and again inside M4's write transaction. */
+import { hasActiveAttendance } from "./attendancePublication";
 import { createHash } from "node:crypto";
 import { hasStarted } from "@/domain/termCalendar";
 import { readM6Snapshot, assessSnapshot, type M6Client } from "./m6Snapshot";
@@ -35,5 +36,6 @@ export async function readM6PublicationGuard(tx: M6Client, versionId: string, no
             problem = s.term ? "INVALID_OCCURRENCE_DATA" : "TERM_NOT_CONFIGURED";
         }
     }
+    if (await hasActiveAttendance(tx, current.map(v => v.id), now)) problem = "ACTIVE_CLASS_OR_ATTENDANCE";
     return { fingerprint, problem };
 }

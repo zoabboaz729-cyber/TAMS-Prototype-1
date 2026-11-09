@@ -21,6 +21,9 @@ model User {
   studentGroupId String?
   studentGroup   StudentGroup? @relation(fields: [studentGroupId], references: [id])
 
+  startedActivities ClassOccurrenceActivity[] @relation("ClassStarter")
+  endedActivities ClassOccurrenceActivity[] @relation("ClassEnder")
+  attendanceAttempts AttendanceAttempt[]
   // Relations
   lecturer            Lecturer?
   reviewedSubmissions Submission[]        @relation("SubmissionReviewer")
@@ -70,6 +73,7 @@ model Venue {
   status            String      @default("ACTIVE") // ACTIVE | INACTIVE | MAINTENANCE
 
   // Relations
+  classActivities ClassOccurrenceActivity[]
   unavailabilities VenueUnavailable[]
   timetableEntries TimetableEntry[]
   issues           Issue[]
@@ -183,6 +187,7 @@ model Teaching {
   sessionLength   Int
 
   // Relations
+  classActivities ClassOccurrenceActivity[]
   timetableEntries TimetableEntry[]
 
   createdAt DateTime @default(now())
@@ -227,6 +232,8 @@ model TimetableVersion {
   exceptions TimetableOccurrenceException[]
   @@index([basePublishedVersionId])
   // Relations
+  attendanceSessions AttendanceSession[]
+  classActivities ClassOccurrenceActivity[]
   entries TimetableEntry[]
 
   createdAt DateTime @default(now())
@@ -254,7 +261,9 @@ model TimetableEntry {
   occurrenceExceptions TimetableOccurrenceException[]
   @@unique([id, versionId])
   rescheduleRequests RescheduleRequest[]
-  attendanceSessions AttendanceSession[]
+  attendanceSessions AttendanceSession[] @relation("AttendanceEntry")
+  provenanceSessions AttendanceSession[] @relation("AttendanceProvenance")
+  classActivities ClassOccurrenceActivity[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -332,7 +341,8 @@ model Issue {
 model AttendanceSession {
   id        String         @id @default(cuid())
   entryId   String
-  entry     TimetableEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entry     TimetableEntry @relation("AttendanceEntry", fields: [entryId], references: [id], onDelete: Restrict)
+  provenanceEntry TimetableEntry? @relation("AttendanceProvenance", fields: [entryId, versionId], references: [id, versionId], onDelete: Restrict, onUpdate: NoAction)
   openedBy  String
   opener    User           @relation("SessionOpener", fields: [openedBy], references: [id])
   opensAt   DateTime
@@ -341,6 +351,22 @@ model AttendanceSession {
   mode      String         @default("STATIC") // STATIC | ROTATING
   status    String         @default("OPEN")   // OPEN | CLOSED | CANCELLED
 
+  // Legacy metadata remains nullable; legacy rows are history-only until repaired.
+  versionId String?
+  version TimetableVersion? @relation(fields: [versionId], references: [id], onDelete: Restrict)
+  originalDate String?
+  actualDate String?
+  actualStart String?
+  actualEnd String?
+  timeZone String @default("Africa/Nairobi")
+  tokenGeneration Int @default(0)
+  policyVersion String @default("M7-v1")
+  closedAt DateTime?
+  simulated Boolean @default(false)
+  attempts AttendanceAttempt[]
+  @@unique([entryId, originalDate])
+  @@index([versionId, actualDate])
+  @@index([status, closesAt])
   // Relations
   records AttendanceRecord[]
 
@@ -355,12 +381,14 @@ model AttendanceSession {
 model AttendanceRecord {
   id         String            @id @default(cuid())
   sessionId  String
-  session    AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session    AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Restrict)
   studentId  String
   student    User              @relation("StudentAttendance", fields: [studentId], references: [id])
   recordedAt DateTime          @default(now())
   deviceId   String?
 
+  @@index([studentId, recordedAt])
+  @@index([sessionId, recordedAt])
   @@unique([sessionId, studentId])
   @@index([sessionId])
   @@index([studentId])
@@ -390,4 +418,47 @@ model AssumptionFeedback {
 
   @@index([assumptionKey])
   @@index([verdict])
+}
+
+
+// Independent from AttendanceSession: no implicit activity/QR coupling.
+model ClassOccurrenceActivity {
+  id String @id @default(cuid())
+  versionId String
+  version TimetableVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
+  entryId String
+  entry TimetableEntry @relation(fields: [entryId, versionId], references: [id, versionId], onDelete: Restrict, onUpdate: NoAction)
+  originalDate String
+  actualDate String
+  actualStart String
+  actualEnd String
+  venueId String
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  teachingId String
+  teaching Teaching @relation(fields: [teachingId], references: [id], onDelete: Restrict)
+  state String
+  startedBy String
+  starter User @relation("ClassStarter", fields: [startedBy], references: [id], onDelete: Restrict)
+  startedAt DateTime
+  endedBy String?
+  ender User? @relation("ClassEnder", fields: [endedBy], references: [id], onDelete: Restrict)
+  endedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([entryId, originalDate])
+  @@index([versionId, actualDate, venueId])
+  @@index([startedBy, startedAt])
+}
+
+// Bounded credential failures, never raw codes or token payloads.
+model AttendanceAttempt {
+  id String @id @default(cuid())
+  sessionId String
+  session AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  studentId String
+  student User @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  windowStart DateTime
+  failures Int @default(0)
+  @@unique([sessionId, studentId])
+  @@index([studentId, windowStart])
 }

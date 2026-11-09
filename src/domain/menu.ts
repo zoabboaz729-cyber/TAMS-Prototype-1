@@ -47,9 +47,9 @@ export const MENU_ITEMS: readonly MenuItem[] = [
   { key: "lecturer-availability", label: "My availability", href: "/lecturer/availability", action: "VIEW_LECTURER_AVAILABILITY", built: true, audienceRoles: ["LECTURER"] },
   { key: "issues-new", label: "Report an issue", href: "/issues/new", action: "REPORT_ISSUE", built: true },
   { key: "issues-list", label: "Issues", href: "/issues", action: "SEE_ISSUES", built: true },
-  { key: "attendance-open", label: "Open attendance", href: "/lecturer/attendance", action: "OPEN_ATTENDANCE", built: false },
-  { key: "attendance-scan", label: "Scan attendance", href: "/student/scan", action: "SCAN_ATTENDANCE", built: false },
-  { key: "attendance-report", label: "Attendance reports", href: "/reports/attendance", action: "VIEW_ATTENDANCE_REPORT", built: false },
+  { key: "attendance-open", label: "Open attendance", href: "/lecturer/attendance", action: "OPEN_ATTENDANCE", built: true },
+  { key: "attendance-scan", label: "Scan attendance", href: "/student/scan", action: "SCAN_ATTENDANCE", built: true },
+  { key: "attendance-report", label: "Attendance reports", href: "/reports/attendance", action: "VIEW_ATTENDANCE_REPORT", built: true },
   { key: "users", label: "Manage users", href: "/admin/users", action: "MANAGE_USERS", built: false },
 ];
 

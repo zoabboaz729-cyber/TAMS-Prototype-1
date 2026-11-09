@@ -1,4 +1,5 @@
 /** Server orchestration: trusted actor, strict request, one snapshot, redacted output. */
+import { venueActivityLabel } from "@/domain/venueActivity";
 import { M6Error } from "./m6Errors";
 import { campusDateTime, inTerm, termFor, weekday } from "@/domain/termCalendar";
 import { decideAnyAccess } from "@/domain/access";
@@ -37,7 +38,7 @@ export async function readVenueStatus(
     const clock = VenueClockSchema.safeParse(q.mode === "demo-date" ? { day: weekday(q.date), time: q.time } : q.mode === "demo" ? { day: q.day, time: q.time } : campusVenueClock(instant!));
     if (!clock.success) return fail("INVALID_CLOCK");
     const semester = Number(q.semester);
-    const data = VenueStatusSnapshotSchema.safeParse(await (date && store.readDatedSnapshot ? store.readDatedSnapshot(semester,date) : store.readSnapshot(semester)));
+    const data = VenueStatusSnapshotSchema.safeParse(await (mode === "live" && date && instant && store.readLiveSnapshot ? store.readLiveSnapshot(semester,date,instant) : date && store.readDatedSnapshot ? store.readDatedSnapshot(semester,date) : store.readSnapshot(semester)));
     if (!data.success) return fail("INVALID_PUBLISHED_DATA");
     const { versions, entries } = data.data;
     if (versions.length === 0) return fail("NO_PUBLISHED_VERSION");
@@ -58,7 +59,8 @@ export async function readVenueStatus(
       const result = venueStatus(version, venue, clock.data, DEFAULT_VENUE_STATUS_POLICY);
       if (!result.ok) return fail("INVALID_PUBLISHED_DATA");
       integrityCount += result.integrityCount;
-      rows.push({ code: venue.code, type: venue.type, status: result.status,
+      const evidence = data.data.activityEvidence?.find(e=>e.venueId===venue.id);
+      rows.push({ ...(data.data.activityEvidence ? {activityLabel:venueActivityLabel(result.status,evidence?.activity??null,evidence?.attendance??"NOT_OPENED",evidence?.hasMarks?1:0)} : {}), code: venue.code, type: venue.type, status: result.status,
         nextFreeAt: result.nextFreeAt, nextScheduledAt: result.nextScheduledAt,
         nextFreeOutsideHours: result.nextFreeOutsideHours, unavailableKind: result.unavailableKind });
     }

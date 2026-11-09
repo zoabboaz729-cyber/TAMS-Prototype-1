@@ -279,7 +279,7 @@ async function readSnapshot(client: ReadClient, version: PublishVersionRow, poli
  * Prisma implementation of `DraftPublishStore`. The default client is the shared
  * singleton; tests inject a client bound to an isolated database file.
  */
-export function createDraftPublishStore(client: PrismaClient = prisma): DraftPublishStore {
+export function createDraftPublishStore(client: PrismaClient = prisma, mutationClock?: () => Date): DraftPublishStore {
   return {
     readM6Guard: (id, now) => client.$transaction(tx => readM6PublicationGuard(tx, id, now)),
     async findVersion(versionId): Promise<PublishVersionRow | null> {
@@ -349,7 +349,7 @@ export function createDraftPublishStore(client: PrismaClient = prisma): DraftPub
         }
 
         if (input.expected.m6Fingerprint !== undefined) {
-          const guard = await readM6PublicationGuard(tx, version.id, input.publishedAt);
+          const guard = await readM6PublicationGuard(tx, version.id, mutationClock?.() ?? input.publishedAt);
           if (guard.problem || guard.fingerprint !== input.expected.m6Fingerprint) return { stale: true, reason: "SNAPSHOT_CHANGED" } as const;
         }
         if (archivedVersionIds.length > 0) {

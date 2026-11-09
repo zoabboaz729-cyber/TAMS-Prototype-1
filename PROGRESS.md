@@ -3,8 +3,8 @@ Entries are listed newest-last; the Status block below is authoritative.
 (The agent appends entries here at the end of every task. This file is the agent's memory between sessions.)
 
 ## Status
-- Current milestone: M6 - ACCEPTED AND CLOSED (user-reported manual browser acceptance, M6-T3b, 8 November 2026). M7 NOT STARTED.
-- Last verified code task: M6-T3a2 (`9df0181`, applied from delivery commit `314f62b3a2fb`) on `m6-change-handling`; 1672 tests, seed 11/11 and build pass; M6 manual acceptance recorded in docs/M6-VERIFICATION.md.
+- Current milestone: M7 ACCEPTED/CLOSED (user-reported full manual acceptance, M7-T4f, 9 November 2026). M6 remains ACCEPTED/CLOSED. M8 NOT STARTED.
+- Last verified code task: M7-T3 (`36c29b0`, applied from delivery `8f382a4`), locally verified on the final delivery tree `f8c6114d4955bea7762bf43591973b37c0cd7767`; 1760 tests/77 files, seed 11/11 and production build pass. See the M7-APPLY entry below and docs/M7-VERIFICATION.md.
 - Demo-ready: no
 
 ## Log
@@ -953,3 +953,83 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Treat the user's explicit success report as the manual acceptance evidence, with user attribution preserved. No tested commit, database identifier, browser/version, viewport, IDs, per-item counts or defect notes were supplied, so none are invented or attributed to an agent run. Status block now cites applied commit 9df0181 instead of the delivery-package hash. The user authorized this commit/push, a merge into master with push, and creation/publication of m7-qr-attendance from master; no M7 implementation is included.
 - Known problems: granular browser metadata and individual checklist observations were not supplied. The synthetic semester 1 calendar, absent semester 2 dated window, unvalidated institutional questions (M6-DESIGN.md section 16), npm audit advisories recorded in M6-APPLY and the other prototype limitations remain outside this closure.
 - Next suggested task: M7-T1 on m7-qr-attendance after separate task authorization.
+
+
+## 2026-11-09 M7-T1 Foundation, approved scope and retained-history schema
+- Done: recorded owner choices; added pure attendance/activity/projection rules, lecturer-only activity permission, additive independent activity/session provenance and bounded-attempt schema. Legacy undated rows remain unchanged and history-only.
+- Files changed: docs/M7-DESIGN.md; docs/M7-IMPLEMENTATION.md; domain rules/tests; permission matrix/tests; Prisma schema/new migration/seed deletion order; M6/M7 migration harness; M5 fixture connection configuration; DECISIONS.md; PROGRESS.md.
+- Verify: PASS in integrated working tree, npm run verify (raw output 08-integration-verify.txt in delivery evidence); exact committed-tree replay follows. Prisma validate/generate pass.
+- Decisions: owner waived five-file limit. M6 migration test copies only M6-and-earlier migrations, preserving its assertions. M5 deliberate-corruption fixture uses one connection so connection-scoped FK pragmas are deterministic; no assertion weakened.
+- Known problems: remaining M7 transports/UI/report integration and owner browser acceptance pending.
+- Next suggested task: approved M7 credential/transaction foundation.
+
+
+## 2026-11-09 M7-T2 Transactional attendance and independent activity
+- Done: M6-backed effective occurrence resolution; strict HMAC/static/30-second rotating credentials and typed fallback; real-DB actor/group rechecks; independent open/close/start/end with atomic audit; duplicate/race handling; persistent five-minute failure counters; fail-closed synthetic-demo runtime.
+- Files changed: attendanceErrors, attendanceTokens, attendanceRuntime, attendanceOccurrence, attendanceService, classActivity and corresponding token/lifecycle/disposable fixture tests.
+- Verify: PASS, npm run verify integrated 1727 tests/73 files, seed 11/11 (08-integration-verify.txt); exact-tree replay follows. Four independent action orders, ONE_OFF, audit rollback, duplicate concurrency, wrong roles/groups, archival/history and FK checks pass.
+- Decisions: no active token or secret in URLs/logs/audits; device ID metadata is a stub only; code failures persist separately without credentials.
+- Known problems: browser journeys/report/UI delivery and owner manual acceptance pending.
+- Next suggested task: approved active-class publication safeguard.
+
+
+## 2026-11-09 M7-V5 Active-class publication protection
+- Done: guard M4/M6 publication before preview and again in its write transaction while a same-semester real class or attendance session is in progress; scheduled end bounds forgotten reports.
+- Files changed: src/server/attendancePublication.ts; src/server/m6Publication.ts; src/server/__tests__/m7Publication.test.ts; PROGRESS.md.
+- Verify: PASS, integrated npm run verify 1727 tests/73 files, seed 11/11; QR-only and Start-only gates, scheduled-end release/history preservation, other-version scope and concurrent open/publish test. Exact-tree replay follows.
+- Decisions: no hidden close, archival relinking or deletion; synthetic sessions do not block live publication.
+- Known problems: owner browser acceptance pending.
+- Next suggested task: approved M7-T3 guarded web journeys.
+
+
+## 2026-11-09 M7-T2h Transaction-time and retained-data hardening
+- Done: sample attendance clock inside each transaction; recheck the production publish clock inside the M4 transaction; validate activity provenance/state; distinguish authentic expired QR from malformed credentials; format new M7 modules for review.
+- Files changed: M7 domain/server modules and tests; M4 publication adapter/action; PROGRESS.md.
+- Verify: PASS npm run verify, 1760 tests/77 files, seed 11/11 (25-publication-clock-verify.txt); production build evidence follows in 26-reviewed-build.txt. Exact-tree replay follows.
+- Decisions: injected test clocks remain deterministic; production actions always supply a fresh clock. No university policy or physical presence guarantee.
+- Known problems: owner browser/camera acceptance pending.
+- Next suggested task: approved report/M5 integration and web journeys.
+
+
+## 2026-11-09 M7-T4 Scoped reports and truthful M5 activity overlay
+- Done: own-session lecturer details, department/group aggregates including service lecturers, officer aggregates, student SELF-only receipts, stable scoped filters/pagination/full totals, independent Start-only activity reports; one-transaction minimal live M5 activity overlay.
+- Files changed: attendanceReads; attendanceReports; venueActivityStore; M5 store/contract/service/page; report page; real SQLite reports/overlay/runtime tests; PROGRESS.md.
+- Verify: PASS integrated npm run verify, 1760 tests/77 files, seed 11/11; production build evidence 26-reviewed-build.txt. Exact-tree replay follows.
+- Decisions: planned group size and provisioned accounts remain distinct; no official attendance rate; simulated sessions have separate aggregates and cannot create a live M5 activity claim. Reports rely on retained entry/teaching references; application draft-only editing preserves historical entries.
+- Known problems: owner manual acceptance pending.
+- Next suggested task: approved guarded lecturer/student transports, camera and menus.
+
+
+## 2026-11-09 M7-T3 Guarded lecturer/student web journeys and navigation
+- Done: independent lecturer controls, private locally rendered QR and live counts, student camera/typed fallback through one POST service, explicit server receipts/UNKNOWN outcomes, random device stub, scoped menus, safe SSR and accessible error paths.
+- Files changed: attendance routes/actions/pages/components; attendanceHttp; camera/submission boundaries and tests; approved dependency manifests; .env.example; menu and expected navigation assertions; PROGRESS.md.
+- Verify: PASS, npm run verify 1760 tests/77 files, seed 11/11; production build PASS (26-reviewed-build.txt), scanner dynamically split and no server access to camera globals. Real camera/phone acceptance remains pending.
+- Decisions: pinned qrcode 1.5.4/html5-qrcode 2.3.8/@types/qrcode 1.5.6; no existing dependency version changed. Named scanner is in maintenance mode. npm audit reports the pre-existing 15 advisories (8 moderate, 5 high, 2 critical); none names these QR packages; no audit-fix/upgrade performed. Core report reader preceded the web slice because summary/SSR transports depend on it.
+- Known problems: actual device permissions/HTTPS/30-second typed-code usability and owner browser acceptance pending.
+- Next suggested task: exact-tree replay and owner handoff; no M8/M9.
+
+
+## 2026-11-09 M7-T4e Verified implementation and owner acceptance handoff
+- Done: all approved M7 feature slices are implemented; six implementation patches replay cleanly with full per-commit verification and exact tree equality. Added raw verification output, scope map and owner manual checklist.
+- Files changed: docs/M7-DESIGN.md; docs/M7-IMPLEMENTATION.md; docs/M7-VERIFICATION.md; docs/M7-verification.txt; docs/M7-MANUAL-ACCEPTANCE.md; PROGRESS.md; DECISIONS.md.
+- Verify: PASS 1760/1760 tests across 77 files, seed 11/11; production build on implementation and replay; migration/legacy-row preservation, seed twice count equality, 11 production HTTP and 11 npm-run-dev HTTP checks. Final documentation-patch verification/replay is stored externally to avoid recursive self-hashing.
+- Decisions: all seven cohesive slices retain traceability and acceptance coverage. GitHub integration 403 and direct push dry-run lacks credentials; remote branches unchanged. Deliver ordered patches with git am --keep-cr, hashes, raw logs and VS Code instructions.
+- Known problems: owner laptop/phone/camera/HTTPS/30-second code usability and manual acceptance pending; existing dependency advisories and scanner maintenance mode documented. Not a physical-presence guarantee or institutional policy approval.
+- Next suggested task: owner applies to exact m7 base, verifies a disposable database, runs the checklist and reports acceptance. No M8/M9 or protected database migration is started.
+
+## 2026-11-09 M7-APPLY Local delivery integration and verified acceptance setup
+- Done: Applied all seven numbered patches with git am --keep-cr from the exact base b33098ff3f0d6bdc031d7ae49450acefe1774723 on m7-qr-attendance, preserving separate commits. All 166 supplied SHA256 checks matched. Every applied commit tree and all 61 final committed file copies matched the delivery; the final applied commit is 03736dee1a2767d9dac1adc83e2ef5a785ee0919 and its tree is f8c6114d4955bea7762bf43591973b37c0cd7767 before this local documentation update.
+- Files changed: The 61 delivered files listed in the attached C:/Users/User/Documents/HCI/evidence/changed-file-manifest.txt; PROGRESS.md (local status correction and this integration record). Only the explicitly approved private ATTENDANCE_TOKEN_SECRET was appended to the git-ignored .env; no existing setting was changed and no secret, local evidence, dependency installation or database is committed.
+- Verify: PASS on Windows x64, Node v24.22.1: npm ci; Prisma validate/generate; all five migrations deployed on the new prisma/m7-acceptance-local-20261109.db; synthetic seed and migration status pass; npm run verify typecheck/lint, 1760/1760 tests across 77 files and separate seed integrity 11/11; production build pass. Development HTTP smoke passed 24/24 page, authentication/role-denial, malformed-scan and private-header checks. Browser smoke rendered the synthetic student scan empty state and disabled submission without console errors. Independent SQL confirms zero attendance marks/participants; the fresh fixture has 17 synthetic users, zero sessions and zero activity reports, with no foreign-key violations. Full local outputs and tree/preservation/browser evidence are retained in C:/Users/User/Documents/HCI/evidence/m7-local-*-20261109.*.
+- Decisions: The user explicitly approved the 61-file exception, pinned qrcode 1.5.4/html5-qrcode 2.3.8/@types/qrcode 1.5.6, reuse of the existing private synthetic demo password, addition of a distinct random private attendance secret, stopping the existing port-3100 Node processes (17596, 14908, 7476), and restarting port 3100 on the fresh acceptance database. The server runs with demo-account switching enabled, M7_SYNTHETIC_DEMO=false and real attendance time. Original .env content and SHA256 hashes of prisma/dev.db, prisma/walkthrough.db and prisma/m6-acceptance-local-20261108.db are preserved. After the user's request to simplify the slow workflow, remaining patches were applied together and the README-required final verify/build were run; no patch was skipped. The authorized destination is origin/m7-qr-attendance only, with no master merge, force push or hook bypass.
+- Known problems: Owner laptop/phone/camera/HTTPS, live scan and complete manual acceptance remain unperformed; M7 is not accepted or closed. Seeds retain deliberately conflicting drafts, so the owner must generate and publish a clean timetable for the checklist. An earlier fourth-patch run passed all 1732 assertions but failed an unchanged M4 temporary-database cleanup with Windows EBUSY; the unchanged targeted fixture and final full verification passed, and the failure log is retained. git diff --check reports delivered Markdown hard-break whitespace and final blank lines in docs/M7-verification.txt and the M7 migration; the exact delivery was preserved rather than silently edited. npm ci reports 15 dependency advisories (8 moderate, 5 high, 2 critical); no audit fix or existing package upgrade was performed. Semester 2 remains unconfigured and the scanner remains in maintenance mode.
+- Deletion scope: npm ci replaced local dependencies twice; tests cleaned only their own temporary fixtures; npm run seed used deleteMany only on the newly created acceptance database. No manual rm, git clean/reset/restore, user-file deletion or protected-database migration was performed.
+- Next suggested task: Owner performs docs/M7-MANUAL-ACCEPTANCE.md on the running acceptance server and returns actual results plus tested commit/tree. Stop after the requested integration commit and push; no acceptance closure, merge, M8 or M9 is started.
+
+## 2026-11-09 M7-T4f Record owner manual acceptance and close M7
+- Done: Recorded the owner's report, "I have done manual acceptance and everything is as expected and okay.", as successful completion of the M7 manual checklist; marked M7 ACCEPTED/CLOSED for the approved prototype scope, superseding the earlier pending handoff.
+- Files changed: PROGRESS.md; DECISIONS.md; docs/M7-IMPLEMENTATION.md; docs/M7-VERIFICATION.md; docs/M7-MANUAL-ACCEPTANCE.md.
+- Verify: PASS, npm run verify with the nonprotected DATABASE_URL=file:./m7-documentation-check-20261109.db and RUST_LOG=info: typecheck/lint, 1760/1760 tests across 77 files and separate seed integrity 11/11. The existing acceptance server returned HTTP 200 with the prototype banner. Full real output is retained locally in C:/Users/User/Documents/HCI/evidence/m7-owner-acceptance-verify-20261109.txt. Documentation-only changes; no code, schema, seed, dependency, private environment or acceptance-database change.
+- Decisions: Attribute the manual outcome to the owner rather than an agent-run browser test. The checklist's 23 PASS entries reflect the owner's collective report; tested revision, database, clock/simulation mode, device/browser/HTTPS details, occurrence identifiers, per-scenario measurements and defect notes were not supplied and are not inferred. The observed repository before recording acceptance is 0ee49f98068baffec32f9c67c9c57d3d94c23121, tree 442b726db1d36201102ea75af94ebd0b6746d940; those are not claimed to be the exact owner-tested identifiers. The owner authorized this documentation commit/push, a subsequent M7-to-master merge, and creation of m8-meeting-tools-polish from the successful merge. The name follows the specification's M8 meeting-tools-and-polish tasks; branch preparation is not M8 implementation.
+- Known problems: Detailed acceptance metadata was not provided; none is invented. Synthetic Semester 1 dates, unconfigured Semester 2, scanner maintenance, existing dependency advisories, device-binding STUB/QR-sharing limitations, historical-correction deferral and institutional-policy questions remain outside this closure. Historical pending entries remain as historical evidence and are superseded by this acceptance record.
+- Next suggested task: M8-T1 on m8-meeting-tools-polish only after separate implementation authorization. Complete the requested Git handoff first; do not implement M8 or M9 in this session.
