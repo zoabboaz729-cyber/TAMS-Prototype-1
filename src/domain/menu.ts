@@ -51,6 +51,8 @@ export const MENU_ITEMS: readonly MenuItem[] = [
   { key: "attendance-scan", label: "Scan attendance", href: "/student/scan", action: "SCAN_ATTENDANCE", built: true },
   { key: "attendance-report", label: "Attendance reports", href: "/reports/attendance", action: "VIEW_ATTENDANCE_REPORT", built: true },
   { key: "users", label: "Manage users", href: "/admin/users", action: "MANAGE_USERS", built: false },
+  {key:"assumptions",label:"Assumptions and findings",href:"/assumptions",action:"VIEW_ASSUMPTIONS",built:true},
+  {key:"demo-guide",label:"Meeting demo guide",href:"/demo",action:"VIEW_DEMO_GUIDE",built:true},
 ];
 
 /**

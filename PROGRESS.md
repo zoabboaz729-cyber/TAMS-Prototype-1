@@ -1060,3 +1060,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
 - Known problems: owner browser/device acceptance pending; M8 is not closed.
 - Next suggested task: remaining authorized M8 implementation and verification handoff.
+
+
+## 2026-11-09 M8-T2b add guided discovery script, honest readiness and role navigation
+- Done: add guided discovery script, honest readiness and role navigation.
+- Files changed: src/domain/demoScript.ts, src/server/demoReadiness.ts, src/app/demo/page.tsx, src/domain/menu.ts, src/domain/__tests__/menu.test.ts, src/domain/__tests__/demoScript.test.ts, src/server/__tests__/m8Readiness.test.ts.
+- Verify: working-tree automated checks executed; exact per-commit replay results and raw output are recorded in docs/M8-VERIFICATION.md and delivery evidence.
+- Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
+- Known problems: owner browser/device acceptance pending; M8 is not closed.
+- Next suggested task: remaining authorized M8 implementation and verification handoff.
