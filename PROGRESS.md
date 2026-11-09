@@ -971,3 +971,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: no active token or secret in URLs/logs/audits; device ID metadata is a stub only; code failures persist separately without credentials.
 - Known problems: browser journeys/report/UI delivery and owner manual acceptance pending.
 - Next suggested task: approved active-class publication safeguard.
+
+
+## 2026-11-09 M7-V5 Active-class publication protection
+- Done: guard M4/M6 publication before preview and again in its write transaction while a same-semester real class or attendance session is in progress; scheduled end bounds forgotten reports.
+- Files changed: src/server/attendancePublication.ts; src/server/m6Publication.ts; src/server/__tests__/m7Publication.test.ts; PROGRESS.md.
+- Verify: PASS, integrated npm run verify 1727 tests/73 files, seed 11/11; QR-only and Start-only gates, scheduled-end release/history preservation, other-version scope and concurrent open/publish test. Exact-tree replay follows.
+- Decisions: no hidden close, archival relinking or deletion; synthetic sessions do not block live publication.
+- Known problems: owner browser acceptance pending.
+- Next suggested task: approved M7-T3 guarded web journeys.
