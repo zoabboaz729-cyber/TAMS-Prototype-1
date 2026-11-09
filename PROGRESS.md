@@ -1042,3 +1042,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
 - Known problems: owner browser/device acceptance pending; M8 is not closed.
 - Next suggested task: remaining authorized M8 implementation and verification handoff.
+
+
+## 2026-11-09 M8-T1b deliver private presenter feedback UI and chronological CSV endpoints
+- Done: deliver private presenter feedback UI and chronological CSV endpoints.
+- Files changed: src/components/FlowStatus.tsx, src/server/m8Http.ts, src/app/api/assumptions/capture/route.ts, src/app/api/assumptions/export/route.ts, src/app/assumptions/FeedbackForm.tsx, src/app/assumptions/page.tsx.
+- Verify: working-tree automated checks executed; exact per-commit replay results and raw output are recorded in docs/M8-VERIFICATION.md and delivery evidence.
+- Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
+- Known problems: owner browser/device acceptance pending; M8 is not closed.
+- Next suggested task: remaining authorized M8 implementation and verification handoff.
