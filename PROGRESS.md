@@ -962,3 +962,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: owner waived five-file limit. M6 migration test copies only M6-and-earlier migrations, preserving its assertions. M5 deliberate-corruption fixture uses one connection so connection-scoped FK pragmas are deterministic; no assertion weakened.
 - Known problems: remaining M7 transports/UI/report integration and owner browser acceptance pending.
 - Next suggested task: approved M7 credential/transaction foundation.
+
+
+## 2026-11-09 M7-T2 Transactional attendance and independent activity
+- Done: M6-backed effective occurrence resolution; strict HMAC/static/30-second rotating credentials and typed fallback; real-DB actor/group rechecks; independent open/close/start/end with atomic audit; duplicate/race handling; persistent five-minute failure counters; fail-closed synthetic-demo runtime.
+- Files changed: attendanceErrors, attendanceTokens, attendanceRuntime, attendanceOccurrence, attendanceService, classActivity and corresponding token/lifecycle/disposable fixture tests.
+- Verify: PASS, npm run verify integrated 1727 tests/73 files, seed 11/11 (08-integration-verify.txt); exact-tree replay follows. Four independent action orders, ONE_OFF, audit rollback, duplicate concurrency, wrong roles/groups, archival/history and FK checks pass.
+- Decisions: no active token or secret in URLs/logs/audits; device ID metadata is a stub only; code failures persist separately without credentials.
+- Known problems: browser journeys/report/UI delivery and owner manual acceptance pending.
+- Next suggested task: approved active-class publication safeguard.
