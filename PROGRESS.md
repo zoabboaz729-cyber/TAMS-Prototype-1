@@ -3,9 +3,9 @@ Entries are listed newest-last; the Status block below is authoritative.
 (The agent appends entries here at the end of every task. This file is the agent's memory between sessions.)
 
 ## Status
-- Current milestone: M7 ACCEPTED/CLOSED (user-reported full manual acceptance, M7-T4f, 9 November 2026). M6 remains ACCEPTED/CLOSED. M8 NOT STARTED.
-- Last verified code task: M7-T3 (`36c29b0`, applied from delivery `8f382a4`), locally verified on the final delivery tree `f8c6114d4955bea7762bf43591973b37c0cd7767`; 1760 tests/77 files, seed 11/11 and production build pass. See the M7-APPLY entry below and docs/M7-VERIFICATION.md.
-- Demo-ready: no
+- Current milestone: M8 IMPLEMENTED / AUTOMATED GATES PASS / OWNER MANUAL ACCEPTANCE PENDING. M6 and M7 remain ACCEPTED/CLOSED.
+- Last verified code task: M8-T2d (`ef72ea6`), source tree `48dcadcd94acd76a7dbfee62a81426bdc5199675`; 1814 tests/85 files, seed 11/11, production build and Prisma validation pass. Exact per-commit patch replay and pending owner acceptance: docs/M8-VERIFICATION.md.
+- Demo-ready: automated synthetic lifecycle verified; owner laptop/phone/camera walkthrough pending.
 
 ## Log
 ## 2026-10-26 M0-T1 Foundation Stack & Verification Pipeline
@@ -1033,3 +1033,74 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Attribute the manual outcome to the owner rather than an agent-run browser test. The checklist's 23 PASS entries reflect the owner's collective report; tested revision, database, clock/simulation mode, device/browser/HTTPS details, occurrence identifiers, per-scenario measurements and defect notes were not supplied and are not inferred. The observed repository before recording acceptance is 0ee49f98068baffec32f9c67c9c57d3d94c23121, tree 442b726db1d36201102ea75af94ebd0b6746d940; those are not claimed to be the exact owner-tested identifiers. The owner authorized this documentation commit/push, a subsequent M7-to-master merge, and creation of m8-meeting-tools-polish from the successful merge. The name follows the specification's M8 meeting-tools-and-polish tasks; branch preparation is not M8 implementation.
 - Known problems: Detailed acceptance metadata was not provided; none is invented. Synthetic Semester 1 dates, unconfigured Semester 2, scanner maintenance, existing dependency advisories, device-binding STUB/QR-sharing limitations, historical-correction deferral and institutional-policy questions remain outside this closure. Historical pending entries remain as historical evidence and are superseded by this acceptance record.
 - Next suggested task: M8-T1 on m8-meeting-tools-polish only after separate implementation authorization. Complete the requested Git handoff first; do not implement M8 or M9 in this session.
+
+
+## 2026-11-09 M8-T1a add canonical assumptions, additive findings migration and audited idempotent capture
+- Done: add canonical assumptions, additive findings migration and audited idempotent capture.
+- Files changed: prisma/schema.prisma, prisma/migrations/20261109060000_m8_findings/migration.sql, src/domain/assumptions.ts, src/domain/findingsCsv.ts, src/domain/permissions.ts, src/domain/__tests__/permissions.test.ts, src/domain/__tests__/assumptions.test.ts, src/server/assumptionFeedback.ts, src/server/__tests__/m8Fixture.ts, src/server/__tests__/m8Feedback.test.ts, src/server/__tests__/m8Migration.test.ts.
+- Verify: working-tree automated checks executed; exact per-commit replay results and raw output are recorded in docs/M8-VERIFICATION.md and delivery evidence.
+- Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
+- Known problems: owner browser/device acceptance pending; M8 is not closed.
+- Next suggested task: remaining authorized M8 implementation and verification handoff.
+
+
+## 2026-11-09 M8-T1b deliver private presenter feedback UI and chronological CSV endpoints
+- Done: deliver private presenter feedback UI and chronological CSV endpoints.
+- Files changed: src/components/FlowStatus.tsx, src/server/m8Http.ts, src/app/api/assumptions/capture/route.ts, src/app/api/assumptions/export/route.ts, src/app/assumptions/FeedbackForm.tsx, src/app/assumptions/page.tsx.
+- Verify: working-tree automated checks executed; exact per-commit replay results and raw output are recorded in docs/M8-VERIFICATION.md and delivery evidence.
+- Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
+- Known problems: owner browser/device acceptance pending; M8 is not closed.
+- Next suggested task: remaining authorized M8 implementation and verification handoff.
+
+
+## 2026-11-09 M8-T2a guard atomic sample reset and CLI seed against findings loss
+- Done: guard atomic sample reset and CLI seed against findings loss.
+- Files changed: .env.example, prisma/seed.ts, src/domain/demoResetPolicy.ts, src/server/demoResetTarget.ts, src/server/demoReset.ts, src/app/api/demo/reset/route.ts, src/app/demo/ResetDemoForm.tsx, src/server/__tests__/m8Reset.test.ts, src/server/__tests__/m8Routes.test.ts.
+- Verify: working-tree automated checks executed; exact per-commit replay results and raw output are recorded in docs/M8-VERIFICATION.md and delivery evidence.
+- Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
+- Known problems: owner browser/device acceptance pending; M8 is not closed.
+- Next suggested task: remaining authorized M8 implementation and verification handoff.
+
+
+## 2026-11-09 M8-T2b add guided discovery script, honest readiness and role navigation
+- Done: add guided discovery script, honest readiness and role navigation.
+- Files changed: src/domain/demoScript.ts, src/server/demoReadiness.ts, src/app/demo/page.tsx, src/domain/menu.ts, src/domain/__tests__/menu.test.ts, src/domain/__tests__/demoScript.test.ts, src/server/__tests__/m8Readiness.test.ts.
+- Verify: working-tree automated checks executed; exact per-commit replay results and raw output are recorded in docs/M8-VERIFICATION.md and delivery evidence.
+- Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
+- Known problems: owner browser/device acceptance pending; M8 is not closed.
+- Next suggested task: remaining authorized M8 implementation and verification handoff.
+
+
+## 2026-11-09 M8-T2c clarify flow states and verify complete synthetic discovery lifecycle
+- Done: clarify flow states and verify complete synthetic discovery lifecycle.
+- Files changed: src/app/department/review/page.tsx, src/app/department/submission/page.tsx, src/app/lecturer/attendance/page.tsx, src/app/reports/attendance/page.tsx, src/app/student/scan/page.tsx, src/app/venues/status/page.tsx, src/app/department/review/error.tsx, src/app/department/submission/error.tsx, src/app/officer/draft/error.tsx, src/server/__tests__/m8EndToEnd.test.ts.
+- Verify: working-tree automated checks executed; exact per-commit replay results and raw output are recorded in docs/M8-VERIFICATION.md and delivery evidence.
+- Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
+- Known problems: owner browser/device acceptance pending; M8 is not closed.
+- Next suggested task: remaining authorized M8 implementation and verification handoff.
+
+## 2026-11-09 M8-T2d Require complete reset and QR readiness prerequisites
+- Done: readiness checks actual synthetic fixture integrity and matching connected target before offering reset, and requires an eligible demo student for an in-window QR lesson; DB read failures remain explicit errors.
+- Files changed: src/server/demoReadiness.ts; src/server/__tests__/m8Readiness.test.ts; src/server/__tests__/m8EndToEnd.test.ts; PROGRESS.md.
+- Verify: PASS, npm run verify; 1814 tests/85 files and seed integrity 11/11. Clean per-commit replay follows in delivery evidence.
+- Decisions: preserve all existing attendance clocks and rules; expose preparation requirements rather than bypass validation.
+- Known problems: owner manual/device acceptance pending.
+- Next suggested task: M8 documentation, final replay/build and handoff.
+
+
+## 2026-11-09 M8-T3 Verification and apply-ready handoff
+- Done: six source commits, frozen design reference, implementation/configuration/migration notes, acceptance matrix, raw verify/build output and owner checklist. Seven-patch delivery includes this documentation commit.
+- Files changed: docs/M8-DESIGN.md; docs/M8-IMPLEMENTATION.md; docs/M8-VERIFICATION.md; docs/M8-MANUAL-ACCEPTANCE.md; docs/M8-verification.txt; PROGRESS.md; DECISIONS.md.
+- Verify: PASS, 1814 tests/85 files, seed 11/11, production build and Prisma validation. Each source commit verified by clean replay; final documentation-commit checks/tree comparison are recorded externally in ZIP evidence.
+- Decisions: original seed/lab meaning unchanged; guide explicitly prepares synthetic LAB1 40→50 for generation. Dedicated m7-demo-m8- naming reconciles existing M7 clock guard. No dependencies, protected DB, accepted M6/M7 evidence or specification changed.
+- Known problems: GitHub write denied HTTP 403; remote unchanged. Browser smoke blocked by Chromium process/socket restrictions. Owner acceptance remains pending, no master merge/M9.
+- Next suggested task: owner applies exact-base patches, follows disposable-fixture guide and reports M8 manual acceptance.
+
+## 2026-11-09 M8-APPLY Local delivery integration and verified acceptance setup
+- Done: Applied all seven numbered patches with git am --keep-cr to the exact base a41cb7d6071c3e6c10cbd6008d2725add9b168c9 on m8-meeting-tools-polish, preserving separate commits. All 118 supplied SHA256 checks matched. The final applied commit is dfac8fa7c55fa81eeb01c0c3e577e3debe3434e4 and its tree a9ce06ec747f50024dd44104f04b00cadde54943 exactly matched the delivery; all 50 committed file copies matched. Local automated gates and a limited desktop browser smoke completed on a new disposable fixture; owner manual acceptance remains pending.
+- Files changed: the 50 delivered files listed in C:/Users/User/Documents/Final Year Project/TAMS-M8-Verified-Changes/FILE-MANIFEST.md; PROGRESS.md (this local integration entry). No product-code changes beyond the supplied patches. No .env, protected database, dependency manifest or lockfile change.
+- Verify: PASS on Windows x64, Node v24.22.1: npm ci; Prisma validate/generate; npm run verify typecheck/lint, 1814/1814 tests across 85 files and separate seed integrity 11/11; production build PASS. New prisma/m7-demo-m8-local-20261109.db migrated (6 migrations) and seeded; migration status up to date. Limited browser smoke: student catalog privacy, officer capture/export, demo guide, ADMIN reset retaining 3 findings/3 capture audits and restoring DRAFT/10 entries/LAB1 capacity 40. Raw logs are retained in C:/Users/User/Documents/Final Year Project/TAMS-M8-Verified-Changes/evidence/m8-local-*-20261109.*.
+- Decisions: The user authorized stopping the existing port-3100 dev server (11568, 15780, 19184) to release a locked Prisma engine, enabling Windows Developer Mode for the unchanged symlink test, and restarting the server. npm ci initially failed EPERM on the locked engine; after approval it passed. One verification retry failed only due concurrent build/dev-server resource contention in legacy M4/M6 fixtures; the final isolated run passed unchanged. Developer Mode was enabled manually by the user after automated elevation was blocked by the permission classifier. The restored port-3100 server uses the current .env (DATABASE_URL=file:./dev.db); M8 manual acceptance should use the dedicated disposable fixture per docs/M8-IMPLEMENTATION.md. No audit fix/dependency upgrade, hook bypass, force push, master merge or protected-database migration was performed.
+- Known problems: Owner laptop/phone/camera/keyboard/Excel/offline and full seven-stage manual acceptance remain unperformed; M8 is not accepted or closed. npm ci reports 15 dependency advisories (8 moderate, 5 high, 2 critical); no audit fix performed. Semester 2 dated attendance remains unconfigured; scanner maintenance mode and the M7 device-binding STUB remain. The restored dev.db server has not been migrated to M8; use the disposable fixture for M8 screens.
+- Deletion scope: npm ci replaced local dependencies; tests cleaned only their own temporary fixtures; the guarded browser reset deleted only operational rows in the new disposable fixture and retained findings/capture audits. No user file or protected database was removed.
+- Next suggested task: Owner performs docs/M8-MANUAL-ACCEPTANCE.md on a dedicated disposable fixture and reports actual results. Stop after the requested integration commit and push; no acceptance closure, merge, M9 or protected database migration is started.

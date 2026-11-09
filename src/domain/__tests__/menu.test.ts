@@ -28,7 +28,7 @@ const { default: HomePage } = await import("@/app/page");
 
 /** Literal expected key lists per role — not computed from the implementation. */
 const EXPECTED_KEYS: Record<UserRole, string[]> = {
-  ADMIN: ["timetable", "venue-status", "users"],
+  ADMIN: ["timetable", "venue-status", "users", "assumptions", "demo-guide"],
   OFFICER: [
     "timetable",
     "venue-status",
@@ -38,8 +38,7 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
     "generate",
     "reschedule-decide",
     "issues-list",
-    "attendance-report",
-  ],
+    "attendance-report", "assumptions", "demo-guide"],
   DEPT_REP: [
     "timetable",
     "venue-status",
@@ -47,16 +46,14 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
     "submission-edit",
     "issues-new",
     "issues-list",
-    "attendance-report",
-  ],
+    "attendance-report", "assumptions"],
   APPROVER: [
     "timetable",
     "venue-status",
     "submission-review",
     "issues-new",
     "issues-list",
-    "attendance-report",
-  ],
+    "attendance-report", "assumptions"],
   LECTURER: [
     "timetable",
     "venue-status",
@@ -64,14 +61,13 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
     "lecturer-availability",
     "issues-new",
     "attendance-open",
-    "attendance-report",
-  ],
-  STUDENT: ["timetable", "venue-status", "attendance-scan", "attendance-report"],
+    "attendance-report", "assumptions"],
+  STUDENT: ["timetable", "venue-status", "attendance-scan", "attendance-report", "assumptions"],
 };
 
 describe("MENU_ITEMS", () => {
-  it("fifteen delivered items are built, including the three M7 destinations", () => {
-    expect(MENU_ITEMS).toHaveLength(17);
+  it("seventeen delivered items are built, including the three M7 destinations", () => {
+    expect(MENU_ITEMS).toHaveLength(19);
     const built = MENU_ITEMS.filter((item) => item.built).map((item) => item.key);
     expect(built).toEqual([
       "timetable",
@@ -89,6 +85,7 @@ describe("MENU_ITEMS", () => {
       "attendance-open",
       "attendance-scan",
       "attendance-report",
+      "assumptions", "demo-guide",
     ]);
     for (const item of MENU_ITEMS) {
       if (!built.includes(item.key)) {

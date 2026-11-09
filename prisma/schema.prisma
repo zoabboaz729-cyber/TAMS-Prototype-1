@@ -410,6 +410,10 @@ model AuditLog {
 }
 
 model AssumptionFeedback {
+  meetingLabel String?
+  sourceRole String?
+  recordedByRole String?
+  submissionKey String? @unique
   id            String   @id @default(cuid())
   assumptionKey String
   verdict       String   // CONFIRM | REJECT | MODIFY

@@ -19,6 +19,13 @@ const ROLES: UserRole[] = ["ADMIN", "OFFICER", "DEPT_REP", "APPROVER", "LECTURER
  */
 const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
   ADMIN: {
+    VIEW_ASSUMPTIONS: "ALL",
+    CAPTURE_ASSUMPTION_FEEDBACK: "ALL",
+    VIEW_ASSUMPTION_FINDINGS: "ALL",
+    EXPORT_ASSUMPTION_FINDINGS: "ALL",
+    VIEW_DEMO_GUIDE: "ALL",
+    RESET_DEMO_DATA: "ALL",
+
     MANAGE_USERS: "ALL",
     DECLARE_VENUE: "NONE",
     MANAGE_SHARED_VENUES: "NONE",
@@ -43,6 +50,13 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_LECTURER_AVAILABILITY: "ALL",
   },
   OFFICER: {
+    VIEW_ASSUMPTIONS: "ALL",
+    CAPTURE_ASSUMPTION_FEEDBACK: "ALL",
+    VIEW_ASSUMPTION_FINDINGS: "ALL",
+    EXPORT_ASSUMPTION_FINDINGS: "ALL",
+    VIEW_DEMO_GUIDE: "ALL",
+    RESET_DEMO_DATA: "NONE",
+
     MANAGE_USERS: "NONE",
     DECLARE_VENUE: "ALL",
     MANAGE_SHARED_VENUES: "ALL",
@@ -67,6 +81,13 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_LECTURER_AVAILABILITY: "ALL",
   },
   DEPT_REP: {
+    VIEW_ASSUMPTIONS: "ALL",
+    CAPTURE_ASSUMPTION_FEEDBACK: "NONE",
+    VIEW_ASSUMPTION_FINDINGS: "NONE",
+    EXPORT_ASSUMPTION_FINDINGS: "NONE",
+    VIEW_DEMO_GUIDE: "NONE",
+    RESET_DEMO_DATA: "NONE",
+
     MANAGE_USERS: "NONE",
     DECLARE_VENUE: "OWN_DEPARTMENT",
     MANAGE_SHARED_VENUES: "NONE",
@@ -91,6 +112,13 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_LECTURER_AVAILABILITY: "NONE",
   },
   APPROVER: {
+    VIEW_ASSUMPTIONS: "ALL",
+    CAPTURE_ASSUMPTION_FEEDBACK: "NONE",
+    VIEW_ASSUMPTION_FINDINGS: "NONE",
+    EXPORT_ASSUMPTION_FINDINGS: "NONE",
+    VIEW_DEMO_GUIDE: "NONE",
+    RESET_DEMO_DATA: "NONE",
+
     MANAGE_USERS: "NONE",
     DECLARE_VENUE: "NONE",
     MANAGE_SHARED_VENUES: "NONE",
@@ -115,6 +143,13 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_LECTURER_AVAILABILITY: "NONE",
   },
   LECTURER: {
+    VIEW_ASSUMPTIONS: "ALL",
+    CAPTURE_ASSUMPTION_FEEDBACK: "NONE",
+    VIEW_ASSUMPTION_FINDINGS: "NONE",
+    EXPORT_ASSUMPTION_FINDINGS: "NONE",
+    VIEW_DEMO_GUIDE: "NONE",
+    RESET_DEMO_DATA: "NONE",
+
     MANAGE_USERS: "NONE",
     DECLARE_VENUE: "NONE",
     MANAGE_SHARED_VENUES: "NONE",
@@ -139,6 +174,13 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     VIEW_LECTURER_AVAILABILITY: "SELF",
   },
   STUDENT: {
+    VIEW_ASSUMPTIONS: "ALL",
+    CAPTURE_ASSUMPTION_FEEDBACK: "NONE",
+    VIEW_ASSUMPTION_FINDINGS: "NONE",
+    EXPORT_ASSUMPTION_FINDINGS: "NONE",
+    VIEW_DEMO_GUIDE: "NONE",
+    RESET_DEMO_DATA: "NONE",
+
     MANAGE_USERS: "NONE",
     DECLARE_VENUE: "NONE",
     MANAGE_SHARED_VENUES: "NONE",
@@ -173,9 +215,9 @@ describe("permissionScope (spec §8 matrix)", () => {
     }
   });
 
-  it("has exactly 22 action entries for every role (no missing cells)", () => {
+  it("has exactly 28 action entries for every role (no missing cells)", () => {
     for (const role of ROLES) {
-      expect(Object.keys(EXPECTED_SCOPE[role])).toHaveLength(22);
+      expect(Object.keys(EXPECTED_SCOPE[role])).toHaveLength(28);
       for (const action of ACTIONS) {
         expect(
           Object.prototype.hasOwnProperty.call(EXPECTED_SCOPE[role], action),
@@ -458,12 +500,25 @@ describe("lecturer availability permissions (spec §8, task M2-T3b)", () => {
 describe("allowedActions", () => {
   it("returns exactly the granted actions per role (in ACTIONS order)", () => {
     expect(allowedActions("ADMIN")).toEqual([
+      "VIEW_ASSUMPTIONS",
+      "CAPTURE_ASSUMPTION_FEEDBACK",
+      "VIEW_ASSUMPTION_FINDINGS",
+      "EXPORT_ASSUMPTION_FINDINGS",
+      "VIEW_DEMO_GUIDE",
+      "RESET_DEMO_DATA",
+
       "MANAGE_USERS",
       "VIEW_TIMETABLE",
       "VIEW_VENUE_STATUS",
       "VIEW_LECTURER_AVAILABILITY",
     ]);
     expect(allowedActions("OFFICER")).toEqual([
+      "VIEW_ASSUMPTIONS",
+      "CAPTURE_ASSUMPTION_FEEDBACK",
+      "VIEW_ASSUMPTION_FINDINGS",
+      "EXPORT_ASSUMPTION_FINDINGS",
+      "VIEW_DEMO_GUIDE",
+
       "DECLARE_VENUE",
       "MANAGE_SHARED_VENUES",
       "GENERATE_TIMETABLE",
@@ -479,6 +534,8 @@ describe("allowedActions", () => {
       "VIEW_LECTURER_AVAILABILITY",
     ]);
     expect(allowedActions("DEPT_REP")).toEqual([
+      "VIEW_ASSUMPTIONS",
+
       "DECLARE_VENUE",
       "EDIT_SUBMISSION",
       "REPORT_ISSUE",
@@ -488,6 +545,8 @@ describe("allowedActions", () => {
       "SEE_ISSUES",
     ]);
     expect(allowedActions("APPROVER")).toEqual([
+      "VIEW_ASSUMPTIONS",
+
       "REVIEW_SUBMISSION",
       "REPORT_ISSUE",
       "VIEW_TIMETABLE",
@@ -496,6 +555,8 @@ describe("allowedActions", () => {
       "SEE_ISSUES",
     ]);
     expect(allowedActions("LECTURER")).toEqual([
+      "VIEW_ASSUMPTIONS",
+
       "REQUEST_RESCHEDULE",
       "REPORT_ISSUE",
       "OPEN_ATTENDANCE",
@@ -507,6 +568,8 @@ describe("allowedActions", () => {
       "VIEW_LECTURER_AVAILABILITY",
     ]);
     expect(allowedActions("STUDENT")).toEqual([
+      "VIEW_ASSUMPTIONS",
+
       "SCAN_ATTENDANCE",
       "VIEW_TIMETABLE",
       "VIEW_VENUE_STATUS",

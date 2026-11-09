@@ -1,3 +1,4 @@
+import {FlowStatus} from "@/components/FlowStatus";
 import { redirect } from "next/navigation";
 import { buildSubmissionRows, summariseTeaching } from "@/domain/submissionView";
 import { SubmissionActionButton } from "@/app/department/submission/SubmissionActionButton";
@@ -45,9 +46,9 @@ export default async function DepartmentSubmissionPage() {
         </p>
 
         {submissions.length === 0 ? (
-          <p className="mt-6 rounded-md border border-slate-200 bg-white p-5 text-sm text-slate-600">
+          <FlowStatus state="NOT_READY">
             Your department has no submissions yet.
-          </p>
+           Ask the demo operator to prepare the sample department requirements.</FlowStatus>
         ) : (
           <div className="mt-6 space-y-5">
             {submissions.map(({ row, teaching, summary }) => (

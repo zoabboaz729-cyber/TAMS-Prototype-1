@@ -46,86 +46,94 @@ async function main() {
   // Hash password for demo accounts using scrypt
   const passwordHash = await hashPassword(demoPassword);
 
+  await prisma.$transaction(async tx => {
+    // Lock before checking, so concurrent capture cannot slip between check and deletion.
+    await tx.$executeRawUnsafe('UPDATE "AssumptionFeedback" SET "id" = "id" WHERE 0');
+    if (await tx.assumptionFeedback.count() !== 0) throw new Error("Seed refused: meeting findings exist. Use the guarded demo reset to preserve findings and capture audits.");
   // 1. Wipe all tables in reverse dependency order
-  await prisma.attendanceAttempt.deleteMany();
-  await prisma.classOccurrenceActivity.deleteMany();
-  await prisma.attendanceRecord.deleteMany();
-  await prisma.attendanceSession.deleteMany();
-  await prisma.rescheduleRequest.deleteMany();
-  await prisma.timetableEntry.deleteMany();
-  await prisma.timetableVersion.deleteMany();
-  await prisma.issue.deleteMany();
-  await prisma.submission.deleteMany();
-  await prisma.teaching.deleteMany();
-  await prisma.lecturerAvailability.deleteMany();
-  await prisma.lecturer.deleteMany();
-  await prisma.unit.deleteMany();
-  await prisma.venueUnavailable.deleteMany();
-  await prisma.venue.deleteMany();
-  await prisma.auditLog.deleteMany();
-  await prisma.assumptionFeedback.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.studentGroup.deleteMany();
-  await prisma.department.deleteMany();
+  await tx.attendanceAttempt.deleteMany();
+  await tx.classOccurrenceActivity.deleteMany();
+  await tx.attendanceRecord.deleteMany();
+  await tx.attendanceSession.deleteMany();
+  await tx.rescheduleRequest.deleteMany();
+  await tx.timetableOccurrenceException.deleteMany();
+  await tx.timetableEntry.deleteMany();
+  await tx.timetableVersion.updateMany({data:{basePublishedVersionId:null}});
+  await tx.timetableVersion.deleteMany();
+  await tx.issue.deleteMany();
+  await tx.submission.deleteMany();
+  await tx.teaching.deleteMany();
+  await tx.lecturerAvailability.deleteMany();
+  await tx.lecturer.deleteMany();
+  await tx.unit.deleteMany();
+  await tx.venueUnavailable.deleteMany();
+  await tx.venue.deleteMany();
+  await tx.auditLog.deleteMany();
+  await tx.assumptionFeedback.deleteMany();
+  await tx.user.deleteMany();
+  await tx.studentGroup.deleteMany();
+  await tx.department.deleteMany();
 
   // 2. Insert seed records in dependency order
-  await prisma.department.createMany({
+  await tx.department.createMany({
     data: seedDepartments,
   });
 
-  await prisma.studentGroup.createMany({
+  await tx.studentGroup.createMany({
     data: seedStudentGroups,
   });
 
-  await prisma.user.createMany({
+  await tx.user.createMany({
     data: seedUsers.map((user) => ({
       ...user,
       passwordHash,
     })),
   });
 
-  await prisma.venue.createMany({
+  await tx.venue.createMany({
     data: seedVenues.map((venue) => ({
       ...venue,
       facilities: JSON.stringify(venue.facilities),
     })),
   });
 
-  await prisma.venueUnavailable.createMany({
+  await tx.venueUnavailable.createMany({
     data: seedVenueUnavailabilities,
   });
 
-  await prisma.lecturer.createMany({
+  await tx.lecturer.createMany({
     data: seedLecturers,
   });
 
-  await prisma.lecturerAvailability.createMany({
+  await tx.lecturerAvailability.createMany({
     data: seedLecturerAvailabilities,
   });
 
-  await prisma.unit.createMany({
+  await tx.unit.createMany({
     data: seedUnits,
   });
 
-  await prisma.teaching.createMany({
+  await tx.teaching.createMany({
     data: seedTeachings,
   });
 
-  await prisma.submission.createMany({
+  await tx.submission.createMany({
     data: seedSubmissions,
   });
 
-  await prisma.issue.createMany({
+  await tx.issue.createMany({
     data: seedIssues,
   });
 
-  await prisma.timetableVersion.createMany({
+  await tx.timetableVersion.createMany({
     data: seedTimetableVersions,
   });
 
-  await prisma.timetableEntry.createMany({
+  await tx.timetableEntry.createMany({
     data: seedTimetableEntries,
   });
+
+  }, {timeout:20000});
 
   // 3. Print row counts per table
   const counts = {
