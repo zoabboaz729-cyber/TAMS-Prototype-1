@@ -989,3 +989,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: injected test clocks remain deterministic; production actions always supply a fresh clock. No university policy or physical presence guarantee.
 - Known problems: owner browser/camera acceptance pending.
 - Next suggested task: approved report/M5 integration and web journeys.
+
+
+## 2026-11-09 M7-T4 Scoped reports and truthful M5 activity overlay
+- Done: own-session lecturer details, department/group aggregates including service lecturers, officer aggregates, student SELF-only receipts, stable scoped filters/pagination/full totals, independent Start-only activity reports; one-transaction minimal live M5 activity overlay.
+- Files changed: attendanceReads; attendanceReports; venueActivityStore; M5 store/contract/service/page; report page; real SQLite reports/overlay/runtime tests; PROGRESS.md.
+- Verify: PASS integrated npm run verify, 1760 tests/77 files, seed 11/11; production build evidence 26-reviewed-build.txt. Exact-tree replay follows.
+- Decisions: planned group size and provisioned accounts remain distinct; no official attendance rate; simulated sessions have separate aggregates and cannot create a live M5 activity claim. Reports rely on retained entry/teaching references; application draft-only editing preserves historical entries.
+- Known problems: owner manual acceptance pending.
+- Next suggested task: approved guarded lecturer/student transports, camera and menus.

@@ -13,8 +13,9 @@ export type VenueStatusFailureKind = "UNAUTHENTICATED" | "FORBIDDEN" | "INVALID_
   "OUTSIDE_TERM" | "NO_PUBLISHED_VERSION" | "AMBIGUOUS_PUBLISHED_VERSION" | "INVALID_PUBLISHED_DATA" | "INTERNAL_ERROR";
 export type VenueStatusFailure = { ok: false; kind: VenueStatusFailureKind; message: string };
 /** Unknown return is intentional: the service validates persisted data before deriving availability. */
-export interface VenueStatusStore { readSnapshot(semester: number): Promise<unknown>; readDatedSnapshot?(semester: number,date: string): Promise<unknown> }
+export interface VenueStatusStore { readSnapshot(semester: number): Promise<unknown>; readDatedSnapshot?(semester: number,date: string): Promise<unknown>; readLiveSnapshot?(semester: number,date: string,now: Date): Promise<unknown> }
 export const VenueStatusSnapshotSchema = z.object({
+  activityEvidence: z.array(z.object({venueId:z.string(),activity:z.enum(["REPORTED_STARTED","REPORTED_ENDED"]).nullable(),attendance:z.enum(["NOT_OPENED","OPEN","CLOSED","CANCELLED","EXPIRED"]),hasMarks:z.boolean()})).optional(),
   actualDate: z.string().optional(),
   dateApplied: z.boolean().optional(),
   versions: z.array(z.object({ id: z.string().min(1), semester: z.number().int(), status: z.string(), publishedAt: z.date().nullable() })),
@@ -25,6 +26,7 @@ export const VenueStatusSnapshotSchema = z.object({
   })),
 });
 export type VenueStatusRow = {
+  activityLabel?: string;
   code: string; type: string; status: Extract<VenueStatusResult, { ok: true }>["status"];
   nextFreeAt: VenueClock | null; nextScheduledAt: VenueClock | null;
   nextFreeOutsideHours: boolean; unavailableKind: "operational" | "closure" | null;

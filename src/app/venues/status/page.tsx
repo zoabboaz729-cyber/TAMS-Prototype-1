@@ -24,7 +24,7 @@ export default async function VenueStatusPage({ searchParams }: {
   const actor = await requireAnyAction("VIEW_VENUE_STATUS");
   const query = await searchParams;
   // Preserve all keys and duplicate arrays for strict validation; do not normalize away forgeries.
-  const result = await readVenueStatus(actor, query, createVenueStatusStore(prisma), () => new Date());
+  const result = await readVenueStatus(actor, query, createVenueStatusStore(prisma,true), () => new Date());
   return <main className="mx-auto w-full max-w-6xl space-y-5 p-4 sm:p-6">
     <h1 className="text-2xl font-bold">Venue status</h1>
     <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 font-medium">Prototype — sample data. Not official university records.</p>
@@ -54,6 +54,7 @@ export default async function VenueStatusPage({ searchParams }: {
           {result.rows.map((row) => <li key={row.code} className="min-w-0 space-y-2 break-words rounded-lg border border-slate-300 bg-white p-4">
             <h2 className="text-lg font-semibold">{row.code} <span className="text-sm font-normal">({row.type})</span></h2>
             <p className="font-semibold">{LABELS[row.status]}</p>
+            {row.activityLabel && <p>{row.activityLabel}</p>}
             <Timing row={row} />
           </li>)}
         </ul>}
