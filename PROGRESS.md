@@ -3,7 +3,7 @@ Entries are listed newest-last; the Status block below is authoritative.
 (The agent appends entries here at the end of every task. This file is the agent's memory between sessions.)
 
 ## Status
-- Current milestone: M6 - ACCEPTED AND CLOSED (user-reported manual browser acceptance, M6-T3b, 8 November 2026). M7 NOT STARTED.
+- Current milestone: M7 IN IMPLEMENTATION; M6 remains ACCEPTED/CLOSED. Owner approved all M7 scope/settings and waived the file ceiling on 9 November 2026.
 - Last verified code task: M6-T3a2 (`9df0181`, applied from delivery commit `314f62b3a2fb`) on `m6-change-handling`; 1672 tests, seed 11/11 and build pass; M6 manual acceptance recorded in docs/M6-VERIFICATION.md.
 - Demo-ready: no
 
@@ -953,3 +953,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: Treat the user's explicit success report as the manual acceptance evidence, with user attribution preserved. No tested commit, database identifier, browser/version, viewport, IDs, per-item counts or defect notes were supplied, so none are invented or attributed to an agent run. Status block now cites applied commit 9df0181 instead of the delivery-package hash. The user authorized this commit/push, a merge into master with push, and creation/publication of m7-qr-attendance from master; no M7 implementation is included.
 - Known problems: granular browser metadata and individual checklist observations were not supplied. The synthetic semester 1 calendar, absent semester 2 dated window, unvalidated institutional questions (M6-DESIGN.md section 16), npm audit advisories recorded in M6-APPLY and the other prototype limitations remain outside this closure.
 - Next suggested task: M7-T1 on m7-qr-attendance after separate task authorization.
+
+
+## 2026-11-09 M7-T1 Foundation, approved scope and retained-history schema
+- Done: recorded owner choices; added pure attendance/activity/projection rules, lecturer-only activity permission, additive independent activity/session provenance and bounded-attempt schema. Legacy undated rows remain unchanged and history-only.
+- Files changed: docs/M7-DESIGN.md; docs/M7-IMPLEMENTATION.md; domain rules/tests; permission matrix/tests; Prisma schema/new migration/seed deletion order; M6/M7 migration harness; M5 fixture connection configuration; DECISIONS.md; PROGRESS.md.
+- Verify: PASS in integrated working tree, npm run verify (raw output 08-integration-verify.txt in delivery evidence); exact committed-tree replay follows. Prisma validate/generate pass.
+- Decisions: owner waived five-file limit. M6 migration test copies only M6-and-earlier migrations, preserving its assertions. M5 deliberate-corruption fixture uses one connection so connection-scoped FK pragmas are deterministic; no assertion weakened.
+- Known problems: remaining M7 transports/UI/report integration and owner browser acceptance pending.
+- Next suggested task: approved M7 credential/transaction foundation.

@@ -47,6 +47,8 @@ async function main() {
   const passwordHash = await hashPassword(demoPassword);
 
   // 1. Wipe all tables in reverse dependency order
+  await prisma.attendanceAttempt.deleteMany();
+  await prisma.classOccurrenceActivity.deleteMany();
   await prisma.attendanceRecord.deleteMany();
   await prisma.attendanceSession.deleteMany();
   await prisma.rescheduleRequest.deleteMany();

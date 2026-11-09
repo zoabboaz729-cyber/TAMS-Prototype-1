@@ -50,7 +50,7 @@ async function snapshot() {
 describe("M5-T2b real isolated SQLite snapshot", () => {
   beforeAll(async () => {
     dir = mkdtempSync(path.join(tmpdir(), "tams-m5-status-"));
-    const url = `file:${path.join(dir, "fixture.db")}`;
+    const url = `file:${path.join(dir, "fixture.db")}?connection_limit=1`;
     execFileSync(process.execPath, ["node_modules/prisma/build/index.js", "db", "push", "--skip-generate"], {
       env: { ...process.env, DATABASE_URL: url }, stdio: "pipe", timeout: 60000,
     });

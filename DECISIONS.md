@@ -1000,3 +1000,7 @@
 - Decision: retain every stated limitation: synthetic semester 1 calendar and no semester 2 dated window, unvalidated section 16 institutional questions, and no production, privacy, load, concurrency, deployment or official-calendar certification.
 - Decision: correct the PROGRESS status block's code-task reference from the delivery-package hash `314f62b` to the applied local commit `9df0181`; both carry the same M6-T3a2 change.
 - Git scope: the user authorized this M6 documentation commit and push to `m6-change-handling`, a merge into `master` with push (GitHub PR #2 had already merged `aa27b4a` into `origin/master`), and creation/publication of `m7-qr-attendance` from `master`. No M7 implementation is part of this closure task.
+
+
+## 2026-11-09 M7-T0 Owner-approved scope
+Owner approved all recommendations in the reviewed M7 v1.2 blueprint and response table, including separate controls, scopes, history protection, M4/M5 seams, synthetic attendance demo, named QR libraries, and explicitly waived the M7 file limit. See docs/M7-IMPLEMENTATION.md for consolidated slices and explicit prototype defaults. No M8/M9 or institutional-policy claim.

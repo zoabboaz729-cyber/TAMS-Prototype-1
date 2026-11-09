@@ -33,6 +33,7 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     SEE_ISSUES: "NONE",
     UPDATE_ISSUE_STATUS: "NONE",
     OPEN_ATTENDANCE: "NONE",
+    REPORT_CLASS_ACTIVITY: "NONE",
     SCAN_ATTENDANCE: "NONE",
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
@@ -56,6 +57,7 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     SEE_ISSUES: "ALL",
     UPDATE_ISSUE_STATUS: "ALL",
     OPEN_ATTENDANCE: "NONE",
+    REPORT_CLASS_ACTIVITY: "NONE",
     SCAN_ATTENDANCE: "NONE",
     VIEW_TIMETABLE: "ALL",
     VIEW_VENUE_STATUS: "ALL",
@@ -79,6 +81,7 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     SEE_ISSUES: "OWN_DEPARTMENT",
     UPDATE_ISSUE_STATUS: "NONE",
     OPEN_ATTENDANCE: "NONE",
+    REPORT_CLASS_ACTIVITY: "NONE",
     SCAN_ATTENDANCE: "NONE",
     VIEW_TIMETABLE: "OWN_DEPARTMENT",
     VIEW_VENUE_STATUS: "ALL",
@@ -102,6 +105,7 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     SEE_ISSUES: "OWN_DEPARTMENT",
     UPDATE_ISSUE_STATUS: "NONE",
     OPEN_ATTENDANCE: "NONE",
+    REPORT_CLASS_ACTIVITY: "NONE",
     SCAN_ATTENDANCE: "NONE",
     VIEW_TIMETABLE: "OWN_DEPARTMENT",
     VIEW_VENUE_STATUS: "ALL",
@@ -125,6 +129,7 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     SEE_ISSUES: "NONE",
     UPDATE_ISSUE_STATUS: "NONE",
     OPEN_ATTENDANCE: "OWN_CLASSES",
+    REPORT_CLASS_ACTIVITY: "OWN_CLASSES",
     SCAN_ATTENDANCE: "NONE",
     VIEW_TIMETABLE: "OWN_CLASSES",
     VIEW_VENUE_STATUS: "ALL",
@@ -148,6 +153,7 @@ const EXPECTED_SCOPE: Record<UserRole, Record<Action, Scope>> = {
     SEE_ISSUES: "NONE",
     UPDATE_ISSUE_STATUS: "NONE",
     OPEN_ATTENDANCE: "NONE",
+    REPORT_CLASS_ACTIVITY: "NONE",
     SCAN_ATTENDANCE: "OWN_GROUP",
     VIEW_TIMETABLE: "OWN_GROUP",
     VIEW_VENUE_STATUS: "ALL",
@@ -167,9 +173,9 @@ describe("permissionScope (spec §8 matrix)", () => {
     }
   });
 
-  it("has exactly 21 action entries for every role (no missing cells)", () => {
+  it("has exactly 22 action entries for every role (no missing cells)", () => {
     for (const role of ROLES) {
-      expect(Object.keys(EXPECTED_SCOPE[role])).toHaveLength(21);
+      expect(Object.keys(EXPECTED_SCOPE[role])).toHaveLength(22);
       for (const action of ACTIONS) {
         expect(
           Object.prototype.hasOwnProperty.call(EXPECTED_SCOPE[role], action),
@@ -493,6 +499,7 @@ describe("allowedActions", () => {
       "REQUEST_RESCHEDULE",
       "REPORT_ISSUE",
       "OPEN_ATTENDANCE",
+      "REPORT_CLASS_ACTIVITY",
       "VIEW_TIMETABLE",
       "VIEW_VENUE_STATUS",
       "VIEW_ATTENDANCE_REPORT",
