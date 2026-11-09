@@ -980,3 +980,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: no hidden close, archival relinking or deletion; synthetic sessions do not block live publication.
 - Known problems: owner browser acceptance pending.
 - Next suggested task: approved M7-T3 guarded web journeys.
+
+
+## 2026-11-09 M7-T2h Transaction-time and retained-data hardening
+- Done: sample attendance clock inside each transaction; recheck the production publish clock inside the M4 transaction; validate activity provenance/state; distinguish authentic expired QR from malformed credentials; format new M7 modules for review.
+- Files changed: M7 domain/server modules and tests; M4 publication adapter/action; PROGRESS.md.
+- Verify: PASS npm run verify, 1760 tests/77 files, seed 11/11 (25-publication-clock-verify.txt); production build evidence follows in 26-reviewed-build.txt. Exact-tree replay follows.
+- Decisions: injected test clocks remain deterministic; production actions always supply a fresh clock. No university policy or physical presence guarantee.
+- Known problems: owner browser/camera acceptance pending.
+- Next suggested task: approved report/M5 integration and web journeys.
