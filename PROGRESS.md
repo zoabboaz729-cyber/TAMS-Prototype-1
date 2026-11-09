@@ -1051,3 +1051,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
 - Known problems: owner browser/device acceptance pending; M8 is not closed.
 - Next suggested task: remaining authorized M8 implementation and verification handoff.
+
+
+## 2026-11-09 M8-T2a guard atomic sample reset and CLI seed against findings loss
+- Done: guard atomic sample reset and CLI seed against findings loss.
+- Files changed: .env.example, prisma/seed.ts, src/domain/demoResetPolicy.ts, src/server/demoResetTarget.ts, src/server/demoReset.ts, src/app/api/demo/reset/route.ts, src/app/demo/ResetDemoForm.tsx, src/server/__tests__/m8Reset.test.ts, src/server/__tests__/m8Routes.test.ts.
+- Verify: working-tree automated checks executed; exact per-commit replay results and raw output are recorded in docs/M8-VERIFICATION.md and delivery evidence.
+- Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
+- Known problems: owner browser/device acceptance pending; M8 is not closed.
+- Next suggested task: remaining authorized M8 implementation and verification handoff.
