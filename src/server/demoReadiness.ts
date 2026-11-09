@@ -3,6 +3,8 @@ import { canAct, type Actor } from "@/domain/permissions";
 import { seedUsers } from "@/domain/seedData";
 import { attendanceRuntime } from "./attendanceRuntime";
 import { lecturerAttendanceList } from "./attendanceReads";
+import { assertSyntheticFixture } from "./demoReset";
+import { AttendanceError } from "./attendanceErrors";
 import { resetTarget, assertConnectedTarget } from "./demoResetTarget";
 export type Readiness = {
     label: string;
@@ -31,12 +33,16 @@ export async function demoReadiness(db: PrismaClient, actor: Actor | null, env: 
                             qrError = true;
                         continue;
                     }
-                    if (r.value.rows.some(o => o.inWindow))
-                        qr = true;
+                    for (const occurrence of r.value.rows.filter(o => o.inWindow)) {
+                        const eligible = await db.timetableEntry.count({where:{id:occurrence.sourceEntryId,teaching:{group:{students:{some:{role:"STUDENT",email:{endsWith:"@demo.tams.test"}}}}}}});
+                        if (eligible > 0) qr = true;
+                    }
                 }
             }
         }
-        catch { /* Safe bounded explanation; no configuration secrets in the page. */ }
+        catch (error) {
+            if (!(error instanceof AttendanceError && error.code === "CONFIGURATION")) qrError = true;
+        }
         const qrCheck = check("QR demonstration", qr, "Requires M7 synthetic server clock, token secret, matching effective Semester 1 lesson and eligible sample accounts. M5 URL/display time cannot substitute. Start class independently uses real time. Semester 2 dates are unconfigured.");
         if (qrError) {
             qrCheck.state = "ERROR";
@@ -46,8 +52,11 @@ export async function demoReadiness(db: PrismaClient, actor: Actor | null, env: 
         let safe = false;
         try {
             const target = await resetTarget(env);
-            await db.$transaction(tx => assertConnectedTarget(tx, target));
-            safe = true;
+            await db.$transaction(async tx => {
+                await assertConnectedTarget(tx, target);
+                await assertSyntheticFixture(tx);
+            });
+            safe = actor?.id === "user-admin" && actor.role === "ADMIN";
         }
         catch { /* fail closed */ }
         rows.push({ label: "Reset permission", state: actor?.role === "ADMIN" && safe ? "READY" : "BLOCKED", message: "ADMIN only, local host, explicit extra flag and canonical disposable database. All findings and capture audits retained." });

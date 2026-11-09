@@ -1078,3 +1078,11 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
 - Known problems: owner browser/device acceptance pending; M8 is not closed.
 - Next suggested task: remaining authorized M8 implementation and verification handoff.
+
+## 2026-11-09 M8-T2d Require complete reset and QR readiness prerequisites
+- Done: readiness checks actual synthetic fixture integrity and matching connected target before offering reset, and requires an eligible demo student for an in-window QR lesson; DB read failures remain explicit errors.
+- Files changed: src/server/demoReadiness.ts; src/server/__tests__/m8Readiness.test.ts; src/server/__tests__/m8EndToEnd.test.ts; PROGRESS.md.
+- Verify: PASS, npm run verify; 1814 tests/85 files and seed integrity 11/11. Clean per-commit replay follows in delivery evidence.
+- Decisions: preserve all existing attendance clocks and rules; expose preparation requirements rather than bypass validation.
+- Known problems: owner manual/device acceptance pending.
+- Next suggested task: M8 documentation, final replay/build and handoff.

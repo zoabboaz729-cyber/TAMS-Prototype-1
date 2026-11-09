@@ -43,6 +43,8 @@ it('fresh synthetic seed → validated generation/publication → separate activ
         now.setMinutes(now.getMinutes() + 1);
         const runtime = { secret: 'isolated-m8-attendance-secret-'.repeat(3), now, realNow: now, simulated: true, policy: DEFAULT_ATTENDANCE_POLICY };
         const lecturer: Actor = { id: entry.teaching.lecturer.userId, role: 'LECTURER', departmentId: entry.teaching.lecturer.departmentId, studentGroupId: null }, student: Actor = { id: 'user-student-1', role: 'STUDENT', departmentId: 'dept-computing', studentGroupId: 'group-SE-Y4' }, ref = { sourceEntryId: entry.id, originalDate: date };
+        const qrReady=await demoReadiness(f.db,presenter,{...env,M7_SYNTHETIC_DEMO:"true",M7_DEMO_OFFSET_MINUTES:String(Math.round((now.getTime()-Date.now())/60000)),ATTENDANCE_TOKEN_SECRET:"synthetic-m8-readiness-key-12345678901234567890"});
+        expect(qrReady.find(c=>c.label==="QR demonstration")?.state).toBe("READY");
         const opened = await openAttendance(f.db, lecturer, ref, runtime);
         expect(opened.ok, JSON.stringify(opened)).toBe(true);
         if (!opened.ok)

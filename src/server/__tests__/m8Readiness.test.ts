@@ -14,6 +14,8 @@ it('readiness is guarded, fresh seed is not globally ready, and no secrets or pa
         expect(checks.find(c => c.label === 'QR demonstration')?.state).toBe('NOT_READY');
         expect(checks.find(c => c.label === 'Reset permission')?.state).toBe('BLOCKED');
         expect((await demoReadiness(f.db, admin, env)).find(c => c.label === 'Reset permission')?.state).toBe('READY');
+        await f.db.user.create({data:{id:"unexpected",name:"Synthetic sentinel",email:"sentinel@invalid.test",passwordHash:"x",role:"ADMIN"}});
+        expect((await demoReadiness(f.db,admin,env)).find(c=>c.label==="Reset permission")?.state).toBe("BLOCKED");
         expect(JSON.stringify(checks)).not.toContain(f.url);
         expect(JSON.stringify(checks)).not.toContain('private-secret');
         for (const actor of [null, { ...presenter, role: 'STUDENT' as const }])
