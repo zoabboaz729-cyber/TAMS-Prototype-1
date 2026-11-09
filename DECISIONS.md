@@ -1018,3 +1018,10 @@ Owner-approved full M7 is implemented in cohesive separately tested commits, wit
 
 ## 2026-11-09 M8 authorized implementation and consolidated slices
 Owner explicitly authorized full M8 implementation and waived the five-file limit. Presenter-entered mode A, nullable additive provenance, atomic append-only capture, role-separated speaker/operator attribution and full historical CSV follow the final v1.1 blueprint. Cohesive implementation slices replace the suggested micro-slices; no dependencies or policy changes. See docs/M8-IMPLEMENTATION.md for mapping.
+
+
+## 2026-11-09 M8 safety and delivery decisions
+- Consolidated slices follow the explicit owner file-cap waiver; every delivered source commit has clean replay verification. Additive nullable findings migration preserves legacy rows without user FK coupling. Capture audits and stable user identities survive browser reset; other operational audits are disposable.
+- Reset requires loopback host, exact same-origin, synthetic ADMIN, explicit flags, matching canonical single-link dedicated SQLite file and actual database connection, typed confirmation, known synthetic records and an atomic transaction. CLI refuses when findings exist. No public reset or unguarded override.
+- Keep existing M7 clock guard; full walkthrough uses dedicated m7-demo-m8-<label>.db. Seed LAB1 remains 40 and SE-Y4 45. Explicit temporary synthetic LAB1 edit to 50 through the existing register precedes generation; the validator continues to refuse the unprepared seed. Reset restores 40.
+- Shared states and narrow safe error boundaries preserve existing business logic. No dependencies, M9 work or institutional assumptions are adopted. Browser acceptance is pending and cannot be inferred from backend tests. GitHub write refused 403, so deliver exact-base numbered patches and verified apply instructions; do not merge master.

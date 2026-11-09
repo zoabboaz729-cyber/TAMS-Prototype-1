@@ -3,9 +3,9 @@ Entries are listed newest-last; the Status block below is authoritative.
 (The agent appends entries here at the end of every task. This file is the agent's memory between sessions.)
 
 ## Status
-- Current milestone: M7 ACCEPTED/CLOSED (user-reported full manual acceptance, M7-T4f, 9 November 2026). M6 remains ACCEPTED/CLOSED. M8 NOT STARTED.
-- Last verified code task: M7-T3 (`36c29b0`, applied from delivery `8f382a4`), locally verified on the final delivery tree `f8c6114d4955bea7762bf43591973b37c0cd7767`; 1760 tests/77 files, seed 11/11 and production build pass. See the M7-APPLY entry below and docs/M7-VERIFICATION.md.
-- Demo-ready: no
+- Current milestone: M8 IMPLEMENTED / AUTOMATED GATES PASS / OWNER MANUAL ACCEPTANCE PENDING. M6 and M7 remain ACCEPTED/CLOSED.
+- Last verified code task: M8-T2d (`ef72ea6`), source tree `48dcadcd94acd76a7dbfee62a81426bdc5199675`; 1814 tests/85 files, seed 11/11, production build and Prisma validation pass. Exact per-commit patch replay and pending owner acceptance: docs/M8-VERIFICATION.md.
+- Demo-ready: automated synthetic lifecycle verified; owner laptop/phone/camera walkthrough pending.
 
 ## Log
 ## 2026-10-26 M0-T1 Foundation Stack & Verification Pipeline
@@ -1086,3 +1086,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: preserve all existing attendance clocks and rules; expose preparation requirements rather than bypass validation.
 - Known problems: owner manual/device acceptance pending.
 - Next suggested task: M8 documentation, final replay/build and handoff.
+
+
+## 2026-11-09 M8-T3 Verification and apply-ready handoff
+- Done: six source commits, frozen design reference, implementation/configuration/migration notes, acceptance matrix, raw verify/build output and owner checklist. Seven-patch delivery includes this documentation commit.
+- Files changed: docs/M8-DESIGN.md; docs/M8-IMPLEMENTATION.md; docs/M8-VERIFICATION.md; docs/M8-MANUAL-ACCEPTANCE.md; docs/M8-verification.txt; PROGRESS.md; DECISIONS.md.
+- Verify: PASS, 1814 tests/85 files, seed 11/11, production build and Prisma validation. Each source commit verified by clean replay; final documentation-commit checks/tree comparison are recorded externally in ZIP evidence.
+- Decisions: original seed/lab meaning unchanged; guide explicitly prepares synthetic LAB1 40→50 for generation. Dedicated m7-demo-m8- naming reconciles existing M7 clock guard. No dependencies, protected DB, accepted M6/M7 evidence or specification changed.
+- Known problems: GitHub write denied HTTP 403; remote unchanged. Browser smoke blocked by Chromium process/socket restrictions. Owner acceptance remains pending, no master merge/M9.
+- Next suggested task: owner applies exact-base patches, follows disposable-fixture guide and reports M8 manual acceptance.
