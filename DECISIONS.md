@@ -1004,3 +1004,7 @@
 
 ## 2026-11-09 M7-T0 Owner-approved scope
 Owner approved all recommendations in the reviewed M7 v1.2 blueprint and response table, including separate controls, scopes, history protection, M4/M5 seams, synthetic attendance demo, named QR libraries, and explicitly waived the M7 file limit. See docs/M7-IMPLEMENTATION.md for consolidated slices and explicit prototype defaults. No M8/M9 or institutional-policy claim.
+
+
+## 2026-11-09 M7 implementation handoff
+Owner-approved full M7 is implemented in cohesive separately tested commits, with file ceiling waived. Time is sampled inside attendance and production publication transactions. Nullable legacy dates preserve unprovable history; Restrict references protect retained attendance. No code path couples Start with Open or releases rooms through class activity. Reports preserve role/group scope and distinguish simulated marks, confirmed record totals, distinct participants, provisioned accounts and planned group size. Named QR packages are pinned without upgrading existing packages. Camera/device/browser acceptance remains explicitly pending, separate from 1760 passing tests, builds and HTTP checks. All code trees match clean per-commit replay. GitHub writes were refused (403); no remote branch changes. See M7-VERIFICATION.md and manual checklist before closure.

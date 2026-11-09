@@ -1,3 +1,5 @@
+> Historical approved design baseline. Current implementation/evidence status is in M7-IMPLEMENTATION.md and M7-VERIFICATION.md; the original design-only statements below describe the pre-implementation review.
+
 # TAMS Prototype 1 — M7 Full Implementation Blueprint
 
 **Revision:** 1.2 — **owner-approved separation of Start class and Open attendance**; venue-use architecture and implementation contracts finalized for this choice; **not an implementation claim**  

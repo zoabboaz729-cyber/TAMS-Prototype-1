@@ -3,8 +3,8 @@ Entries are listed newest-last; the Status block below is authoritative.
 (The agent appends entries here at the end of every task. This file is the agent's memory between sessions.)
 
 ## Status
-- Current milestone: M7 IN IMPLEMENTATION; M6 remains ACCEPTED/CLOSED. Owner approved all M7 scope/settings and waived the file ceiling on 9 November 2026.
-- Last verified code task: M6-T3a2 (`9df0181`, applied from delivery commit `314f62b3a2fb`) on `m6-change-handling`; 1672 tests, seed 11/11 and build pass; M6 manual acceptance recorded in docs/M6-VERIFICATION.md.
+- Current milestone: M7 IMPLEMENTED / AUTOMATED VERIFIED / PENDING OWNER MANUAL ACCEPTANCE. M6 remains ACCEPTED/CLOSED.
+- Last verified code task: M7-T3 (`8f382a4`), 1760 tests/77 files, seed 11/11, implementation and exact-replay production builds pass. See docs/M7-VERIFICATION.md.
 - Demo-ready: no
 
 ## Log
@@ -1007,3 +1007,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: pinned qrcode 1.5.4/html5-qrcode 2.3.8/@types/qrcode 1.5.6; no existing dependency version changed. Named scanner is in maintenance mode. npm audit reports the pre-existing 15 advisories (8 moderate, 5 high, 2 critical); none names these QR packages; no audit-fix/upgrade performed. Core report reader preceded the web slice because summary/SSR transports depend on it.
 - Known problems: actual device permissions/HTTPS/30-second typed-code usability and owner browser acceptance pending.
 - Next suggested task: exact-tree replay and owner handoff; no M8/M9.
+
+
+## 2026-11-09 M7-T4e Verified implementation and owner acceptance handoff
+- Done: all approved M7 feature slices are implemented; six implementation patches replay cleanly with full per-commit verification and exact tree equality. Added raw verification output, scope map and owner manual checklist.
+- Files changed: docs/M7-DESIGN.md; docs/M7-IMPLEMENTATION.md; docs/M7-VERIFICATION.md; docs/M7-verification.txt; docs/M7-MANUAL-ACCEPTANCE.md; PROGRESS.md; DECISIONS.md.
+- Verify: PASS 1760/1760 tests across 77 files, seed 11/11; production build on implementation and replay; migration/legacy-row preservation, seed twice count equality, 11 production HTTP and 11 npm-run-dev HTTP checks. Final documentation-patch verification/replay is stored externally to avoid recursive self-hashing.
+- Decisions: all seven cohesive slices retain traceability and acceptance coverage. GitHub integration 403 and direct push dry-run lacks credentials; remote branches unchanged. Deliver ordered patches with git am --keep-cr, hashes, raw logs and VS Code instructions.
+- Known problems: owner laptop/phone/camera/HTTPS/30-second code usability and manual acceptance pending; existing dependency advisories and scanner maintenance mode documented. Not a physical-presence guarantee or institutional policy approval.
+- Next suggested task: owner applies to exact m7 base, verifies a disposable database, runs the checklist and reports acceptance. No M8/M9 or protected database migration is started.

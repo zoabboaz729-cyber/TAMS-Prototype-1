@@ -11,3 +11,18 @@ Owner authorized all recommended M7 settings, M7-T1–T4 and M7-V0–V5, the M4/
 - Legacy attendance metadata stays nullable, unmodified and nonoperational until explicit repair. Composite provenance FKs and Restrict history. No protected database access.
 
 Cohesive commit boundaries consolidate the blueprint's suggested manifests while preserving feature and evidence requirements: T0 baseline/scope; T1a/V0/V1 domain contracts and rules; T1b/V2a schema/migration/fixture; T1c–f crypto/occurrence/throttle foundations; T2/V2b transactional lifecycle; V5 publication gate; T3/V3 transports and UI; T4/V4 reports and M5 overlay; integration verification and patch handoff. Each receives npm run verify; UI and dependency slices also receive build. Owner browser acceptance remains separate.
+
+
+## Final implementation map
+
+| Commit slice | Blueprint coverage |
+|---|---|
+| M7-T1 foundations | T0a, T1a/b, V0/V1/V2a; approval record, pure contracts, safe schema and upgrade evidence |
+| M7-T2 lifecycle | T0b, T1c–g, T2a–e, V2b; fixture, resolver, credentials/throttle, transactions and audit |
+| M7-V5 publication | T2i, V5; current-publication and in-progress safeguards |
+| M7-T2h hardening | Transaction clocks, activity integrity, expanded real SQLite race/rollback and protocol regressions |
+| M7-T4 reports/M5 | T4a/b/d, V3b/V4; report services/page, independent activity history and one-snapshot M5 overlay |
+| M7-T3 web journeys | T2f–h, T3a–h, V3a, T4c; guarded endpoints/actions, QR/scanner/typed fallback, menus and HTTP/SSR tests |
+| M7-T4e handoff | Verification/acceptance docs, raw outputs, exact-tree patch replay and application instructions |
+
+The cohesive slices replace the blueprint's suggested per-file manifests under the owner's full-M7 authorization and file waiver. The report reader preceded final web integration because private summary endpoints and page tests depend on it. No feature/acceptance requirement is removed. Every delivered commit is independently verified during replay. Manual device testing is performed by the owner, never inferred from HTTP or mocked-camera checks.
