@@ -1,3 +1,4 @@
+import { FlowStatus } from "@/components/FlowStatus";
 import { requireAnyAction } from "@/server/guards";
 import { prisma } from "@/server/db";
 import { createVenueStatusStore } from "@/server/venueStatusStorePrisma";
@@ -49,7 +50,7 @@ export default async function VenueStatusPage({ searchParams }: {
       <VenueStatusControls semester={result.semester} mode={result.mode} asOf={result.asOf} canDemo={canUseVenueDemoClock(actor)} />
       {result.integrityCount !== undefined && result.integrityCount > 0 &&
         <p role="alert">Published-data integrity warning: {result.integrityCount} overlapping booking/closure pairs on this day. Ask an officer to review the published timetable.</p>}
-      {result.rows.length === 0 ? <p>No venues registered. Ask an officer to review the venue register.</p> :
+      {result.rows.length === 0 ? <FlowStatus state="EMPTY">No venues registered. Ask an officer to review the venue register.</FlowStatus> :
         <ul aria-label="Schedule-derived venue statuses" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {result.rows.map((row) => <li key={row.code} className="min-w-0 space-y-2 break-words rounded-lg border border-slate-300 bg-white p-4">
             <h2 className="text-lg font-semibold">{row.code} <span className="text-sm font-normal">({row.type})</span></h2>

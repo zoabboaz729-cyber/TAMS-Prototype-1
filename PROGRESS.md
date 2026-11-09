@@ -1069,3 +1069,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
 - Known problems: owner browser/device acceptance pending; M8 is not closed.
 - Next suggested task: remaining authorized M8 implementation and verification handoff.
+
+
+## 2026-11-09 M8-T2c clarify flow states and verify complete synthetic discovery lifecycle
+- Done: clarify flow states and verify complete synthetic discovery lifecycle.
+- Files changed: src/app/department/review/page.tsx, src/app/department/submission/page.tsx, src/app/lecturer/attendance/page.tsx, src/app/reports/attendance/page.tsx, src/app/student/scan/page.tsx, src/app/venues/status/page.tsx, src/app/department/review/error.tsx, src/app/department/submission/error.tsx, src/app/officer/draft/error.tsx, src/server/__tests__/m8EndToEnd.test.ts.
+- Verify: working-tree automated checks executed; exact per-commit replay results and raw output are recorded in docs/M8-VERIFICATION.md and delivery evidence.
+- Decisions: owner authorized full M8 and waived five-file cap; cohesive slices replace blueprint micro-slices. No dependency changes.
+- Known problems: owner browser/device acceptance pending; M8 is not closed.
+- Next suggested task: remaining authorized M8 implementation and verification handoff.
