@@ -998,3 +998,12 @@ Entries are listed newest-last; the Status block below is authoritative.
 - Decisions: planned group size and provisioned accounts remain distinct; no official attendance rate; simulated sessions have separate aggregates and cannot create a live M5 activity claim. Reports rely on retained entry/teaching references; application draft-only editing preserves historical entries.
 - Known problems: owner manual acceptance pending.
 - Next suggested task: approved guarded lecturer/student transports, camera and menus.
+
+
+## 2026-11-09 M7-T3 Guarded lecturer/student web journeys and navigation
+- Done: independent lecturer controls, private locally rendered QR and live counts, student camera/typed fallback through one POST service, explicit server receipts/UNKNOWN outcomes, random device stub, scoped menus, safe SSR and accessible error paths.
+- Files changed: attendance routes/actions/pages/components; attendanceHttp; camera/submission boundaries and tests; approved dependency manifests; .env.example; menu and expected navigation assertions; PROGRESS.md.
+- Verify: PASS, npm run verify 1760 tests/77 files, seed 11/11; production build PASS (26-reviewed-build.txt), scanner dynamically split and no server access to camera globals. Real camera/phone acceptance remains pending.
+- Decisions: pinned qrcode 1.5.4/html5-qrcode 2.3.8/@types/qrcode 1.5.6; no existing dependency version changed. Named scanner is in maintenance mode. npm audit reports the pre-existing 15 advisories (8 moderate, 5 high, 2 critical); none names these QR packages; no audit-fix/upgrade performed. Core report reader preceded the web slice because summary/SSR transports depend on it.
+- Known problems: actual device permissions/HTTPS/30-second typed-code usability and owner browser acceptance pending.
+- Next suggested task: exact-tree replay and owner handoff; no M8/M9.

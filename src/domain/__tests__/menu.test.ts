@@ -70,7 +70,7 @@ const EXPECTED_KEYS: Record<UserRole, string[]> = {
 };
 
 describe("MENU_ITEMS", () => {
-  it("exactly twelve items are built: timetable, venue status, venue register, the three submission pages, draft editor, my availability", () => {
+  it("fifteen delivered items are built, including the three M7 destinations", () => {
     expect(MENU_ITEMS).toHaveLength(17);
     const built = MENU_ITEMS.filter((item) => item.built).map((item) => item.key);
     expect(built).toEqual([
@@ -86,6 +86,9 @@ describe("MENU_ITEMS", () => {
       "lecturer-availability",
       "issues-new",
       "issues-list",
+      "attendance-open",
+      "attendance-scan",
+      "attendance-report",
     ]);
     for (const item of MENU_ITEMS) {
       if (!built.includes(item.key)) {
@@ -172,18 +175,18 @@ describe("Timetable navigation activation (M4-T4e)", () => {
     }
   });
 
-  it("6. every other built flag is unchanged: the five unfinished features stay unbuilt, the six pre-M4 features stay built and venue status is now built", () => {
+  it("6. only delivered features are built; generator alias and user management remain unbuilt", () => {
     const unbuilt = [
       "generate",
-      "attendance-open",
-      "attendance-scan",
-      "attendance-report",
       "users",
     ];
     for (const key of unbuilt) {
       expect(MENU_ITEMS.find((item) => item.key === key)?.built).toBe(false);
     }
     const stillBuilt = [
+      "attendance-open",
+      "attendance-scan",
+      "attendance-report",
       "reschedule-decide",
       "reschedule-request",
       "issues-new",
@@ -248,8 +251,10 @@ describe("Timetable navigation activation (M4-T4e)", () => {
     const studentMarkup = renderToStaticMarkup(await HomePage());
     expect(studentMarkup).toContain('href="/venues/status"');
     expect(studentMarkup).not.toContain("Venue status — Coming soon");
-    expect(studentMarkup).toContain("Scan attendance — Coming soon");
-    expect(studentMarkup).toContain("Attendance reports — Coming soon");
+    expect(studentMarkup).toContain('href="/student/scan"');
+    expect(studentMarkup).not.toContain("Scan attendance — Coming soon");
+    expect(studentMarkup).toContain('href="/reports/attendance"');
+    expect(studentMarkup).not.toContain("Attendance reports — Coming soon");
     h.user = null;
     const signedOut = renderToStaticMarkup(await HomePage());
     expect(signedOut).not.toContain('href="/timetable"');
